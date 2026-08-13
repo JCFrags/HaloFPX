@@ -144,6 +144,28 @@ option(HALOFPX_SAMPLING_SYNC_COALESCE_CANARY
        "Coalesce redundant completed output synchronizations during sampling"
        OFF)
 
+# L10e is a standalone, non-product Linux selector seam. Declare and enforce
+# its build graph before tests are processed: tests precede tools/server in the
+# root subdirectory order, while the implementation target lives there.
+option(HALOFPX_CONTEXT_STORE_LONGEST_PREFIX_CANARY
+       "Compile the non-product exact longest-prefix catalog selector canary"
+       OFF)
+if (HALOFPX_CONTEXT_STORE_LONGEST_PREFIX_CANARY AND
+    NOT HALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY)
+    message(FATAL_ERROR
+        "HALOFPX_CONTEXT_STORE_LONGEST_PREFIX_CANARY requires the exact-key catalog canary gate")
+endif()
+if (HALOFPX_CONTEXT_STORE_LONGEST_PREFIX_CANARY AND
+    (NOT LLAMA_BUILD_COMMON OR NOT LLAMA_BUILD_TOOLS OR NOT LLAMA_BUILD_SERVER))
+    message(FATAL_ERROR
+        "HALOFPX_CONTEXT_STORE_LONGEST_PREFIX_CANARY requires LLAMA_BUILD_COMMON, LLAMA_BUILD_TOOLS, and LLAMA_BUILD_SERVER")
+endif()
+if (HALOFPX_CONTEXT_STORE_LONGEST_PREFIX_CANARY AND
+    NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    message(FATAL_ERROR
+        "HALOFPX_CONTEXT_STORE_LONGEST_PREFIX_CANARY is supported only on Linux")
+endif()
+
 # P06a is a test-only expert-axis contract seam. It does not enable MiniMax
 # tensor mode, alter model placement, or link into the inference runtime.
 option(HALOFPX_MINIMAX_M2_EXPERT_PARTITION_CANARY

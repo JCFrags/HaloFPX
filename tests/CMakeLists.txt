@@ -128,6 +128,7 @@ if (LLAMA_BUILD_SERVER)
             -DHALOFPX_CONTEXT_STORE_FULL_V1_CANARY=${HALOFPX_CONTEXT_STORE_FULL_V1_CANARY}
             -DHALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY=${HALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY}
             -DHALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY=${HALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY}
+            -DHALOFPX_CONTEXT_STORE_LONGEST_PREFIX_CANARY=${HALOFPX_CONTEXT_STORE_LONGEST_PREFIX_CANARY}
             -P ${CMAKE_CURRENT_SOURCE_DIR}/test-halofpx-feature-off-contract.cmake)
     set_property(TEST test-halofpx-feature-off-contract PROPERTY LABELS "main;halofpx")
 endif()
@@ -252,6 +253,21 @@ if (UNIX AND NOT APPLE)
     set_property(TEST test-halofpx-context-store-v1-catalog PROPERTY
         LABELS "main;halofpx;linux")
 
+    # Root configuration makes tools+server mandatory for this gate before
+    # tests are traversed, so this plain target name is guaranteed to be
+    # defined later in the same configure graph.
+    if (HALOFPX_CONTEXT_STORE_LONGEST_PREFIX_CANARY AND
+        LLAMA_BUILD_TOOLS AND LLAMA_BUILD_SERVER)
+        llama_build(test-halofpx-context-store-v1-prefix-selector.cpp)
+        target_include_directories(test-halofpx-context-store-v1-prefix-selector PRIVATE
+            ${CMAKE_SOURCE_DIR}/tools/server)
+        target_link_libraries(test-halofpx-context-store-v1-prefix-selector PRIVATE
+            halofpx-context-store-v1-prefix-selector)
+        llama_test(test-halofpx-context-store-v1-prefix-selector)
+        set_property(TEST test-halofpx-context-store-v1-prefix-selector PROPERTY
+            LABELS "main;halofpx;linux")
+    endif()
+
     llama_build(test-halofpx-context-store-linux-direct.cpp)
     target_include_directories(test-halofpx-context-store-linux-direct PRIVATE ${CMAKE_SOURCE_DIR}/tools/server)
     target_link_libraries(test-halofpx-context-store-linux-direct PRIVATE
@@ -266,6 +282,14 @@ if (UNIX AND NOT APPLE)
     llama_test(test-halofpx-context-store-linux-protected)
     set_property(TEST test-halofpx-context-store-linux-protected PROPERTY LABELS "main;halofpx")
 endif()
+
+add_test(
+    NAME test-halofpx-context-store-v1-prefix-selector-contract
+    COMMAND ${CMAKE_COMMAND}
+        -DHALOFPX_SOURCE_DIR=${PROJECT_SOURCE_DIR}
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/test-halofpx-context-store-v1-prefix-selector-contract.cmake)
+set_property(TEST test-halofpx-context-store-v1-prefix-selector-contract PROPERTY
+    LABELS "main;halofpx")
 
 llama_build(test-halofpx-context-store-protected-canary-anchor.cpp)
 target_include_directories(test-halofpx-context-store-protected-canary-anchor PRIVATE ${CMAKE_SOURCE_DIR}/tools/server)

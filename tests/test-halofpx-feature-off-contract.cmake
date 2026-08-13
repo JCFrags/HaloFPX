@@ -84,6 +84,17 @@ else()
     endif()
 endif()
 
+# The longest-prefix selector is deliberately a non-product seam even in an
+# opt-in qualification build. It must never add a server mode or CLI surface.
+foreach(forbidden_prefix_surface
+        "longest-prefix"
+        "prefix-selector")
+    string(FIND "${server_help}" "${forbidden_prefix_surface}" prefix_position)
+    if (NOT prefix_position EQUAL -1)
+        message(FATAL_ERROR "non-product prefix selector entered server CLI: ${forbidden_prefix_surface}")
+    endif()
+endforeach()
+
 if (NOT HALOFPX_CONTEXT_STORE_COMPONENT_AUTHORITY)
     string(FIND "${server_help}"
         "--halofpx-context-store-compatibility-component" canonical_component_position)

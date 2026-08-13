@@ -605,3 +605,54 @@ jobs:
           find "${RUNNER_TEMP}" -maxdepth 3 -type f
           \( -name '*.log' -o -name 'results.json' \)
           -print -exec tail -n 200 {} \;
+
+  longest-prefix-selector-qualification:
+    name: CPU exact longest-prefix selector qualification
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        # actions/checkout v4.4.0
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Configure standalone selector build
+        run: >-
+          cmake -S . -B build/ci-prefix-selector
+          -DCMAKE_BUILD_TYPE=Release
+          -DBUILD_SHARED_LIBS=OFF
+          -DGGML_NATIVE=OFF
+          -DGGML_HIP=OFF
+          -DGGML_VULKAN=OFF
+          -DGGML_RPC=ON
+          -DGGML_RPC_HALOFPX_LOCAL_STATE=ON
+          -DLLAMA_BUILD_COMMON=ON
+          -DLLAMA_BUILD_TESTS=ON
+          -DLLAMA_BUILD_TOOLS=ON
+          -DLLAMA_BUILD_EXAMPLES=OFF
+          -DLLAMA_BUILD_SERVER=ON
+          -DLLAMA_BUILD_WEBUI=OFF
+          -DLLAMA_USE_PREBUILT_WEBUI=OFF
+          -DLLAMA_OPENSSL=OFF
+          -DHALOFPX_CONTEXT_STORE_CANARY=ON
+          -DHALOFPX_CONTEXT_STORE_PROTECTED_CANARY=ON
+          -DHALOFPX_CONTEXT_STORE_COMPONENT_AUTHORITY=ON
+          -DHALOFPX_CONTEXT_STORE_FULL_V1_CANARY=ON
+          -DHALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY=ON
+          -DHALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY=ON
+          -DHALOFPX_CONTEXT_STORE_LONGEST_PREFIX_CANARY=ON
+
+      - name: Compile focused catalog and selector tests
+        run: >-
+          cmake --build build/ci-prefix-selector
+          --target test-halofpx-context-store-v1-catalog
+          test-halofpx-context-store-v1-prefix-selector
+          --parallel 2
+
+      - name: Run selector and inherited catalog regressions
+        run: >-
+          ctest --test-dir build/ci-prefix-selector
+          --output-on-failure
+          -R '^test-halofpx-context-store-v1-(catalog|prefix-selector|prefix-selector-contract)$'

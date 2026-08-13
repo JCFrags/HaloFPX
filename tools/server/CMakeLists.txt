@@ -103,6 +103,7 @@ if (HALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY AND (NOT UNIX OR APPLE))
     message(FATAL_ERROR
         "HALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY is supported only on Linux")
 endif()
+
 if (HALOFPX_CONTEXT_STORE_FULL_V1_CANARY AND (NOT UNIX OR APPLE))
     message(FATAL_ERROR "HALOFPX_CONTEXT_STORE_FULL_V1_CANARY is supported only on Linux")
 endif()
@@ -349,6 +350,19 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     target_link_libraries(halofpx-context-store-v1-catalog PUBLIC
         halofpx-context-store-v1-server-canary)
     target_compile_features(halofpx-context-store-v1-catalog PRIVATE cxx_std_17)
+
+    # Exact longest-prefix selector for CPU qualification only. Product/server
+    # wiring remains closed until one owner can restore all distributed ranks.
+    if (HALOFPX_CONTEXT_STORE_LONGEST_PREFIX_CANARY)
+        add_library(halofpx-context-store-v1-prefix-selector STATIC EXCLUDE_FROM_ALL
+            halofpx-context-store-v1-prefix-selector.cpp
+            halofpx-context-store-v1-prefix-selector.h
+        )
+        target_link_libraries(halofpx-context-store-v1-prefix-selector PUBLIC
+            halofpx-context-store-v1-catalog
+            halofpx-context-store-exact-session)
+        target_compile_features(halofpx-context-store-v1-prefix-selector PRIVATE cxx_std_17)
+    endif()
 endif()
 
 # Permanently synthetic L05m bootstrap-material preparation seam. This target

@@ -1,0 +1,72 @@
+{
+  "schema": "halofpx-selector-unit-receipt-v1",
+  "milestone": "L10e",
+  "title": "default-off exact longest-prefix selector",
+  "date": "2026-08-12",
+  "behavior_reference_commit": "fewtarius/CachyLlama@6be745998f568e379ea197fcf827baec73ff9940",
+  "qualification_base_commit": "b77f2bce6e7875ab065e09894f45915585c9f156",
+  "tree_state": "rebased L10e candidate; exact candidate and build-control Git blobs are bound below",
+  "environment": {
+    "kind": "local correctness-only WSL2; not target evidence",
+    "distribution": "Ubuntu 26.04",
+    "kernel": "6.18.33.2-microsoft-standard-WSL2",
+    "compiler": "GCC 15.2.0",
+    "cmake": "4.2.3",
+    "configuration": "Release static CPU; native, HIP, and Vulkan off; repository-required RPC and local-state authority on"
+  },
+  "portable_commands": {
+    "configure": "cmake -S \"$SOURCE_DIR\" -B \"$BUILD_DIR\" -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DGGML_NATIVE=OFF -DGGML_HIP=OFF -DGGML_VULKAN=OFF -DGGML_RPC=ON -DGGML_RPC_HALOFPX_LOCAL_STATE=ON -DLLAMA_BUILD_COMMON=ON -DLLAMA_BUILD_TESTS=ON -DLLAMA_BUILD_TOOLS=ON -DLLAMA_BUILD_EXAMPLES=OFF -DLLAMA_BUILD_SERVER=ON -DLLAMA_BUILD_WEBUI=OFF -DLLAMA_USE_PREBUILT_WEBUI=OFF -DLLAMA_OPENSSL=OFF -DHALOFPX_CONTEXT_STORE_CANARY=ON -DHALOFPX_CONTEXT_STORE_PROTECTED_CANARY=ON -DHALOFPX_CONTEXT_STORE_COMPONENT_AUTHORITY=ON -DHALOFPX_CONTEXT_STORE_FULL_V1_CANARY=ON -DHALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY=ON -DHALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY=ON -DHALOFPX_CONTEXT_STORE_LONGEST_PREFIX_CANARY=ON",
+    "build": "cmake --build \"$BUILD_DIR\" --target test-halofpx-context-store-v1-catalog test-halofpx-context-store-v1-prefix-selector --parallel 4",
+    "test": "ctest --test-dir \"$BUILD_DIR\" --output-on-failure -R '^test-halofpx-context-store-v1-(catalog|prefix-selector|prefix-selector-contract)$'"
+  },
+  "focused_result": {
+    "passed": 3,
+    "failed": 0,
+    "tests": [
+      "test-halofpx-context-store-v1-catalog",
+      "test-halofpx-context-store-v1-prefix-selector",
+      "test-halofpx-context-store-v1-prefix-selector-contract"
+    ],
+    "real_seconds": 0.16
+  },
+  "rebased_two_rank_preservation": {
+    "base_feature": "test-only fake-provider coordinator contract from b77f2bce6e7875ab065e09894f45915585c9f156",
+    "configure": "cmake -S \"$SOURCE_DIR\" -B \"$TWO_RANK_BUILD_DIR\" -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DGGML_NATIVE=OFF -DGGML_HIP=OFF -DGGML_VULKAN=OFF -DGGML_RPC=OFF -DGGML_RPC_HALOFPX_LOCAL_STATE=OFF -DLLAMA_BUILD_COMMON=ON -DLLAMA_BUILD_TESTS=ON -DLLAMA_BUILD_TOOLS=ON -DLLAMA_BUILD_EXAMPLES=OFF -DLLAMA_BUILD_SERVER=ON -DLLAMA_BUILD_WEBUI=OFF -DLLAMA_USE_PREBUILT_WEBUI=OFF -DLLAMA_OPENSSL=OFF -DHALOFPX_CONTEXT_STORE_TWO_RANK_CONTRACT=ON",
+    "build": "cmake --build \"$TWO_RANK_BUILD_DIR\" --target test-halofpx-context-store-two-rank-contract --parallel 4",
+    "test": "ctest --test-dir \"$TWO_RANK_BUILD_DIR\" --output-on-failure -R '^test-halofpx-context-store-two-rank-contract(-boundary)?$'",
+    "passed": 2,
+    "failed": 0,
+    "tests": [
+      "test-halofpx-context-store-two-rank-contract",
+      "test-halofpx-context-store-two-rank-contract-boundary"
+    ],
+    "real_seconds": 0.15,
+    "scope": "merge-preservation correctness only; no real rank-local restore, RPC, filesystem, server, or performance claim"
+  },
+  "source_git_blob_oid_sha1": {
+    ".github/workflows/halofpx-ci.yml": "4775b22d42a8d1a7e2208d47fd1523f9b3da57ab",
+    "CMakeLists.txt": "132f651b45e11fba2bc2835c602f7c11647dde4f",
+    "tools/server/halofpx-context-store-v1-prefix-selector.h": "43159a028bfec0eb454f4774545c9e2ce84ade25",
+    "tools/server/halofpx-context-store-v1-prefix-selector.cpp": "4a86ab3a29c03bbd0333c37e09ea306e6f4f733e",
+    "tools/server/CMakeLists.txt": "cd550a736fd69072a3437af4528d8bf0b14892b5",
+    "tests/test-halofpx-context-store-v1-prefix-selector.cpp": "15a5a18312945d05ef8472ace7008ea1c2cf72f8",
+    "tests/test-halofpx-context-store-v1-prefix-selector-contract.cmake": "a5a00959c3453072970ea51b81da44e984377a20",
+    "tests/test-halofpx-feature-off-contract.cmake": "8578e7d4478ac84e6520813c823bde122dd513bb",
+    "tests/CMakeLists.txt": "f5efb62d45a45803ee286307217bf15363c2cced",
+    "docs/halofpx/decisions/0051-default-off-exact-longest-prefix-selector.md": "44d7575e14d5a40a4125b443059b5e4727dfbdef",
+    "docs/halofpx/l10e-default-off-exact-longest-prefix-selector.md": "4c1729a5ed36b8a55e47a9529ce8bda6181f2d7d",
+    "project/PERFORMANCE_WORKPLAN.md": "229e2b8df1522b52115c6e47a5a3bfee13fece87"
+  },
+  "default_enabled": false,
+  "server_or_runtime_linked": false,
+  "production_deployment_touched": false,
+  "performance_claim": false,
+  "open": [
+    "fresh-process selector execution",
+    "pinned-model deterministic output equality",
+    "canonical-token and phase-timing raw evidence",
+    "real state install and suffix prefill",
+    "real rank-local adapter and atomic two-rank product composition from issue 26",
+    "matched dual-Strix-Halo CachyOS performance"
+  ]
+}
