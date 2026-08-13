@@ -1,7 +1,9 @@
 # ROCmFPX dense FFN Q8_1 activation reuse
 
 Status: default-off implementation candidate for
-[GitHub issue #29](https://github.com/JCFrags/HaloFPX/issues/29). Target HIP
+[GitHub issue #29](https://github.com/JCFrags/HaloFPX/issues/29). The exact
+`gfx1151` compile/link gate passed at
+[`3402aa7`](evidence/rocmfpx-ffn-q8-reuse-3402aa7/README.md); target runtime
 correctness, launch-count, and performance qualification remain open.
 
 Source base: `bf420e9f1db4ea4ba1d7c87771b6a4d662b5be67`.
