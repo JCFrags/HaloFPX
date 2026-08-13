@@ -214,8 +214,13 @@ def retain_build_provenance(
     output_dir: Path,
     source_root: Path,
     server: Path,
+    source_commit: str,
+    source_tree: str,
+    source_archive: Path,
 ) -> dict[str, Any]:
     required = [
+        "source-export-command.json",
+        "source-export.log",
         "configure-command.json",
         "configure.log",
         "build-command.json",
@@ -233,6 +238,7 @@ def retain_build_provenance(
 
     command_receipts = {}
     for name in (
+        "source-export-command.json",
         "configure-command.json",
         "build-command.json",
         "test-arg-parser-offline-command.json",
@@ -242,6 +248,16 @@ def retain_build_provenance(
         if receipt.get("returncode") != 0 or not isinstance(receipt.get("argv"), list):
             raise RuntimeError(f"unsuccessful or malformed command receipt: {name}")
         command_receipts[name] = receipt
+
+    export_receipt = command_receipts["source-export-command.json"]
+    if export_receipt.get("source_commit") != source_commit:
+        raise RuntimeError("source export receipt commit does not match qualification")
+    if export_receipt.get("source_tree") != source_tree:
+        raise RuntimeError("source export receipt tree does not match qualification")
+    if export_receipt.get("archive_sha256") != sha256_file(source_archive):
+        raise RuntimeError("source export receipt archive hash does not match qualification")
+    if export_receipt.get("archive_size_bytes") != source_archive.stat().st_size:
+        raise RuntimeError("source export receipt archive size does not match qualification")
 
     cache_path = build_receipt_dir / "CMakeCache.txt"
     cache_text = cache_path.read_text(encoding="utf-8", errors="replace")
@@ -689,6 +705,9 @@ def main() -> int:
             output_dir=output_dir,
             source_root=source_root,
             server=server,
+            source_commit=args.source_commit,
+            source_tree=args.source_tree,
+            source_archive=source_archive,
         )
     identity.update({
         "server_path": str(server),
