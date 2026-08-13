@@ -43,6 +43,12 @@ Current accepted architecture decision records (ADRs) include:
 - [ADR-0065](../../../docs/halofpx/decisions/0065-offline-independent-two-node-recovery-watchdog.md):
   offline-only independent two-node recovery-watchdog model.
 
+Current proposed architecture decision records include:
+
+- [ADR-0066 (proposed)](../../../docs/halofpx/decisions/0066-offline-two-node-maintenance-nonce-protocol.md):
+  offline two-node maintenance nonce protocol and explicit distributed
+  uncertainty boundary.
+
 Read each complete decision in the HaloFPX implementation repository.
 Do not copy a decision into the Wiki as a replacement authority.
 

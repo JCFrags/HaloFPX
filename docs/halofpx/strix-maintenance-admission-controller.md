@@ -176,7 +176,11 @@ mutation:
 4. **Atomic two-node consumption:** atomically consume the same signed
    authorization digest and nonce on both `nimo-1` and `nimo-2`, prove neither
    was consumed before, and commit the paired receipt before stopping either
-   production rank. A one-node or replayed receipt must refuse.
+   production rank. A one-node or replayed receipt must refuse. The
+   [ADR-0066 offline model](strix-maintenance-two-node-nonce-protocol.md)
+   distinguishes definite refusal from lost-response/partial-commit
+   uncertainty, but supplies no real node agent, durability, consensus, or
+   authorization and cannot satisfy this gate.
 5. **Independent recovery watchdog:** install and arm an owner-approved,
    out-of-band watchdog on both nodes before the controller may stop
    production. It must survive controller/control-PC/network loss, enforce
