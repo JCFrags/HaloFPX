@@ -32,11 +32,18 @@ if(HIP_PRIVATE_DEFINITION EQUAL -1)
     message(FATAL_ERROR "reuse macro is not private to the HIP backend target")
 endif()
 
+string(FIND "${CUDA_DISPATCH_TEXT}" "// HALOFPX_FFN_Q8_REUSE_DISPATCH_BEGIN" DISPATCH_BEGIN)
+string(FIND "${CUDA_DISPATCH_TEXT}" "// HALOFPX_FFN_Q8_REUSE_DISPATCH_END" DISPATCH_END)
+if(DISPATCH_BEGIN EQUAL -1 OR DISPATCH_END EQUAL -1 OR DISPATCH_END LESS_EQUAL DISPATCH_BEGIN)
+    message(FATAL_ERROR "paired dispatch source markers are missing or out of order")
+endif()
+math(EXPR DISPATCH_LENGTH "${DISPATCH_END} - ${DISPATCH_BEGIN}")
+string(SUBSTRING "${CUDA_DISPATCH_TEXT}" ${DISPATCH_BEGIN} ${DISPATCH_LENGTH} DISPATCH_SOURCE)
 foreach(REQUIRED_DISPATCH_TEXT IN ITEMS
-        "ggml_cuda_should_reuse_rocmfpx_ffn_q8"
-        "ggml_cuda_mul_mat_q_rocmfpx_pair"
+        "ggml_cuda_should_reuse_rocmfpx_ffn_q8(*cuda_ctx, cgraph->nodes[i], cgraph->nodes[i + 1], glu)"
+        "ggml_cuda_mul_mat_q_rocmfpx_pair("
         "return 1;")
-    string(FIND "${CUDA_DISPATCH_TEXT}" "${REQUIRED_DISPATCH_TEXT}" DISPATCH_MATCH)
+    string(FIND "${DISPATCH_SOURCE}" "${REQUIRED_DISPATCH_TEXT}" DISPATCH_MATCH)
     if(DISPATCH_MATCH EQUAL -1)
         message(FATAL_ERROR "missing paired-dispatch contract text: ${REQUIRED_DISPATCH_TEXT}")
     endif()

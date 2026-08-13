@@ -21,8 +21,10 @@ describes the pinned source path; it is not a target performance result.
 
 The candidate adds `GGML_HIP_ROCMFPX_FFN_Q8_REUSE`, default `OFF`. CMake
 defines it privately for `ggml-hip`; requesting it without `GGML_HIP=ON` is a
-configuration error. CUDA, Vulkan, CPU, RPC, and feature-off execution retain
-their previous dispatch.
+configuration error. CUDA, Vulkan, CPU, the RPC protocol/client path, and
+feature-off execution retain their previous dispatch. An enabled RPC worker
+can still select this pair inside its rank-local HIP backend after normal RPC
+graph dispatch, so dual-rank qualification must bind both worker binaries.
 
 The first implementation slice is intentionally narrower than issue #29's
 full proposed six-format selector. It admits only:
@@ -49,7 +51,7 @@ Reuse is attempted only inside the existing conservative no-bias
 - two independently MMQ-eligible operations;
 - local, non-split HIP buffers for both weights, the activation, and outputs;
 - a contiguous, non-view activation and no unsafe compute-buffer weight view;
-- no RPC, split-buffer, bias, or persistent pointer-based cache.
+- no RPC buffer, split-buffer, bias, or persistent semantic cache.
 
 Any failed predicate runs the original nodes independently. The selector's
 pure contract is compiled and tested in both macro modes on a host without
@@ -72,8 +74,10 @@ allocate Q8_1 pool scratch
   -> run the existing GLU node normally
 ```
 
-The Q8_1 pointer is not stored in a tensor, backend context, graph, stream,
-device, process, or rank cache. Both MMQs use the current backend stream. The
+The feature creates no cross-evaluation semantic cache. Its Q8_1 allocation is
+pool-owned for the paired call; both MMQs are submitted on the current backend
+stream before that allocation is released. HIP graph capture may retain kernel
+pointer arguments according to the existing pool/graph lifetime contract. The
 pair path preserves both ordinary F32 projection outputs and skips only the
 second already-executed `MUL_MAT` node.
 

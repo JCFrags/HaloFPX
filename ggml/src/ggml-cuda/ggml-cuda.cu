@@ -4579,6 +4579,7 @@ static int ggml_cuda_try_fuse(ggml_backend_cuda_context * cuda_ctx, ggml_cgraph 
             }
 
 #if defined(GGML_HIP_ROCMFPX_FFN_Q8_REUSE)
+            // HALOFPX_FFN_Q8_REUSE_DISPATCH_BEGIN
             // Prompt/MMQ path: retain the ordinary graph outputs and execute
             // GLU normally, but quantize their exact shared activation once.
             if (op == GGML_OP_MUL_MAT &&
@@ -4592,6 +4593,7 @@ static int ggml_cuda_try_fuse(ggml_backend_cuda_context * cuda_ctx, ggml_cgraph 
                     cgraph->nodes[i + 1]);
                 return 1;
             }
+            // HALOFPX_FFN_Q8_REUSE_DISPATCH_END
 #endif
         }
     }

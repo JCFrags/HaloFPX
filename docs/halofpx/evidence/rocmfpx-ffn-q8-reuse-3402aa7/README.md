@@ -138,14 +138,16 @@ The same missing preflight symbol was previously recorded by L71 and L106.
 
 ## Production and claim boundary
 
-Before/during and after the compile, production identities remained unchanged:
+The retained pre-build observation recorded these production identities:
 
 - nimo-1 coordinator PID `3027112`, InvocationID
   `e6da1fe637144cb394119959c0e88736`, `NRestarts=0`, HTTP health `ok`;
 - nimo-2 worker PID `2148915`, InvocationID
   `3480c89086e04d5d80060366c5c7ab7f`, `NRestarts=0`.
 
-This proves that the guarded code compiles and links for the target toolchain.
+The portable archive does not contain a post-build identity/health probe, so it
+does not establish an unchanged before/during/after production tuple. It proves
+that the guarded code compiles and links for the target toolchain.
 It does not prove that a real graph selects the pair path, that results match,
 that one rather than two conversion kernels launches, or that prompt speed or
 time to first token improves. Those require isolated target execution and
