@@ -1,0 +1,6 @@
+PASS: off /ggml/src/ggml-cuda/ggml-cuda.cu gfx1151 and composed macro contract
+PASS: off /ggml/src/ggml-cuda/mmq.cu gfx1151 and composed macro contract
+PASS: off /ggml/src/ggml-cuda/mmvq.cu gfx1151 and composed macro contract
+PASS: off cache GGML_HIP_ROCMFPX_QKV_Q8_REUSE:BOOL=OFF
+PASS: off cache GGML_HIP_ROCMFPX_MMVQ_QKV_Q8_REUSE:BOOL=OFF
+PASS: off linked /workspace/work/build-off/bin/libggml-hip.so

@@ -33,6 +33,7 @@
 #include "ggml-cuda/mmvq.cuh"
 #include "ggml-cuda/rocmfpx-ffn-q8-reuse.h"
 #include "ggml-cuda/rocmfpx-qkv-q8-reuse.h"
+#include "ggml-cuda/rocmfpx-mmvq-qkv-q8-reuse.h"
 #include "ggml-cuda/norm.cuh"
 #include "ggml-cuda/opt-step-adamw.cuh"
 #include "ggml-cuda/opt-step-sgd.cuh"
@@ -3012,6 +3013,176 @@ static bool ggml_cuda_should_reuse_rocmfpx_qkv_q8(
 }
 #endif
 
+#if defined(GGML_HIP_ROCMFPX_MMVQ_QKV_Q8_REUSE)
+static bool ggml_cuda_mmvq_qkv_tensor_ranges_do_not_overlap(
+        const std::array<const ggml_tensor *, 7> & tensors) {
+    const auto valid_range = [](const ggml_tensor * tensor, uintptr_t & begin, uintptr_t & end) {
+        if (!tensor || !tensor->buffer || !tensor->data) {
+            return false;
+        }
+        const size_t size = ggml_nbytes(tensor);
+        const size_t allocation = ggml_backend_buffer_get_alloc_size(tensor->buffer, tensor);
+        begin = reinterpret_cast<uintptr_t>(tensor->data);
+        if (begin == 0 || size == 0 || allocation < size || size > UINTPTR_MAX - begin) {
+            return false;
+        }
+        end = begin + size;
+        return true;
+    };
+
+    std::array<uintptr_t, 7> begins = {};
+    std::array<uintptr_t, 7> ends = {};
+    for (size_t i = 0; i < tensors.size(); ++i) {
+        if (!valid_range(tensors[i], begins[i], ends[i])) {
+            return false;
+        }
+    }
+    for (size_t i = 0; i < tensors.size(); ++i) {
+        for (size_t j = i + 1; j < tensors.size(); ++j) {
+            if (begins[i] < ends[j] && begins[j] < ends[i]) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+static bool ggml_cuda_mmvq_qkv_has_optimizer_capability(
+        const std::array<const ggml_tensor *, 3> & nodes) {
+    for (size_t role = 0; role < nodes.size(); ++role) {
+        if (!nodes[role] ||
+            nodes[role]->op_params[HALOFPX_ROCMFPX_MMVQ_QKV_Q8_REUSE_MAGIC_PARAM] !=
+                HALOFPX_ROCMFPX_MMVQ_QKV_Q8_REUSE_GRAPH_MAGIC ||
+            nodes[role]->op_params[HALOFPX_ROCMFPX_MMVQ_QKV_Q8_REUSE_ROLE_PARAM] !=
+                static_cast<int32_t>(role)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+static bool ggml_cuda_should_reuse_rocmfpx_mmvq_qkv_q8(
+        ggml_backend_cuda_context & ctx,
+        const ggml_cgraph * cgraph,
+        const int node_index) {
+    if (!cgraph || node_index < 0 || node_index + 2 >= cgraph->n_nodes ||
+        ctx.curr_stream_no != 0 || !ctx.stream_context().concurrent_events.empty()) {
+        return false;
+    }
+
+    const std::array<const ggml_tensor *, 3> nodes = {
+        cgraph->nodes[node_index], cgraph->nodes[node_index + 1], cgraph->nodes[node_index + 2],
+    };
+    const bool optimizer_capability = ggml_cuda_mmvq_qkv_has_optimizer_capability(nodes);
+    const bool current_graph_contract =
+        halofpx_rocmfpx_mmvq_qkv_validate_marked_runtime_group(cgraph, node_index);
+    if (!optimizer_capability || !current_graph_contract) {
+        return false;
+    }
+
+    const ggml_tensor * weight_q = nodes[0]->src[0];
+    const ggml_tensor * weight_k = nodes[1]->src[0];
+    const ggml_tensor * weight_v = nodes[2]->src[0];
+    const ggml_tensor * act_q = nodes[0]->src[1];
+    const ggml_tensor * act_k = nodes[1]->src[1];
+    const ggml_tensor * act_v = nodes[2]->src[1];
+    if (!weight_q || !weight_k || !weight_v || !act_q || !act_k || !act_v) {
+        return false;
+    }
+
+    const bool ordinary_separate_qkv =
+        halofpx_rocmfpx_mmvq_qkv_is_ordinary_mul_mat(nodes[0]) &&
+        halofpx_rocmfpx_mmvq_qkv_is_ordinary_mul_mat(nodes[1]) &&
+        halofpx_rocmfpx_mmvq_qkv_is_ordinary_mul_mat(nodes[2]) &&
+        (nodes[0]->flags & GGML_TENSOR_FLAG_COMPUTE) &&
+        (nodes[1]->flags & GGML_TENSOR_FLAG_COMPUTE) &&
+        (nodes[2]->flags & GGML_TENSOR_FLAG_COMPUTE);
+    const bool exact_shared_activation =
+        act_q == act_k && act_q == act_v &&
+        act_q->data == act_k->data && act_q->data == act_v->data;
+    const bool f32_activation =
+        act_q->type == GGML_TYPE_F32 && act_k->type == GGML_TYPE_F32 && act_v->type == GGML_TYPE_F32;
+    const bool f32_outputs =
+        nodes[0]->type == GGML_TYPE_F32 && nodes[1]->type == GGML_TYPE_F32 && nodes[2]->type == GGML_TYPE_F32;
+    const bool default_matmul_params =
+        ggml_get_op_params_i32(nodes[0], 0) == GGML_PREC_DEFAULT &&
+        ggml_get_op_params_i32(nodes[1], 0) == GGML_PREC_DEFAULT &&
+        ggml_get_op_params_i32(nodes[2], 0) == GGML_PREC_DEFAULT &&
+        ggml_get_op_params_i32(nodes[0], 1) == GGML_HINT_NONE &&
+        ggml_get_op_params_i32(nodes[1], 1) == GGML_HINT_NONE &&
+        ggml_get_op_params_i32(nodes[2], 1) == GGML_HINT_NONE;
+    const bool valid_independent_geometry =
+        halofpx_rocmfpx_mmvq_qkv_geometry_ok(nodes[0], act_q) &&
+        halofpx_rocmfpx_mmvq_qkv_geometry_ok(nodes[1], act_q) &&
+        halofpx_rocmfpx_mmvq_qkv_geometry_ok(nodes[2], act_q);
+
+    halofpx_rocmfpx_mmvq_qkv_role role = HALOFPX_ROCMFPX_MMVQ_QKV_ROLE_INVALID;
+    int layer_q = -1;
+    int layer_k = -1;
+    int layer_v = -1;
+    bool canonical_names =
+        halofpx_rocmfpx_mmvq_qkv_parse_projection_name(nodes[0]->name, role, layer_q) &&
+        role == HALOFPX_ROCMFPX_MMVQ_QKV_ROLE_Q &&
+        halofpx_rocmfpx_mmvq_qkv_parse_projection_name(nodes[1]->name, role, layer_k) &&
+        role == HALOFPX_ROCMFPX_MMVQ_QKV_ROLE_K &&
+        halofpx_rocmfpx_mmvq_qkv_parse_projection_name(nodes[2]->name, role, layer_v) &&
+        role == HALOFPX_ROCMFPX_MMVQ_QKV_ROLE_V &&
+        layer_q == layer_k && layer_q == layer_v &&
+        halofpx_rocmfpx_mmvq_qkv_weight_matches(weight_q, HALOFPX_ROCMFPX_MMVQ_QKV_ROLE_Q, layer_q) &&
+        halofpx_rocmfpx_mmvq_qkv_weight_matches(weight_k, HALOFPX_ROCMFPX_MMVQ_QKV_ROLE_K, layer_q) &&
+        halofpx_rocmfpx_mmvq_qkv_weight_matches(weight_v, HALOFPX_ROCMFPX_MMVQ_QKV_ROLE_V, layer_q);
+
+    const std::array<const ggml_tensor *, 7> tensors = {
+        weight_q, weight_k, weight_v, act_q, nodes[0], nodes[1], nodes[2],
+    };
+    if (std::any_of(tensors.begin(), tensors.end(), [](const ggml_tensor * tensor) {
+            return !tensor || !tensor->buffer || !tensor->data;
+        })) {
+        return false;
+    }
+    const ggml_backend_buffer_type_t local_buft = ggml_backend_cuda_buffer_type(ctx.device);
+    const bool local_non_split = std::all_of(tensors.begin(), tensors.end(), [&](const ggml_tensor * tensor) {
+        return tensor->buffer->buft == local_buft && !ggml_backend_buft_is_cuda_split(tensor->buffer->buft);
+    });
+    const bool owning_contiguous_tensors = std::all_of(tensors.begin(), tensors.end(), [](const ggml_tensor * tensor) {
+        return tensor->view_src == nullptr && ggml_is_contiguous(tensor);
+    });
+    const bool nonoverlapping_ranges = ggml_cuda_mmvq_qkv_tensor_ranges_do_not_overlap(tensors);
+
+    const int cc = ggml_cuda_info().devices[ctx.device].cc;
+    static constexpr int gfx1151_cc = GGML_CUDA_CC_OFFSET_AMD + 0x1151;
+    const bool gfx1151_hip = cc == gfx1151_cc;
+    const bool all_mmvq_eligible =
+        ggml_cuda_should_use_mmvq(weight_q->type, cc, 1) &&
+        ggml_cuda_should_use_mmvq(weight_k->type, cc, 1) &&
+        ggml_cuda_should_use_mmvq(weight_v->type, cc, 1);
+
+    const halofpx_rocmfpx_mmvq_qkv_q8_reuse_contract contract = {
+        weight_q->type,
+        weight_k->type,
+        weight_v->type,
+        ggml_nrows(act_q),
+        gfx1151_hip,
+        ordinary_separate_qkv && canonical_names && current_graph_contract,
+        current_graph_contract,
+        current_graph_contract,
+        current_graph_contract,
+        exact_shared_activation,
+        f32_activation,
+        f32_outputs,
+        default_matmul_params,
+        local_non_split,
+        owning_contiguous_tensors,
+        nonoverlapping_ranges,
+        all_mmvq_eligible,
+        ctx.curr_stream_no == 0 && ctx.stream_context().concurrent_events.empty(),
+        valid_independent_geometry,
+        optimizer_capability && current_graph_contract,
+    };
+    return halofpx_rocmfpx_mmvq_qkv_q8_reuse_dispatch(contract);
+}
+#endif
+
 static bool ggml_cuda_should_fuse_mul_mat_vec_f(const ggml_tensor * tensor) {
     ggml_tensor *       src0 = tensor->src[0];
     ggml_tensor *       src1 = tensor->src[1];
@@ -4461,6 +4632,23 @@ static int ggml_cuda_try_fuse(ggml_backend_cuda_context * cuda_ctx, ggml_cgraph 
 
     ggml_tensor * node = cgraph->nodes[i];
 
+#if defined(GGML_HIP_ROCMFPX_MMVQ_QKV_Q8_REUSE)
+    // HALOFPX_MMVQ_QKV_Q8_REUSE_DISPATCH_BEGIN
+    if (ggml_cuda_should_reuse_rocmfpx_mmvq_qkv_q8(*cuda_ctx, cgraph, i)) {
+        ggml_cuda_mul_mat_vec_q_rocmfpx_triple(
+            *cuda_ctx,
+            cgraph->nodes[i]->src[0],
+            cgraph->nodes[i + 1]->src[0],
+            cgraph->nodes[i + 2]->src[0],
+            cgraph->nodes[i]->src[1],
+            cgraph->nodes[i],
+            cgraph->nodes[i + 1],
+            cgraph->nodes[i + 2]);
+        return 2;
+    }
+    // HALOFPX_MMVQ_QKV_Q8_REUSE_DISPATCH_END
+#endif
+
 #if defined(GGML_HIP_ROCMFPX_QKV_Q8_REUSE)
     // HALOFPX_QKV_Q8_REUSE_DISPATCH_BEGIN
     if (ggml_cuda_should_reuse_rocmfpx_qkv_q8(*cuda_ctx, cgraph, i)) {
@@ -5203,6 +5391,23 @@ static void ggml_backend_cuda_event_wait(ggml_backend_t backend, ggml_backend_ev
 
 static void ggml_backend_cuda_graph_optimize(ggml_backend_t backend, ggml_cgraph * cgraph) {
     ggml_backend_cuda_context * cuda_ctx = (ggml_backend_cuda_context *) backend->context;
+
+#if defined(GGML_HIP_ROCMFPX_MMVQ_QKV_Q8_REUSE)
+    // HALOFPX_MMVQ_QKV_Q8_REUSE_OPTIMIZER_BEGIN
+    // This runs at the scheduler's production pre-allocation optimizer seam.
+    // A published triple owns Q/K/V ordering and explicitly excludes the
+    // existing opt-in multi-stream QKV plan.
+    static constexpr int mmvq_gfx1151_cc = GGML_CUDA_CC_OFFSET_AMD + 0x1151;
+    const bool mmvq_gfx1151_hip = ggml_cuda_info().devices[cuda_ctx->device].cc == mmvq_gfx1151_cc;
+    const auto mmvq_qkv_plan = halofpx_rocmfpx_mmvq_qkv_dispatch_graph_reorder(cgraph, mmvq_gfx1151_hip);
+    if (mmvq_qkv_plan.eligible_groups != 0) {
+        cuda_ctx->halofpx_mmvq_qkv_graph_groups_planned.fetch_add(
+            mmvq_qkv_plan.eligible_groups, std::memory_order_relaxed);
+        cuda_ctx->stream_context().reset();
+        return;
+    }
+    // HALOFPX_MMVQ_QKV_Q8_REUSE_OPTIMIZER_END
+#endif
 
 #if defined(GGML_HIP_ROCMFPX_QKV_Q8_REUSE)
     // HALOFPX_QKV_Q8_REUSE_REORDER_BEGIN
@@ -6412,6 +6617,17 @@ static ggml_backend_feature * ggml_backend_cuda_get_features(ggml_backend_reg_t 
         features.push_back({ "ROCMFPX_QKV_Q8_REUSE", "1" });
     #endif
 
+    #ifdef GGML_HIP_ROCMFPX_MMVQ_QKV_Q8_REUSE
+        static constexpr int mmvq_gfx1151_cc = GGML_CUDA_CC_OFFSET_AMD + 0x1151;
+        const auto & mmvq_info = ggml_cuda_info();
+        for (int id = 0; id < mmvq_info.device_count; ++id) {
+            if (mmvq_info.devices[id].cc == mmvq_gfx1151_cc) {
+                features.push_back({ "ROCMFPX_MMVQ_QKV_Q8_REUSE", "1" });
+                break;
+            }
+        }
+    #endif
+
     {
         const auto & info = ggml_cuda_info();
         for (int id = 0; id < info.device_count; ++id) {
@@ -6486,6 +6702,46 @@ static bool ggml_backend_cuda_halofpx_rocmfpx_qkv_q8_reuse_metrics(
 // HALOFPX_QKV_Q8_REUSE_METRICS_PROC_END
 #endif
 
+#if defined(GGML_HIP_ROCMFPX_MMVQ_QKV_Q8_REUSE)
+// HALOFPX_MMVQ_QKV_Q8_REUSE_METRICS_PROC_BEGIN
+static bool ggml_backend_cuda_halofpx_rocmfpx_mmvq_qkv_q8_reuse_metrics(
+        ggml_backend_t backend,
+        bool reset,
+        halofpx_rocmfpx_mmvq_qkv_q8_reuse_metrics_v1 * metrics) {
+    if (!backend || !metrics ||
+        metrics->struct_size != sizeof(halofpx_rocmfpx_mmvq_qkv_q8_reuse_metrics_v1) ||
+        metrics->version != HALOFPX_ROCMFPX_MMVQ_QKV_Q8_REUSE_METRICS_VERSION ||
+        !ggml_backend_is_cuda(backend)) {
+        return false;
+    }
+    ggml_backend_dev_t device = ggml_backend_get_device(backend);
+    if (!device || ggml_backend_dev_backend_reg(device) != ggml_backend_cuda_reg()) {
+        return false;
+    }
+    ggml_backend_synchronize(backend);
+    auto * ctx = static_cast<ggml_backend_cuda_context *>(backend->context);
+    if (!ctx) {
+        return false;
+    }
+    if (reset) {
+        ctx->halofpx_mmvq_qkv_graph_groups_planned.store(0, std::memory_order_relaxed);
+        ctx->halofpx_mmvq_qkv_triple_dispatches.store(0, std::memory_order_relaxed);
+        ctx->halofpx_mmvq_qkv_q8_conversions_submitted.store(0, std::memory_order_relaxed);
+        ctx->halofpx_mmvq_qkv_mmvq_submissions.store(0, std::memory_order_relaxed);
+    }
+    metrics->graph_groups_planned =
+        ctx->halofpx_mmvq_qkv_graph_groups_planned.load(std::memory_order_relaxed);
+    metrics->triple_dispatches =
+        ctx->halofpx_mmvq_qkv_triple_dispatches.load(std::memory_order_relaxed);
+    metrics->q8_conversions_submitted =
+        ctx->halofpx_mmvq_qkv_q8_conversions_submitted.load(std::memory_order_relaxed);
+    metrics->mmvq_submissions =
+        ctx->halofpx_mmvq_qkv_mmvq_submissions.load(std::memory_order_relaxed);
+    return true;
+}
+// HALOFPX_MMVQ_QKV_Q8_REUSE_METRICS_PROC_END
+#endif
+
 static void * ggml_backend_cuda_reg_get_proc_address(ggml_backend_reg_t reg, const char * name) {
     GGML_UNUSED(reg);
     if (strcmp(name, "ggml_backend_comm_init") == 0) {
@@ -6520,6 +6776,13 @@ static void * ggml_backend_cuda_reg_get_proc_address(ggml_backend_reg_t reg, con
         return (void *) ggml_backend_cuda_halofpx_rocmfpx_qkv_q8_reuse_metrics;
     }
     // HALOFPX_QKV_Q8_REUSE_METRICS_REGISTRATION_END
+#endif
+#if defined(GGML_HIP_ROCMFPX_MMVQ_QKV_Q8_REUSE)
+    // HALOFPX_MMVQ_QKV_Q8_REUSE_METRICS_REGISTRATION_BEGIN
+    if (strcmp(name, "halofpx_rocmfpx_mmvq_qkv_q8_reuse_metrics_v1") == 0) {
+        return (void *) ggml_backend_cuda_halofpx_rocmfpx_mmvq_qkv_q8_reuse_metrics;
+    }
+    // HALOFPX_MMVQ_QKV_Q8_REUSE_METRICS_REGISTRATION_END
 #endif
     return nullptr;
 }

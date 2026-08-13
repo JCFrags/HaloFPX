@@ -22,6 +22,7 @@
 
 #include "ggml-backend-impl.h"
 #include "rocmfpx-qkv-q8-reuse.h"
+#include "rocmfpx-mmvq-qkv-q8-reuse.h"
 
 #include <algorithm>
 #include <array>
@@ -6257,6 +6258,197 @@ struct test_halofpx_rocmfpx_qkv_q8_reuse : public test_case {
     }
 };
 
+// HaloFPX issue #42: strict single-token Q/K/V activation reuse. This case is
+// compiled on every host, but executes only when the default-off HIP backend
+// advertises the experiment. It calls the registered production graph
+// optimizer before allocation and checks independent GQA Q versus K/V widths.
+struct test_halofpx_rocmfpx_mmvq_qkv_q8_reuse : public test_case {
+    using metrics_proc_t = bool (*)(
+        ggml_backend_t,
+        bool,
+        halofpx_rocmfpx_mmvq_qkv_q8_reuse_metrics_v1 *);
+
+    const ggml_type type;
+    const bool distinct_v_activation;
+
+    ggml_tensor * q = nullptr;
+    ggml_tensor * k = nullptr;
+    ggml_tensor * v = nullptr;
+    ggml_tensor * out = nullptr;
+    metrics_proc_t metrics_proc = nullptr;
+
+    explicit test_halofpx_rocmfpx_mmvq_qkv_q8_reuse(
+            ggml_type type,
+            bool distinct_v_activation = false) :
+        type(type),
+        distinct_v_activation(distinct_v_activation) {}
+
+    std::string vars() override {
+        return VARS_TO_STR2(type, distinct_v_activation);
+    }
+
+    std::string op_desc(ggml_tensor * tensor) override {
+        GGML_UNUSED(tensor);
+        return "HALOFPX_ROCMFPX_MMVQ_QKV_Q8_REUSE";
+    }
+
+    bool is_applicable_to_backend(ggml_backend_t backend) override {
+        return backend_has_feature(backend, "ROCMFPX_MMVQ_QKV_Q8_REUSE");
+    }
+
+    bool run_whole_graph() override { return true; }
+
+    double max_nmse_err() override { return 5e-4; }
+
+    ggml_tensor * build_graph(ggml_context * ctx) override {
+        static constexpr int64_t hidden = 256;
+        static constexpr int64_t q_width = 256;
+        static constexpr int64_t kv_width = 64;
+        static constexpr int64_t rows = 1;
+
+        ggml_tensor * activation = ggml_new_tensor_2d(ctx, GGML_TYPE_F32, hidden, rows);
+        ggml_set_name(activation, "attn_norm-0");
+        ggml_tensor * activation_v = activation;
+        if (distinct_v_activation) {
+            activation_v = ggml_new_tensor_2d(ctx, GGML_TYPE_F32, hidden, rows);
+            ggml_set_name(activation_v, "attn_norm-v-0");
+        }
+
+        ggml_tensor * weight_q = ggml_new_tensor_2d(ctx, type, hidden, q_width);
+        ggml_tensor * weight_k = ggml_new_tensor_2d(ctx, type, hidden, kv_width);
+        ggml_tensor * weight_v = ggml_new_tensor_2d(ctx, type, hidden, kv_width);
+        ggml_set_name(weight_q, "blk.0.attn_q.weight");
+        ggml_set_name(weight_k, "blk.0.attn_k.weight");
+        ggml_set_name(weight_v, "blk.0.attn_v.weight");
+
+        q = ggml_mul_mat(ctx, weight_q, activation);
+        k = ggml_mul_mat(ctx, weight_k, activation);
+        v = ggml_mul_mat(ctx, weight_v, activation_v);
+        ggml_set_name(q, "Qcur-0");
+        ggml_set_name(k, "Kcur-0");
+        ggml_set_name(v, "Vcur-0");
+
+        ggml_tensor * q_reshape = ggml_reshape_3d(ctx, q, 64, 4, rows);
+        ggml_tensor * k_reshape = ggml_reshape_3d(ctx, k, 64, 1, rows);
+        ggml_tensor * v_reshape = ggml_reshape_3d(ctx, v, 64, 1, rows);
+        ggml_set_name(q_reshape, "Qcur-reshape-0");
+        ggml_set_name(k_reshape, "Kcur-reshape-0");
+        ggml_set_name(v_reshape, "Vcur-reshape-0");
+
+        ggml_tensor * kv = ggml_concat(ctx, k_reshape, v_reshape, 1);
+        ggml_set_name(kv, "KVcur-concat-0");
+        out = ggml_concat(ctx, q_reshape, kv, 1);
+        ggml_set_name(out, "QKVcur-concat-0");
+        return out;
+    }
+
+    std::vector<ggml_tensor *> fusion_test_nodes() override {
+        return { q, k, v, out };
+    }
+
+    bool prepare_graph_before_allocation(ggml_backend_t backend, ggml_cgraph * graph) override {
+        ggml_backend_reg_t reg = ggml_backend_dev_backend_reg(ggml_backend_get_device(backend));
+        metrics_proc = (metrics_proc_t) ggml_backend_reg_get_proc_address(
+            reg, "halofpx_rocmfpx_mmvq_qkv_q8_reuse_metrics_v1");
+        if (!metrics_proc || !backend->iface.graph_optimize) {
+            std::fprintf(stderr, "MMVQ QKV metrics or production optimizer is missing ");
+            return false;
+        }
+
+        halofpx_rocmfpx_mmvq_qkv_q8_reuse_metrics_v1 metrics = {};
+        metrics.struct_size = sizeof(metrics);
+        metrics.version = HALOFPX_ROCMFPX_MMVQ_QKV_Q8_REUSE_METRICS_VERSION;
+        if (!metrics_proc(backend, true, &metrics) || metrics.graph_groups_planned != 0 ||
+            metrics.triple_dispatches != 0 || metrics.q8_conversions_submitted != 0 ||
+            metrics.mmvq_submissions != 0) {
+            std::fprintf(stderr, "MMVQ QKV metrics reset failed ");
+            return false;
+        }
+
+        // This is the actual registered backend optimizer, invoked at the
+        // scheduler-equivalent pre-allocation boundary. Tests never stamp or
+        // reorder the graph by calling the host planner directly.
+        backend->iface.graph_optimize(backend, graph);
+
+        metrics = {};
+        metrics.struct_size = sizeof(metrics);
+        metrics.version = HALOFPX_ROCMFPX_MMVQ_QKV_Q8_REUSE_METRICS_VERSION;
+        const uint64_t expected_planned = distinct_v_activation ? 0 : 1;
+        if (!metrics_proc(backend, false, &metrics) ||
+            metrics.graph_groups_planned != expected_planned ||
+            metrics.triple_dispatches != 0 || metrics.q8_conversions_submitted != 0 ||
+            metrics.mmvq_submissions != 0) {
+            std::fprintf(stderr, "MMVQ QKV production planning mismatch ");
+            return false;
+        }
+
+        if (distinct_v_activation) {
+            return q->op_params[HALOFPX_ROCMFPX_MMVQ_QKV_Q8_REUSE_MAGIC_PARAM] == 0 &&
+                   k->op_params[HALOFPX_ROCMFPX_MMVQ_QKV_Q8_REUSE_MAGIC_PARAM] == 0 &&
+                   v->op_params[HALOFPX_ROCMFPX_MMVQ_QKV_Q8_REUSE_MAGIC_PARAM] == 0;
+        }
+        for (int i = 0; i + 2 < graph->n_nodes; ++i) {
+            if (graph->nodes[i] != q) {
+                continue;
+            }
+            return graph->nodes[i + 1] == k && graph->nodes[i + 2] == v &&
+                   q->op_params[HALOFPX_ROCMFPX_MMVQ_QKV_Q8_REUSE_MAGIC_PARAM] ==
+                       HALOFPX_ROCMFPX_MMVQ_QKV_Q8_REUSE_GRAPH_MAGIC &&
+                   q->op_params[HALOFPX_ROCMFPX_MMVQ_QKV_Q8_REUSE_ROLE_PARAM] ==
+                       HALOFPX_ROCMFPX_MMVQ_QKV_ROLE_Q &&
+                   k->op_params[HALOFPX_ROCMFPX_MMVQ_QKV_Q8_REUSE_ROLE_PARAM] ==
+                       HALOFPX_ROCMFPX_MMVQ_QKV_ROLE_K &&
+                   v->op_params[HALOFPX_ROCMFPX_MMVQ_QKV_Q8_REUSE_ROLE_PARAM] ==
+                       HALOFPX_ROCMFPX_MMVQ_QKV_ROLE_V;
+        }
+        return false;
+    }
+
+    bool before_backend_compare(ggml_backend_t backend) override {
+        if (!metrics_proc) {
+            return false;
+        }
+        halofpx_rocmfpx_mmvq_qkv_q8_reuse_metrics_v1 metrics = {};
+        metrics.struct_size = sizeof(metrics);
+        metrics.version = HALOFPX_ROCMFPX_MMVQ_QKV_Q8_REUSE_METRICS_VERSION;
+        const uint64_t expected_planned = distinct_v_activation ? 0 : 1;
+        return metrics_proc(backend, false, &metrics) &&
+               metrics.graph_groups_planned == expected_planned &&
+               metrics.triple_dispatches == 0 && metrics.q8_conversions_submitted == 0 &&
+               metrics.mmvq_submissions == 0;
+    }
+
+    bool after_backend_compare(ggml_backend_t backend) override {
+        if (!metrics_proc) {
+            return false;
+        }
+        halofpx_rocmfpx_mmvq_qkv_q8_reuse_metrics_v1 metrics = {};
+        metrics.struct_size = sizeof(metrics);
+        metrics.version = HALOFPX_ROCMFPX_MMVQ_QKV_Q8_REUSE_METRICS_VERSION;
+        if (!metrics_proc(backend, false, &metrics)) {
+            return false;
+        }
+        const uint64_t expected_planned = distinct_v_activation ? 0 : 1;
+        const uint64_t expected_triples = distinct_v_activation ? 0 : 1;
+        const uint64_t expected_conversions = distinct_v_activation ? 3 : 1;
+        const bool ok =
+            metrics.graph_groups_planned == expected_planned &&
+            metrics.triple_dispatches == expected_triples &&
+            metrics.q8_conversions_submitted == expected_conversions &&
+            metrics.mmvq_submissions == 3;
+        if (!ok) {
+            std::fprintf(stderr,
+                "MMVQ QKV metrics mismatch: planned=%" PRIu64 " triple=%" PRIu64
+                " conversions=%" PRIu64 " mmvq=%" PRIu64 " ",
+                metrics.graph_groups_planned,
+                metrics.triple_dispatches,
+                metrics.q8_conversions_submitted,
+                metrics.mmvq_submissions);
+        }
+        return ok;
+    }
+};
+
 // GGML_OP_SUM
 struct test_sum : public test_case {
     const ggml_type type;
@@ -9607,6 +9799,18 @@ static std::vector<std::unique_ptr<test_case>> make_test_cases_eval() {
     // submit three ordinary conversions and three MMQs.
     test_cases.emplace_back(new test_halofpx_rocmfpx_qkv_q8_reuse(
         GGML_TYPE_Q6_0_ROCMFPX, 32, true));
+
+    // Strict n=1 GQA-like Q/K/V widths for every admitted ROCmFPX type. The
+    // distinct-activation case is the feature-on ordinary-MMVQ fallback.
+    for (ggml_type type : {
+            GGML_TYPE_Q2_0_ROCMFPX,
+            GGML_TYPE_Q3_0_ROCMFPX,
+            GGML_TYPE_Q6_0_ROCMFPX,
+            GGML_TYPE_Q8_0_ROCMFPX}) {
+        test_cases.emplace_back(new test_halofpx_rocmfpx_mmvq_qkv_q8_reuse(type));
+    }
+    test_cases.emplace_back(new test_halofpx_rocmfpx_mmvq_qkv_q8_reuse(
+        GGML_TYPE_Q6_0_ROCMFPX, true));
 
     for (auto gate : {GATING_FUNC_SOFTMAX, GATING_FUNC_SIGMOID, GATING_FUNC_SOFTMAX_WEIGHT}) {
         for (bool with_norm : {false, true}) {

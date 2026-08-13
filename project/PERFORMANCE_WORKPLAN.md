@@ -105,7 +105,7 @@ donor code merely because the behavior is authoritative.
 | [#29](https://github.com/JCFrags/HaloFPX/issues/29) | merged source / runtime open | PR #45 default-off dense FFN gate/up activation-conversion reuse; target compile qualified, runtime performance open |
 | [#32](https://github.com/JCFrags/HaloFPX/issues/32) | active | exact authenticated selector plus default-off world-1 server shell; positive model-backed restore remains blocked on #33 |
 | [#33](https://github.com/JCFrags/HaloFPX/issues/33) | active | standalone typed authority slice complete; loader capture, resolved request/context semantics, reload invalidation, and server adapter remain |
-| [#42](https://github.com/JCFrags/HaloFPX/issues/42) | open | default-off separate Q/K/V prompt activation-conversion reuse; host/source and GPU-less gfx1151 compile/link qualified, target runtime/performance open |
+| [#42](https://github.com/JCFrags/HaloFPX/issues/42) | active | prompt-side reuse merged and compile-qualified; strict n=1 local-HIP MMVQ generation slice implemented, target runtime/performance blocked by #41 |
 | [#43](https://github.com/JCFrags/HaloFPX/issues/43) | active | portable small Qwen3-0.6B pure ROCmFPX registry/recipe; target qualification remains open |
 
 ## Ordered work
@@ -221,6 +221,16 @@ Strix Halo nodes have compile-qualified the feature-on and feature-off source,
 but no target runtime speed result is accepted. Compilation and host contracts
 cannot substitute for the focused correctness and counterbalanced A/B recipe
 in [`P15`](../docs/halofpx/p15-rocmfpx-mmvq-sum-free-candidate.md).
+
+Issue #42 also owns a bounded generation-side follow-up. The default-off
+strict n=1 local-HIP slice recognizes exact generic separate Q/K/V
+projections, converts their shared F32 activation to Q8_1 once, and submits
+the three unchanged MMVQ consumers with independent GQA widths. Host OFF/ON
+and source contracts cover production pre-allocation optimizer ownership and
+feature-off graph identity. **[OPEN]** No `gfx1151` runtime, correctness,
+real-model reachability, or speed result is accepted; issue #41 blocks target
+access. RPC splits also lack this optimizer, so dual-node reachability remains
+a separate protocol-aware design. See [ADR-0055](../docs/halofpx/decisions/0055-rocmfpx-strict-n1-mmvq-qkv-q8-reuse.md).
 
 Issue #28 records the subsequent sampling-output synchronization lane. Its
 raw/sampled row-count crash is fixed; the remaining snapshot/coalescing work
