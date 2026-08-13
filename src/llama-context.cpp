@@ -936,12 +936,23 @@ void llama_context::sched_reserve() {
             __func__, (t_end_us - t_start_us)/1000.0, ggml_backend_sched_get_n_copies(sched.get()));
 }
 
+void llama_context::sched_synchronize_profiled() {
+    if (!prefill_phase_profile.enabled) {
+        ggml_backend_sched_synchronize(sched.get());
+        return;
+    }
+
+    const int64_t t_start_us = ggml_time_us();
+    ggml_backend_sched_synchronize(sched.get());
+    prefill_phase_profile.scheduler_synchronize_wall_us += ggml_time_us() - t_start_us;
+}
+
 void llama_context::synchronize() {
     if (!sched) {
         return;
     }
 
-    ggml_backend_sched_synchronize(sched.get());
+    sched_synchronize_profiled();
 
     // FIXME: if multiple single tokens are evaluated without a synchronization,
     // the stats will be added to the prompt evaluation stats
@@ -1652,7 +1663,7 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
         // on the GPU. we must synchronize before set_inputs to avoid overwriting input tensors
         // that the previous compute is still reading.
         if (cparams.pipeline_parallel) {
-            ggml_backend_sched_synchronize(sched.get());
+            sched_synchronize_profiled();
         }
 
         n_reused++;
@@ -1661,7 +1672,8 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
             halofpx_last_graph_reused = false;
             halofpx_last_sched_reset = true;
         }
-        const int64_t t_rebuild_start_us = graph_build_timing ? ggml_time_us() : 0;
+        const bool collect_graph_wall = graph_build_timing || prefill_phase_profile.enabled;
+        const int64_t t_rebuild_start_us = collect_graph_wall ? ggml_time_us() : 0;
 
         res->reset();
 
@@ -1670,9 +1682,9 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
 
         //const auto t_start_us = ggml_time_us();
 
-        const int64_t t_build_start_us = graph_build_timing ? ggml_time_us() : 0;
+        const int64_t t_build_start_us = collect_graph_wall ? ggml_time_us() : 0;
         gf = model.build_graph(gparams);
-        if (graph_build_timing) {
+        if (collect_graph_wall) {
             const int64_t t_build_end_us = ggml_time_us();
             t_graph_build_us   += t_build_end_us - t_build_start_us;
             t_graph_rebuild_us += t_build_end_us - t_rebuild_start_us;
@@ -2116,7 +2128,7 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
         }
     }
     if (composed_authority && halofpx_graph_input_authority_enabled()) {
-        ggml_backend_sched_synchronize(sched.get());
+        sched_synchronize_profiled();
         if (!halofpx_capture_graph_input_authority(
                 sched.get(), gf, halofpx_last_graph_input_authority)) {
             LLAMA_LOG_ERROR("%s: graph input authority is incomplete or unadmitted\n", __func__);
@@ -3585,7 +3597,17 @@ ggml_status llama_context::graph_compute(
         set_n_threads_fn.second(set_n_threads_fn.first, n_threads);
     }
 
-    auto status = ggml_backend_sched_graph_compute_async(sched.get(), gf);
+    ggml_status status;
+    if (prefill_phase_profile.enabled) {
+        const int64_t t_start_us = ggml_time_us();
+        status = ggml_backend_sched_graph_compute_async(sched.get(), gf);
+        prefill_phase_profile.scheduler_dispatch_wall_us += ggml_time_us() - t_start_us;
+        if (status == GGML_STATUS_SUCCESS) {
+            prefill_phase_profile.successful_ubatch_count++;
+        }
+    } else {
+        status = ggml_backend_sched_graph_compute_async(sched.get(), gf);
+    }
     if (status != GGML_STATUS_SUCCESS) {
         LLAMA_LOG_ERROR("%s: ggml_backend_sched_graph_compute_async failed with error %d\n", __func__, status);
     }
@@ -4485,6 +4507,51 @@ llama_perf_context_data llama_context::perf_get_data() const {
     return data;
 }
 
+llama_perf_prefill_phase_data llama_context::perf_prefill_phase_get_data() const {
+    llama_perf_prefill_phase_data data = {};
+
+    const auto elapsed_ns = [](int64_t current_us, int64_t base_us) -> uint64_t {
+        return current_us > base_us ? static_cast<uint64_t>(current_us - base_us)*1000 : 0;
+    };
+    const auto count_since = [](int32_t current, int32_t base) -> uint32_t {
+        return current > base ? static_cast<uint32_t>(current - base) : 0;
+    };
+
+    const int64_t graph_reset_wall_us = t_graph_rebuild_us - t_graph_build_us;
+
+    data.graph_reset_wall_ns = elapsed_ns(
+            graph_reset_wall_us, prefill_phase_profile.graph_reset_wall_base_us);
+    data.graph_build_wall_ns = elapsed_ns(
+            t_graph_build_us, prefill_phase_profile.graph_build_wall_base_us);
+    data.scheduler_dispatch_wall_ns = static_cast<uint64_t>(
+            std::max<int64_t>(0, prefill_phase_profile.scheduler_dispatch_wall_us))*1000;
+    data.scheduler_synchronize_wall_ns = static_cast<uint64_t>(
+            std::max<int64_t>(0, prefill_phase_profile.scheduler_synchronize_wall_us))*1000;
+    data.successful_ubatch_count = prefill_phase_profile.successful_ubatch_count;
+    data.graph_build_count = count_since(
+            n_graph_builds, prefill_phase_profile.graph_build_count_base);
+    data.graph_reuse_count = count_since(
+            n_reused, prefill_phase_profile.graph_reuse_count_base);
+    data.rpc_stats_available = false;
+
+    return data;
+}
+
+void llama_context::perf_prefill_phase_set_enabled(bool enabled) {
+    prefill_phase_profile.enabled = enabled;
+}
+
+void llama_context::perf_prefill_phase_reset() {
+    prefill_phase_profile.scheduler_dispatch_wall_us    = 0;
+    prefill_phase_profile.scheduler_synchronize_wall_us = 0;
+    prefill_phase_profile.successful_ubatch_count       = 0;
+
+    prefill_phase_profile.graph_reset_wall_base_us = t_graph_rebuild_us - t_graph_build_us;
+    prefill_phase_profile.graph_build_wall_base_us = t_graph_build_us;
+    prefill_phase_profile.graph_build_count_base   = n_graph_builds;
+    prefill_phase_profile.graph_reuse_count_base   = n_reused;
+}
+
 void llama_context::perf_print_graph_build_data() const {
     if (!graph_build_timing && n_graph_builds == 0) {
         return;
@@ -4509,6 +4576,7 @@ void llama_context::perf_reset() {
     t_graph_build_us = t_graph_rebuild_us = 0;
     n_reused         = 0;
     n_graph_builds   = 0;
+    perf_prefill_phase_reset();
 }
 
 llama_memory_breakdown llama_context::memory_breakdown() const {
@@ -5876,6 +5944,24 @@ void llama_perf_context_print_graph_build(const llama_context * ctx) {
 
 void llama_perf_context_reset(llama_context * ctx) {
     ctx->perf_reset();
+}
+
+void llama_perf_prefill_phase_set_enabled(llama_context * ctx, bool enabled) {
+    ctx->perf_prefill_phase_set_enabled(enabled);
+}
+
+void llama_perf_prefill_phase_reset(llama_context * ctx) {
+    ctx->perf_prefill_phase_reset();
+}
+
+llama_perf_prefill_phase_data llama_perf_prefill_phase(const llama_context * ctx) {
+    llama_perf_prefill_phase_data data = {};
+
+    if (ctx == nullptr) {
+        return data;
+    }
+
+    return ctx->perf_prefill_phase_get_data();
 }
 
 //

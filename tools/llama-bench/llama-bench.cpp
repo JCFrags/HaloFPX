@@ -358,6 +358,7 @@ struct cmd_params {
     bool                             verbose;
     bool                             progress;
     bool                             no_warmup;
+    bool                             prefill_phase_profile;
     output_formats                   output_format;
     output_formats                   output_format_stderr;
 };
@@ -402,6 +403,7 @@ static const cmd_params cmd_params_defaults = {
     /* verbose              */ false,
     /* progress             */ false,
     /* no_warmup            */ false,
+    /* prefill_phase_profile*/ false,
     /* output_format        */ MARKDOWN,
     /* output_format_stderr */ NONE,
 };
@@ -421,6 +423,7 @@ static void print_usage(int /* argc */, char ** argv) {
     printf("  -v, --verbose                               verbose output\n");
     printf("  --progress                                  print test progress indicators\n");
     printf("  --no-warmup                                 skip warmup runs before benchmarking\n");
+    printf("  --prefill-phase-profile                     emit diagnostic per-repetition prefill phase data in JSON/JSONL\n");
     printf("  -fitt, --fit-target <MiB>                   fit model to device memory with this margin per device in MiB (default: off)\n");
     printf("  -fitc, --fit-ctx <n>                        minimum ctx size for --fit-target (default: 4096)\n");
     if (llama_supports_rpc()) {
@@ -487,6 +490,7 @@ static cmd_params parse_cmd_params(int argc, char ** argv) {
     params.delay                = cmd_params_defaults.delay;
     params.progress             = cmd_params_defaults.progress;
     params.no_warmup            = cmd_params_defaults.no_warmup;
+    params.prefill_phase_profile = cmd_params_defaults.prefill_phase_profile;
 
     if (const char * env = getenv("HF_TOKEN")) {
         params.hf_token = env;
@@ -502,6 +506,8 @@ static cmd_params parse_cmd_params(int argc, char ** argv) {
             if (arg == "-h" || arg == "--help") {
                 print_usage(argc, argv);
                 exit(0);
+            } else if (arg == "--prefill-phase-profile") {
+                params.prefill_phase_profile = true;
             } else if (arg == "-m" || arg == "--model") {
                 if (++i >= argc) {
                     invalid_param = true;
@@ -1409,6 +1415,7 @@ struct test {
     int                      n_depth;
     std::string              test_time;
     std::vector<uint64_t>    samples_ns;
+    std::vector<llama_perf_prefill_phase_data> prefill_phase_profile_samples;
 
     test(const cmd_params_instance & inst, const llama_model * lmodel, const llama_context * ctx) :
         cpu_info(get_cpu_info()),
@@ -1689,6 +1696,21 @@ static std::string format_json_value(const std::string & field, const std::strin
     }
 }
 
+static std::string format_prefill_phase_profile_sample_json(const llama_perf_prefill_phase_data & sample) {
+    std::ostringstream out;
+    out << "{"
+        << " \"graph_reset_wall_ns\": " << sample.graph_reset_wall_ns
+        << ", \"graph_build_wall_ns\": " << sample.graph_build_wall_ns
+        << ", \"scheduler_dispatch_wall_ns\": " << sample.scheduler_dispatch_wall_ns
+        << ", \"scheduler_synchronize_wall_ns\": " << sample.scheduler_synchronize_wall_ns
+        << ", \"successful_ubatch_count\": " << sample.successful_ubatch_count
+        << ", \"graph_build_count\": " << sample.graph_build_count
+        << ", \"graph_reuse_count\": " << sample.graph_reuse_count
+        << ", \"rpc_stats_available\": " << (sample.rpc_stats_available ? "true" : "false")
+        << " }";
+    return out.str();
+}
+
 struct json_printer : public printer {
     bool first = true;
 
@@ -1714,6 +1736,15 @@ struct json_printer : public printer {
         fprintf(fout, "  {\n");
         print_fields(test::get_fields(), t.get_values());
         fprintf(fout, "    \"samples_ns\": [ %s ],\n", join(t.samples_ns, ", ").c_str());
+        if (!t.prefill_phase_profile_samples.empty()) {
+            fprintf(fout, "    \"prefill_phase_profile_samples\": [\n");
+            for (size_t i = 0; i < t.prefill_phase_profile_samples.size(); ++i) {
+                fprintf(fout, "      %s%s\n",
+                        format_prefill_phase_profile_sample_json(t.prefill_phase_profile_samples[i]).c_str(),
+                        i + 1 < t.prefill_phase_profile_samples.size() ? "," : "");
+            }
+            fprintf(fout, "    ],\n");
+        }
         fprintf(fout, "    \"samples_ts\": [ %s ]\n", join(t.get_ts(), ", ").c_str());
         fprintf(fout, "  }");
         fflush(fout);
@@ -1734,6 +1765,15 @@ struct jsonl_printer : public printer {
         fprintf(fout, "{");
         print_fields(test::get_fields(), t.get_values());
         fprintf(fout, "\"samples_ns\": [ %s ],", join(t.samples_ns, ", ").c_str());
+        if (!t.prefill_phase_profile_samples.empty()) {
+            fprintf(fout, "\"prefill_phase_profile_samples\": [");
+            for (size_t i = 0; i < t.prefill_phase_profile_samples.size(); ++i) {
+                fprintf(fout, "%s%s",
+                        format_prefill_phase_profile_sample_json(t.prefill_phase_profile_samples[i]).c_str(),
+                        i + 1 < t.prefill_phase_profile_samples.size() ? ", " : "");
+            }
+            fprintf(fout, "],");
+        }
         fprintf(fout, "\"samples_ts\": [ %s ]", join(t.get_ts(), ", ").c_str());
         fprintf(fout, "}\n");
         fflush(fout);
@@ -2318,6 +2358,8 @@ int main(int argc, char ** argv) {
             }
         }
 
+        const bool collect_prefill_phase_profile = params.prefill_phase_profile && t.n_prompt > 0;
+
         for (int i = 0; i < params.reps; i++) {
             llama_memory_clear(llama_get_memory(ctx), false);
 
@@ -2358,7 +2400,14 @@ int main(int argc, char ** argv) {
                 }
             }
 
-            uint64_t t_start = get_time_ns();
+            if (collect_prefill_phase_profile) {
+                llama_perf_prefill_phase_set_enabled(ctx, true);
+                llama_perf_prefill_phase_reset(ctx);
+            }
+
+            const uint64_t t_start = get_time_ns();
+            uint64_t t_prompt_end = 0;
+            uint64_t t_generation_start = 0;
 
             if (t.n_prompt > 0) {
                 if (params.progress) {
@@ -2373,7 +2422,20 @@ int main(int argc, char ** argv) {
                     exit(1);
                 }
             }
+            if (collect_prefill_phase_profile) {
+                // test_prompt() has synchronized the scheduler. Capture the
+                // measured prompt boundary before diagnostic readback. The
+                // readback and vector bookkeeping must not enter samples_ns.
+                t_prompt_end = get_time_ns();
+                t.prefill_phase_profile_samples.push_back(llama_perf_prefill_phase(ctx));
+                llama_perf_prefill_phase_set_enabled(ctx, false);
+            }
             if (t.n_gen > 0) {
+                if (collect_prefill_phase_profile) {
+                    // Start a fresh measured segment after diagnostic
+                    // bookkeeping so combined -pg rows exclude that gap.
+                    t_generation_start = get_time_ns();
+                }
                 if (params.progress) {
                     fprintf(stderr, "llama-bench: benchmark %d/%zu: generation run %d/%d\n", params_idx, params_count,
                             i + 1, params.reps);
@@ -2387,7 +2449,11 @@ int main(int argc, char ** argv) {
                 }
             }
 
-            uint64_t t_ns = get_time_ns() - t_start;
+            const uint64_t t_end = get_time_ns();
+            const uint64_t t_ns = collect_prefill_phase_profile ?
+                (t_prompt_end - t_start) +
+                    (t.n_gen > 0 ? t_end - t_generation_start : 0) :
+                t_end - t_start;
             t.samples_ns.push_back(t_ns);
         }
 
