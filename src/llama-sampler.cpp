@@ -4,6 +4,10 @@
 #include "llama-vocab.h"
 #include "llama-grammar.h"
 
+#if defined(HALOFPX_SAMPLING_SYNC_COALESCE_CANARY)
+#include "llama-ext.h"
+#endif
+
 #include "ggml-cpp.h"
 
 #include <array>
@@ -804,16 +808,36 @@ struct llama_sampler * llama_sampler_chain_init(struct llama_sampler_chain_param
 }
 
 llama_token llama_sampler_sample(struct llama_sampler * smpl, struct llama_context * ctx, int32_t idx) {
+#if defined(HALOFPX_SAMPLING_SYNC_COALESCE_CANARY)
+    llama_output_row_view row;
+    if (!llama_get_output_row_view(ctx, idx, true, true, &row)) {
+        return LLAMA_TOKEN_NULL;
+    }
+
+    const llama_token sampled_token = row.sampled_token;
+    const float * sampled_probs = nullptr;
+    const float * sampled_logits = nullptr;
+    const llama_token * sampled_ids = nullptr;
+#else
     const llama_token   sampled_token  = llama_get_sampled_token_ith     (ctx, idx);
     const float *       sampled_probs  = llama_get_sampled_probs_ith     (ctx, idx);
     const float *       sampled_logits = llama_get_sampled_logits_ith    (ctx, idx);
     const llama_token * sampled_ids    = llama_get_sampled_candidates_ith(ctx, idx);
+#endif
 
     // If a backend sampler has already sampled a token, return it.
     if (sampled_token != LLAMA_TOKEN_NULL) {
         LLAMA_LOG_DEBUG("%s: Backend sampler selected token for idx %d. Skipping CPU samplers\n", __func__, idx);
         return sampled_token;
     }
+
+#if defined(HALOFPX_SAMPLING_SYNC_COALESCE_CANARY)
+    // With no terminal backend token, the first view already contains the
+    // validated distribution tuple. Do not repeat candidate validation.
+    sampled_probs  = row.probs;
+    sampled_logits = row.logits;
+    sampled_ids    = row.candidates;
+#endif
 
     const llama_model * model = llama_get_model(ctx);
     const llama_vocab * vocab = llama_model_get_vocab(model);
@@ -834,24 +858,36 @@ llama_token llama_sampler_sample(struct llama_sampler * smpl, struct llama_conte
     auto & cur = *cur_ptr;
 
     if (sampled_probs) {
+#if defined(HALOFPX_SAMPLING_SYNC_COALESCE_CANARY)
+        const uint32_t sampled_probs_count = row.probs_count;
+#else
         const uint32_t sampled_probs_count = llama_get_sampled_probs_count_ith(ctx, idx);
+#endif
         cur.resize(sampled_probs_count);
         for (uint32_t i = 0; i < sampled_probs_count; ++i) {
             cur[i] = llama_token_data{sampled_ids[i], sampled_logits[i], sampled_probs[i]};
         }
     } else if (sampled_logits) {
+#if defined(HALOFPX_SAMPLING_SYNC_COALESCE_CANARY)
+        const uint32_t sampled_logits_count = row.logits_count;
+#else
         const uint32_t sampled_logits_count = llama_get_sampled_logits_count_ith(ctx, idx);
+#endif
         cur.resize(sampled_logits_count);
         for (llama_token i = 0; i < (int)sampled_logits_count; i++) {
             cur[i] = llama_token_data{sampled_ids[i], sampled_logits[i], 0.0f};
         }
     } else {
+#if defined(HALOFPX_SAMPLING_SYNC_COALESCE_CANARY)
+        return LLAMA_TOKEN_NULL;
+#else
         const auto * logits = llama_get_logits_ith(ctx, idx);
         GGML_ASSERT(logits != nullptr);
         cur.resize(n_vocab);
         for (llama_token token_id = 0; token_id < n_vocab; token_id++) {
             cur[token_id] = llama_token_data{token_id, logits[token_id], 0.0f};
         }
+#endif
     }
 
     llama_token_data_array cur_p = {

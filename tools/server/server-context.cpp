@@ -2360,12 +2360,15 @@ private:
         return slot.has_next_token; // continue
     }
 
-    void populate_token_probs(const server_slot & slot, completion_token_output & result, bool post_sampling, bool special, int idx) const {
+    bool populate_token_probs(const server_slot & slot, completion_token_output & result, bool post_sampling, bool special, int idx) const {
         const size_t n_probs_request = slot.task->params.sampling.n_probs;
 
         if (post_sampling) {
             const auto * cur_p = common_sampler_get_candidates(slot.smpl.get(), true);
             const size_t max_probs = cur_p->size;
+            if (max_probs == 0) {
+                return false;
+            }
             const size_t n_probs = std::min(max_probs, n_probs_request);
 
             // set probability for sampled token
@@ -2395,6 +2398,9 @@ private:
             // TODO: optimize this with min-p optimization
             std::vector<llama_token_data> cur = get_token_probabilities(ctx_tgt, idx);
             const size_t max_probs = cur.size();
+            if (max_probs == 0) {
+                return false;
+            }
             const size_t n_probs = std::min(max_probs, n_probs_request);
 
             // set probability for sampled token
@@ -2416,6 +2422,7 @@ private:
                 });
             }
         }
+        return true;
     }
 
     void send_error(const server_task & task, const std::string & error, const enum error_type type = ERROR_TYPE_SERVER) {
@@ -4274,6 +4281,15 @@ private:
 
                 slot.i_batch = -1;
 
+#if defined(HALOFPX_SAMPLING_SYNC_COALESCE_CANARY)
+                if (id == LLAMA_TOKEN_NULL) {
+                    SLT_ERR(slot, "%s", "sampling output row unavailable\n");
+                    send_error(slot, "sampling output row unavailable", ERROR_TYPE_SERVER);
+                    slot.release();
+                    continue;
+                }
+#endif
+
                 common_sampler_accept(slot.smpl.get(), id, true);
 
                 // here we have synchronized the llama_context (due to the sampling above), so we can do time measurement
@@ -4295,7 +4311,18 @@ private:
                 result.prob         = 1.0f; // TODO: set it here instead of doing inside populate_token_probs
 
                 if (slot.task->params.sampling.n_probs > 0) {
-                    populate_token_probs(slot, result, slot.task->params.post_sampling_probs, params_base.special, tok_idx);
+                    const bool have_probs = populate_token_probs(
+                            slot, result, slot.task->params.post_sampling_probs, params_base.special, tok_idx);
+#if defined(HALOFPX_SAMPLING_SYNC_COALESCE_CANARY)
+                    if (!have_probs) {
+                        SLT_ERR(slot, "%s", "sampling probability row unavailable\n");
+                        send_error(slot, "sampling probability row unavailable", ERROR_TYPE_SERVER);
+                        slot.release();
+                        continue;
+                    }
+#else
+                    GGML_UNUSED(have_probs);
+#endif
                 }
 
                 if (!process_token(result, slot)) {
@@ -4331,7 +4358,15 @@ private:
                     auto accepted = common_sampler_sample_and_accept_n(slot.smpl.get(), slot.ctx_tgt, slot.spec_i_batch, slot.spec_draft);
                     slot.spec_i_batch.clear();
 
-                    GGML_ASSERT(accepted.size() >= 1);
+                    if (accepted.empty()) {
+                        slot.smpl = std::move(smpl_save);
+                        const std::string err = "Target output row unavailable during speculative verification.";
+                        SLT_WRN(slot, "%s\n", err.c_str());
+                        send_error(slot, err);
+                        slot.release();
+                        slot.prompt_clear(false);
+                        continue;
+                    }
 
                     const uint32_t n_rollback = slot.spec_draft.size() + 1 - accepted.size();
 

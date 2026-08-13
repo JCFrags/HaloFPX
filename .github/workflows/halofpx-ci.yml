@@ -145,6 +145,80 @@ jobs:
       - name: Run repetition, schema, and feature-off checks
         run: python tests/test_llama_bench_prefill_phase_profile.py -v
 
+  sampling-sync-coalesce-test:
+    name: CPU sampling synchronization canary
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      HALOFPX_MODEL_COMMIT: 499bc8821c6b12b4e53c5bffcb21ec206f212d81
+      HALOFPX_MODEL_SHA256: 66967fbece6dbe97886593fdbb73589584927e29119ec31f08090732d1861739
+      HALOFPX_CANARY_MODEL: ${{ github.workspace }}/build/fixtures/stories15M-q4_0.gguf
+    steps:
+      - name: Check out repository
+        # actions/checkout v4.4.0
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Configure sampling canary build
+        run: >-
+          cmake -S . -B build/ci-sampling-sync
+          -DCMAKE_BUILD_TYPE=Release
+          -DBUILD_SHARED_LIBS=OFF
+          -DGGML_NATIVE=OFF
+          -DGGML_HIP=OFF
+          -DGGML_VULKAN=OFF
+          -DGGML_RPC=ON
+          -DGGML_RPC_HALOFPX_LOCAL_STATE=ON
+          -DLLAMA_BUILD_COMMON=ON
+          -DLLAMA_BUILD_TESTS=ON
+          -DLLAMA_BUILD_TOOLS=ON
+          -DLLAMA_BUILD_EXAMPLES=OFF
+          -DLLAMA_BUILD_SERVER=ON
+          -DLLAMA_BUILD_WEBUI=OFF
+          -DLLAMA_USE_PREBUILT_WEBUI=OFF
+          -DLLAMA_OPENSSL=OFF
+          -DHALOFPX_SAMPLING_SYNC_COALESCE_CANARY=ON
+
+      - name: Compile canary, server, and focused tests
+        run: >-
+          cmake --build build/ci-sampling-sync
+          --target
+          llama-server
+          test-halofpx-sampling-sync-coalesce
+          test-halofpx-output-row
+          test-backend-sampler
+          --parallel 2
+
+      - name: Run pure synchronization and row contracts
+        run: >-
+          ctest --test-dir build/ci-sampling-sync
+          --output-on-failure
+          -R '^(test-halofpx-sampling-sync-coalesce|test-halofpx-output-row)$'
+
+      - name: Download and verify pinned tiny model fixture
+        # Test-only, checksum-pinned external fixture; it is not redistributed.
+        run: |
+          mkdir -p build/fixtures
+          curl --fail --location --retry 3 --retry-all-errors \
+            --max-filesize 19077344 \
+            --proto '=https' --proto-redir '=https' \
+            --output "$HALOFPX_CANARY_MODEL" \
+            "https://huggingface.co/ggml-org/models-moved/resolve/${HALOFPX_MODEL_COMMIT}/tinyllamas/stories15M-q4_0.gguf?download=true"
+          echo "${HALOFPX_MODEL_SHA256}  ${HALOFPX_CANARY_MODEL}" | sha256sum --check -
+
+      - name: Run backend-row post-sampling probability regression
+        run: |
+          build/ci-sampling-sync/bin/test-backend-sampler \
+            --model "$HALOFPX_CANARY_MODEL" \
+            --device cpu \
+            --test greedy
+          build/ci-sampling-sync/bin/test-backend-sampler \
+            --model "$HALOFPX_CANARY_MODEL" \
+            --device cpu \
+            --test cpu_mixed
+
   loader-partition-test:
     name: CPU loader-partition recovery seam
     runs-on: ubuntu-latest

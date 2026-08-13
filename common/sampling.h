@@ -82,7 +82,11 @@ llama_token_data_array * common_sampler_sample_top_k_probs(struct common_sampler
 //
 // requires: idxs.size() == draft.size() + 1
 //
-// returns at least 1 token, up to idxs.size()
+// returns at least 1 token, up to idxs.size(); returns an empty vector when an
+// output row is unavailable or incoherent, and callers must treat that as an
+// error rather than accepting LLAMA_TOKEN_NULL. A later-row failure can occur
+// after earlier sampler accepts, so a recovering caller must restore the
+// sampler snapshot taken before this call; a non-recovering caller may exit.
 //
 std::vector<llama_token> common_sampler_sample_and_accept_n(struct common_sampler * gsmpl, struct llama_context * ctx, const std::vector<int> & idxs, const llama_tokens & draft, bool grammar_first = false);
 

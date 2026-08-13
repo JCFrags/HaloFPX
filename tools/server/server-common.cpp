@@ -10,6 +10,10 @@
 #include "server-common.h"
 #include "server-token-probabilities.h"
 
+#if defined(HALOFPX_SAMPLING_SYNC_COALESCE_CANARY)
+#include "src/llama-ext.h"
+#endif
+
 #include <random>
 #include <sstream>
 #include <fstream>
@@ -1314,6 +1318,26 @@ std::vector<llama_token_data> get_token_probabilities(llama_context * ctx, int i
     const llama_vocab * vocab = llama_model_get_vocab(llama_get_model(ctx));
     const int32_t n_vocab = llama_vocab_n_tokens(vocab);
 
+#if defined(HALOFPX_SAMPLING_SYNC_COALESCE_CANARY)
+    llama_output_row_view row;
+    if (!llama_get_output_row_view(ctx, idx, true, false, &row)) {
+        return {};
+    }
+
+    if (row.source == LLAMA_OUTPUT_ROW_SOURCE_RAW) {
+        return server_build_token_probabilities(nullptr, nullptr, 0, row.logits, n_vocab);
+    }
+    if (row.source == LLAMA_OUTPUT_ROW_SOURCE_SAMPLED_PROBS ||
+            row.source == LLAMA_OUTPUT_ROW_SOURCE_SAMPLED_LOGITS) {
+        // Preserve the existing server contract: token probabilities are
+        // derived from the sampled logits tuple. The backend probability
+        // buffer remains useful to sampler consumers, but substituting it here
+        // would change response semantics independently of synchronization.
+        return server_build_token_probabilities(
+                row.logits, row.candidates, row.logits_count, nullptr, n_vocab);
+    }
+    return {};
+#else
     // Determine the row source from the sampled pointer itself. The sampled
     // buffers are allocated for the whole context, so a row with no backend
     // sampler can legitimately have a zero sampled count while raw logits are
@@ -1329,6 +1353,7 @@ std::vector<llama_token_data> get_token_probabilities(llama_context * ctx, int i
 
     const float * raw_logits = llama_get_logits_ith(ctx, idx);
     return server_build_token_probabilities(nullptr, nullptr, 0, raw_logits, n_vocab);
+#endif
 }
 
 std::string safe_json_to_str(const json & data) {

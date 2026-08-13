@@ -1,8 +1,10 @@
 #include "ggml.h"
 #include "llama.h"
 #include "llama-cpp.h"
+#include "llama-ext.h"
 #include "get-model.h"
 #include "common.h"
+#include "sampling.h"
 
 #ifdef NDEBUG
 #undef NDEBUG
@@ -282,6 +284,22 @@ static void test_backend_greedy_sampling(const test_params & params) {
     llama_token token = llama_get_sampled_token_ith(test_ctx.ctx.get(), batch_idx);
     printf("greedy sampled id:%d, string:'%s'\n", token, test_ctx.token_to_piece(token, false).c_str());
     GGML_ASSERT(token >= 0 && token < test_ctx.n_vocab);
+
+    // Greedy backend sampling may publish only the selected token. The common
+    // sampler must return it without manufacturing a candidate row, and the
+    // post-sampling accessor must remain safe on that explicit empty tuple.
+    common_params_sampling sampling_params;
+    common_sampler_ptr common(common_sampler_init(params.model.get(), sampling_params));
+    const llama_token common_token = common_sampler_sample(common.get(), test_ctx.ctx.get(), batch_idx);
+    GGML_ASSERT(common_token == token);
+    const auto * candidates = common_sampler_get_candidates(common.get(), true);
+    if (candidates->size == 0) {
+        GGML_ASSERT(candidates->selected == -1);
+    } else {
+        GGML_ASSERT(candidates->selected >= 0);
+        GGML_ASSERT(static_cast<size_t>(candidates->selected) < candidates->size);
+        GGML_ASSERT(candidates->data[candidates->selected].id == common_token);
+    }
 
     token = llama_get_sampled_token_ith(test_ctx.ctx.get(), -1);
     printf("greedy sampled id:%d, string:'%s'\n", token, test_ctx.token_to_piece(token, false).c_str());
@@ -906,15 +924,39 @@ static void test_backend_cpu_mixed_batch(const test_params & params) {
     // Verify sequence 0 (backend sampled)
     {
         int32_t batch_idx = test_ctx.idx_for_seq(0);
+        llama_output_row_view row;
+        GGML_ASSERT(llama_get_output_row_view(test_ctx.ctx.get(), batch_idx, true, false, &row));
+        GGML_ASSERT(row.source == LLAMA_OUTPUT_ROW_SOURCE_SAMPLED_PROBS);
+        GGML_ASSERT(row.logits_count == (uint32_t) test_ctx.n_vocab);
+        GGML_ASSERT(row.probs_count == row.logits_count);
+        GGML_ASSERT(row.candidates_count == row.logits_count);
         llama_token token = llama_get_sampled_token_ith(test_ctx.ctx.get(), batch_idx);
         const std::string token_str = test_ctx.token_to_piece(token, false);
         printf("Seq 0 (backend) sampled token id=%d, string='%s'\n", token, token_str.c_str());
         GGML_ASSERT(token >= 0 && token < test_ctx.n_vocab);
+
+        // Exercise the server post_sampling_probs path: common sampling must
+        // preserve the backend-selected candidate before the row is sorted.
+        common_params_sampling sampling_params;
+        common_sampler_ptr common(common_sampler_init(params.model.get(), sampling_params));
+        const llama_token common_token = common_sampler_sample(common.get(), test_ctx.ctx.get(), batch_idx);
+        GGML_ASSERT(common_token == row.sampled_token);
+
+        const auto * candidates = common_sampler_get_candidates(common.get(), true);
+        GGML_ASSERT(candidates->selected >= 0);
+        GGML_ASSERT(static_cast<size_t>(candidates->selected) < candidates->size);
+        GGML_ASSERT(candidates->data[candidates->selected].id == common_token);
     }
 
     // Verify sequence 1 (CPU sampled)
     {
         int32_t batch_idx = test_ctx.idx_for_seq(1);
+
+        llama_output_row_view row;
+        GGML_ASSERT(llama_get_output_row_view(test_ctx.ctx.get(), batch_idx, true, false, &row));
+        GGML_ASSERT(row.source == LLAMA_OUTPUT_ROW_SOURCE_RAW);
+        GGML_ASSERT(row.logits_count == (uint32_t) test_ctx.n_vocab);
+        GGML_ASSERT(row.candidates_count == row.logits_count);
 
         llama_token backend_token = llama_get_sampled_token_ith(test_ctx.ctx.get(), batch_idx);
         GGML_ASSERT(backend_token == LLAMA_TOKEN_NULL);
