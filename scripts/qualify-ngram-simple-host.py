@@ -54,6 +54,31 @@ def write_json(path: Path, value: Any) -> None:
     path.write_text(json.dumps(value, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
+def write_receipt_manifest(output_dir: Path) -> dict[str, Any]:
+    manifest_path = output_dir / "MANIFEST.sha256"
+    entries = []
+    for path in sorted(output_dir.rglob("*"), key=lambda value: value.as_posix()):
+        if not path.is_file() or path == manifest_path:
+            continue
+        relative = path.relative_to(output_dir).as_posix()
+        entries.append({
+            "path": relative,
+            "sha256": sha256_file(path),
+            "size_bytes": path.stat().st_size,
+        })
+    manifest_text = "".join(
+        f"{entry['sha256']}  {entry['path']}\n" for entry in entries
+    )
+    manifest_path.write_text(manifest_text, encoding="utf-8")
+    return {
+        "path": manifest_path.name,
+        "entry_count": len(entries),
+        "sha256": sha256_file(manifest_path),
+        "size_bytes": manifest_path.stat().st_size,
+        "payload_size_bytes": sum(entry["size_bytes"] for entry in entries),
+    }
+
+
 def run_capture(command: list[str], *, cwd: Path | None = None) -> dict[str, Any]:
     completed = subprocess.run(
         command,
@@ -84,7 +109,59 @@ def git_command(source_root: Path, arguments: list[str]) -> dict[str, Any]:
     return fallback
 
 
-def source_state(source_root: Path) -> tuple[dict[str, Any], bytes]:
+def exported_source_manifest(source_root: Path) -> list[dict[str, Any]]:
+    manifest = []
+    for path in sorted(source_root.rglob("*"), key=lambda value: value.as_posix()):
+        relative = path.relative_to(source_root).as_posix()
+        if path.is_symlink():
+            target = os.readlink(path)
+            manifest.append({
+                "path": relative,
+                "kind": "symlink",
+                "target": target,
+                "sha256": sha256_bytes(target.encode("utf-8")),
+            })
+        elif path.is_file():
+            manifest.append({
+                "path": relative,
+                "kind": "file",
+                "size_bytes": path.stat().st_size,
+                "sha256": sha256_file(path),
+            })
+    return manifest
+
+
+def source_state(
+    source_root: Path,
+    *,
+    source_commit: str | None = None,
+    source_tree: str | None = None,
+    source_archive: Path | None = None,
+) -> tuple[dict[str, Any], bytes]:
+    if source_archive is not None:
+        if not source_commit or not source_tree:
+            raise ValueError("exported source identity requires commit and tree")
+        manifest = exported_source_manifest(source_root)
+        manifest_bytes = (
+            json.dumps(manifest, indent=2, sort_keys=True) + "\n"
+        ).encode("utf-8")
+        return {
+            "kind": "clean_git_archive_export",
+            "source_root": str(source_root.resolve()),
+            "commit": source_commit,
+            "tree": source_tree,
+            "archive_path": str(source_archive.resolve()),
+            "archive_sha256": sha256_file(source_archive),
+            "archive_size_bytes": source_archive.stat().st_size,
+            "manifest_sha256": sha256_bytes(manifest_bytes),
+            "manifest_size_bytes": len(manifest_bytes),
+            "file_count": len(manifest),
+            "total_regular_file_bytes": sum(
+                entry.get("size_bytes", 0) for entry in manifest
+            ),
+            "git_metadata_present": (source_root / ".git").exists(),
+        }, manifest_bytes
+
     commands = {
         "head": ["rev-parse", "HEAD"],
         "head_tree": ["show", "-s", "--format=%T", "HEAD"],
@@ -112,10 +189,107 @@ def source_state(source_root: Path) -> tuple[dict[str, Any], bytes]:
     }, diff_bytes
 
 
-def source_identity(source_root: Path, output_dir: Path) -> dict[str, Any]:
-    state, diff_bytes = source_state(source_root)
-    (output_dir / "source.diff").write_bytes(diff_bytes)
+def source_identity(
+    source_root: Path,
+    output_dir: Path,
+    *,
+    source_commit: str | None = None,
+    source_tree: str | None = None,
+    source_archive: Path | None = None,
+) -> dict[str, Any]:
+    state, evidence_bytes = source_state(
+        source_root,
+        source_commit=source_commit,
+        source_tree=source_tree,
+        source_archive=source_archive,
+    )
+    evidence_name = "source-manifest.json" if source_archive is not None else "source.diff"
+    (output_dir / evidence_name).write_bytes(evidence_bytes)
     return state
+
+
+def retain_build_provenance(
+    *,
+    build_receipt_dir: Path,
+    output_dir: Path,
+    source_root: Path,
+    server: Path,
+) -> dict[str, Any]:
+    required = [
+        "configure-command.json",
+        "configure.log",
+        "build-command.json",
+        "build.log",
+        "test-arg-parser-offline-command.json",
+        "test-arg-parser-offline.log",
+        "pytest-host-command.json",
+        "pytest-host.log",
+        "CMakeCache.txt",
+        "build.ninja",
+    ]
+    missing = [name for name in required if not (build_receipt_dir / name).is_file()]
+    if missing:
+        raise FileNotFoundError(f"build provenance is incomplete: {missing}")
+
+    command_receipts = {}
+    for name in (
+        "configure-command.json",
+        "build-command.json",
+        "test-arg-parser-offline-command.json",
+        "pytest-host-command.json",
+    ):
+        receipt = json.loads((build_receipt_dir / name).read_text(encoding="utf-8"))
+        if receipt.get("returncode") != 0 or not isinstance(receipt.get("argv"), list):
+            raise RuntimeError(f"unsuccessful or malformed command receipt: {name}")
+        command_receipts[name] = receipt
+
+    cache_path = build_receipt_dir / "CMakeCache.txt"
+    cache_text = cache_path.read_text(encoding="utf-8", errors="replace")
+    source_binding = f"CMAKE_HOME_DIRECTORY:INTERNAL={source_root.resolve()}"
+    if source_binding not in cache_text:
+        raise RuntimeError("CMake cache does not bind the exported source root")
+    build_root = cache_path.parent.resolve()
+    if not server.is_relative_to(build_root):
+        raise RuntimeError("server executable is not under the retained CMake build root")
+    configure_argv = command_receipts["configure-command.json"]["argv"]
+    build_argv = command_receipts["build-command.json"]["argv"]
+    if str(source_root.resolve()) not in configure_argv or str(build_root) not in configure_argv:
+        raise RuntimeError("configure command does not bind the source and build roots")
+    if str(build_root) not in build_argv or "llama-server" not in build_argv:
+        raise RuntimeError("build command does not bind the server to the build root")
+    parser_receipt = command_receipts["test-arg-parser-offline-command.json"]
+    if parser_receipt.get("environment", {}).get("LLAMA_TEST_SKIP_NETWORK") != "1":
+        raise RuntimeError("parser test receipt does not prove the offline network filter")
+    pytest_argv = command_receipts["pytest-host-command.json"]["argv"]
+    if "unit/test_ngram_simple_qualification.py" not in pytest_argv:
+        raise RuntimeError("pytest receipt does not name the isolated ngram host module")
+    if "unit/test_speculative.py" in pytest_argv:
+        raise RuntimeError("pytest receipt unexpectedly invokes the external-draft module")
+
+    retained_dir = output_dir / "build-provenance"
+    retained_dir.mkdir()
+    retained_files = []
+    for name in required:
+        source = build_receipt_dir / name
+        destination = retained_dir / name
+        shutil.copy2(source, destination)
+        retained_files.append({
+            "path": f"build-provenance/{name}",
+            "sha256": sha256_file(destination),
+            "size_bytes": destination.stat().st_size,
+        })
+
+    return {
+        "build_root": str(build_root),
+        "server_relative_to_build_root": server.relative_to(build_root).as_posix(),
+        "cmake_source_binding": source_binding,
+        "required_command_returncodes_zero": True,
+        "offline_parser_filter": command_receipts[
+            "test-arg-parser-offline-command.json"
+        ].get("environment", {}).get("LLAMA_TEST_SKIP_NETWORK"),
+        "files": retained_files,
+        "files_sha256": sha256_json(retained_files),
+    }
 
 
 def port_has_listener(host: str, port: int) -> bool:
@@ -321,6 +495,9 @@ def run_mode(
     model: Path,
     output_dir: Path,
     source_root: Path,
+    source_commit: str | None,
+    source_tree: str | None,
+    source_archive: Path | None,
     host: str,
     port: int,
     ubatch: int,
@@ -337,7 +514,12 @@ def run_mode(
     cache_path = output_dir / "llama-cache-empty"
     if cache_path.exists():
         raise RuntimeError(f"expected fresh absent cache path: {cache_path}")
-    source_before, _ = source_state(source_root)
+    source_before, _ = source_state(
+        source_root,
+        source_commit=source_commit,
+        source_tree=source_tree,
+        source_archive=source_archive,
+    )
     environment = os.environ.copy()
     environment["LLAMA_CACHE"] = str(cache_path)
     environment["HF_HUB_OFFLINE"] = "1"
@@ -419,7 +601,12 @@ def run_mode(
 
     if result is None:
         raise RuntimeError(f"{prefix}: run completed without a result")
-    source_after, _ = source_state(source_root)
+    source_after, _ = source_state(
+        source_root,
+        source_commit=source_commit,
+        source_tree=source_tree,
+        source_archive=source_archive,
+    )
     result["source_state_after_process"] = source_after
     result["source_state_unchanged"] = source_before == source_after
     result["effective_batch_from_log"] = effective_batch_identity(
@@ -441,6 +628,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--server", type=Path, required=True)
     parser.add_argument("--model", type=Path, required=True)
     parser.add_argument("--source-root", type=Path, required=True)
+    parser.add_argument("--source-commit")
+    parser.add_argument("--source-tree")
+    parser.add_argument("--source-archive", type=Path)
+    parser.add_argument("--build-receipt-dir", type=Path)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--base-port", type=int, default=19320)
@@ -453,6 +644,10 @@ def main() -> int:
     server = args.server.resolve()
     model = args.model.resolve()
     source_root = args.source_root.resolve()
+    source_archive = args.source_archive.resolve() if args.source_archive else None
+    build_receipt_dir = (
+        args.build_receipt_dir.resolve() if args.build_receipt_dir else None
+    )
     output_dir = args.output_dir.resolve()
     if sys.platform != "linux" or not Path("/proc/self/maps").is_file():
         raise RuntimeError("this qualification tool requires Linux /proc")
@@ -460,10 +655,41 @@ def main() -> int:
         raise FileNotFoundError(f"server is not executable: {server}")
     if not model.is_file():
         raise FileNotFoundError(f"model does not exist: {model}")
+    exported_values = (args.source_commit, args.source_tree, source_archive)
+    if any(value is not None for value in exported_values) and not all(
+        value is not None for value in exported_values
+    ):
+        raise ValueError(
+            "--source-commit, --source-tree, and --source-archive are all required together"
+        )
+    if source_archive is not None and build_receipt_dir is None:
+        raise ValueError("exported qualification requires --build-receipt-dir")
     output_dir.mkdir(parents=True, exist_ok=False)
 
-    identity = source_identity(source_root, output_dir)
+    identity = source_identity(
+        source_root,
+        output_dir,
+        source_commit=args.source_commit,
+        source_tree=args.source_tree,
+        source_archive=source_archive,
+    )
     initial_source_state = dict(identity)
+    if source_archive is not None:
+        retained_archive = output_dir / "source.tar"
+        shutil.copy2(source_archive, retained_archive)
+        if sha256_file(retained_archive) != identity["archive_sha256"]:
+            raise RuntimeError("retained source archive hash changed during copy")
+        identity["retained_source_archive"] = {
+            "path": retained_archive.name,
+            "sha256": sha256_file(retained_archive),
+            "size_bytes": retained_archive.stat().st_size,
+        }
+        identity["build_provenance"] = retain_build_provenance(
+            build_receipt_dir=build_receipt_dir,
+            output_dir=output_dir,
+            source_root=source_root,
+            server=server,
+        )
     identity.update({
         "server_path": str(server),
         "server_sha256_before": sha256_file(server),
@@ -495,6 +721,9 @@ def main() -> int:
                 model=model,
                 output_dir=output_dir,
                 source_root=source_root,
+                source_commit=args.source_commit,
+                source_tree=args.source_tree,
+                source_archive=source_archive,
                 host=args.host,
                 port=port,
                 ubatch=ubatch,
@@ -554,9 +783,14 @@ def main() -> int:
         "mapped_files_sha256": sorted(set(mapped_files_hashes)),
         "project_mapped_files_sha256": sorted(set(project_mapped_files_hashes)),
     }
-    final_source_state, final_diff = source_state(source_root)
+    final_source_state, final_evidence = source_state(
+        source_root,
+        source_commit=args.source_commit,
+        source_tree=args.source_tree,
+        source_archive=source_archive,
+    )
     summary["source_state_after_matrix"] = final_source_state
-    summary["source_diff_sha256_after_matrix"] = sha256_bytes(final_diff)
+    summary["source_evidence_sha256_after_matrix"] = sha256_bytes(final_evidence)
     summary["source_state_unchanged"] = final_source_state == initial_source_state
     summary["qualification"] = (
         "PASS"
@@ -565,11 +799,16 @@ def main() -> int:
         and summary["server_unchanged"]
         and summary["model_unchanged"]
         and summary["source_state_unchanged"]
+        and summary["mapped_files_identical_across_runs"]
         and summary["project_mapped_files_identical_across_runs"]
         else "REFUSE"
     )
     write_json(output_dir / "summary.json", summary)
-    print(json.dumps(summary, indent=2, sort_keys=True))
+    final_output = {
+        "summary": summary,
+        "receipt_manifest": write_receipt_manifest(output_dir),
+    }
+    print(json.dumps(final_output, indent=2, sort_keys=True))
     return 0 if summary["qualification"] == "PASS" else 1
 
 

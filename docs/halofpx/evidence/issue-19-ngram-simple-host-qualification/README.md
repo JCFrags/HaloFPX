@@ -1,6 +1,10 @@
 # Issue #19 ngram-simple host qualification
 
-Status: **HOST QUALIFICATION PASSED; FEATURE REMAINS DEFAULT-OFF**
+Status: **REVIEW REOPENED; PRIOR RECEIPT SUPERSEDED**
+
+The prior worktree-backed receipt has no promotion authority after independent
+review. A new receipt must be produced from a clean exported commit tree and
+must close every review finding before this status can return to passed.
 
 This is a host-only correctness and observability gate for the default-off
 `ngram-simple` experiment in issue #19. It is not Strix Halo, distributed, or
@@ -44,8 +48,8 @@ sampling (`temperature=0`, sampler list `temperature`, seed 42). They cover:
 - exact target-only versus ngram-simple token and text parity on a stable
   corpus;
 - explicit startup values and exact feature-off/default behavior;
-- nonzero generated and accepted drafts plus a forced rejection
-  (`0 <= accepted < drafted`);
+- nonzero generated and accepted drafts plus observed natural rejection
+  (`0 <= accepted < drafted`); no rejection is injected;
 - context shift;
 - two sequential requests; and
 - two concurrent requests on two slots.
@@ -81,8 +85,11 @@ Neither provisional observation is evidence of a speculative rollback or
 sampler defect. The identity-complete matched host matrix is authoritative for
 this pinned build and fixture only.
 
-The opt-in pytest gate dynamically compares full token arrays; it does not bake
-a fixture-specific token. Set `NGRAM_SIMPLE_STRICT_PARITY=1` and optionally
+The isolated ngram pytest module is
+`tools/server/tests/unit/test_ngram_simple_qualification.py`; the inherited
+external-draft `test_speculative.py` remains byte-for-byte unchanged. The
+opt-in gate dynamically compares full token arrays and does not bake a
+fixture-specific token. Set `NGRAM_SIMPLE_STRICT_PARITY=1` and optionally
 `NGRAM_SIMPLE_STRICT_PARITY_UBATCH=<N>` to run it. The standalone Linux receipt
 tool is `scripts/qualify-ngram-simple-host.py`.
 

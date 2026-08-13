@@ -1,6 +1,7 @@
 {
   "schema": "halofpx.ngram-simple.host-qualification-summary.v1",
-  "status": "PASS",
+  "status": "SUPERSEDED_PRE_REBASE_REVIEW",
+  "authority": "NONE; retained only as provenance for the superseded worktree-backed run",
   "scope": {
     "host_only": true,
     "performance_claim": false,
@@ -140,7 +141,7 @@
   "separate_host_tests": {
     "pytest_result": "3 passed, 1 deselected",
     "covered": [
-      "stable-corpus exact parity and forced rejection",
+      "stable-corpus exact parity and observed natural rejection (not injected)",
       "feature-off startup properties and absent draft counters",
       "context shift",
       "two sequential identical requests",
