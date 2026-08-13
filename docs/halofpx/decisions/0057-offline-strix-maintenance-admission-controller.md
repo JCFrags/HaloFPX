@@ -38,23 +38,43 @@ SHA-256-bound by policy. Duplicate fields, expired or oversized windows,
 changed digests, identity drift, incomplete censuses, foreign owners, and
 uncertain state fail closed.
 
-Shutdown is coordinator-first and recovery is worker-first. Every stop is
-followed by an absence proof and an elevated closed-world GPU-owner census.
+Shutdown is coordinator-first and recovery is worker-first. Every stop return
+or exception is followed by an independent active/absent production snapshot
+that closes host, unit ActiveState/SubState, main PID, listener PIDs, cgroup
+path/existence/membership, and identity, plus an elevated closed-world
+GPU-owner census.
 The adapter cannot run until both production ranks are proven absent. Cleanup
 and a reconciled census gate recovery. Worker readiness gates coordinator
 start. Exact recovered ownership gates the modeled minimal two-rank inference
 contract. The terminal may call recovery complete only if both that census and
-contract pass; identities whose modeled readiness passed are reported
-separately as `services_ready`, including preserved identities that did not
-need a restart.
+contract pass and a final authoritative production snapshot exactly matches
+the validated recovered identities. Every role once proven absent must remain
+absent until an explicit fresh start returns greater process-start and systemd
+active-enter monotonic identities; a stale pre-stop PID cannot be classified
+as preserved recovery. Stop/start response loss remains a transaction error,
+but a separately observed exact postcondition drives safe recovery. Cleanup
+similarly admits recovery only through an independent disposable-absence
+proof, not through the cleanup command response alone.
 
-Events, original policy/authorization bytes, adapter receipt, intent, terminal,
-and final hashes are retained under a never-preexisting evidence root. No
-result from this controller is a performance result. An event-write failure is
-retained as a custody error when possible but does not revoke an already
-validated safety action or prevent subsequent worker-first recovery. Terminal
-write failure remains post-recovery and is not accepted as atomic real-target
-terminalization.
+Events, original policy/authorization bytes, exact adapter plan/policy bytes,
+adapter receipt, intent, terminal, and final hashes are retained under a
+never-preexisting evidence root. No result from this controller is a
+performance result. A mandatory forward event write failure aborts the body
+before its next mutation and enters cleanup and recovery. Recovery evidence
+failures remain nonblocking so they cannot prevent worker-first recovery.
+`FAILED.json` is distinct from success finalization.
+Offline success is accepted only by the strict closed-tree `verify-bundle`
+path, which requires a coherent final `COMMITTED.json`, terminal,
+`SHA256SUMS`, exact inventory and hashes, empty errors, and every recovery
+gate. It also replays the event sequence and sparse adapter receipt semantics
+from the retained frozen inputs. Marker existence alone is never authority.
+Pre-publication failure makes a best-effort terminal-failure rewrite and
+publishes no success marker. A rename error is treated as a possible lost
+response, and a post-rename sync failure is similarly ambiguous: both first
+attempt to withdraw the marker and never rewrite bytes which an indeterminate
+surviving marker may already bind. On Windows, directory sync is unavailable,
+so this offline artifact does not claim crash durability. This still is not
+atomic two-node real-target terminalization.
 
 ## Explicit non-authority and future promotion gates
 
@@ -65,8 +85,8 @@ checkout. The supplied timestamp is fixture input rather than trusted node
 time. Nonce custody is local to one evidence directory. `offline_fake=True` is
 a test convention, not a security boundary. The sparse adapter receipt proves
 ordering only. The fake process has no out-of-band recovery actor;
-consequently, a simulated cleanup failure correctly blocks controller-driven
-restart rather than pretending recovery.
+consequently, disposable residue blocks controller-driven restart, while a
+lost cleanup response may proceed only after the independent absence proof.
 
 These are mandatory, cumulative gates for any later real-target proposal:
 
@@ -96,10 +116,12 @@ single-node target fallback: ambiguity or loss of either rank refuses.
 ## Qualification and consequences
 
 Deterministic fake-runner tests exercise the happy path and adversarial
-ordering, ownership, identity, adapter, cleanup, recovery, probe, kernel,
-replay, input, example-pair, and hard-off cases. They do not contact either
-target, execute a real unit, use SSH, prove owner authorization, prove watchdog
-behavior, or measure model performance.
+ordering, ownership, identity, adapter, cleanup, recovery, actuator-lost-
+response and postcondition reconciliation, active/absent terminal state,
+mandatory custody, closed-tree commit verification and publication cuts,
+probe, kernel, replay, input, example-pair, and hard-off cases. They do not
+contact either target, execute a real unit, use SSH, prove owner authorization,
+prove watchdog behavior, or measure model performance.
 
 This decision makes the future safety contract reviewable without weakening
 the current stop gate. It also exposes the controller-loss recovery problem

@@ -72,27 +72,43 @@ The fake-only transaction is ordered as follows:
 1. Create a write-once intent receipt, then snapshot exact production
    identities, both kernel/OOM baselines, and a complete elevated KFD/render
    owner census.
-2. Stop the coordinator, prove its unit, PID, cgroup, listener, and GPU
-   ownership absent, then repeat the exact census while the worker remains.
-3. Stop and prove the worker absent, then require a complete empty census on
-   both nodes.
+2. Stop the coordinator, then independently snapshot active/absent unit, PID,
+   cgroup, listener, and identity state. Exact host/unit ActiveState/SubState
+   and cgroup existence/membership are required before repeating the exact
+   census while the worker remains.
+3. Stop the worker and take the same independent postcondition snapshot, then
+   require a complete empty census on both nodes.
 4. Hand the exact frozen schedule entry to the PR-#51 adapter fake, reject any
    receipt that claims execution qualification or performance, then clean the
-   disposable domain.
+   disposable domain. Cleanup command success is insufficient; an independent
+   unit/port/path absence proof gates recovery.
 5. Reconcile GPU ownership before recovery. Recover the worker first and prove
    its fresh identity and RPC readiness; only then recover the coordinator and
    prove its fresh identity and health.
 6. Require the recovered exact-owner census before invoking the modeled
    two-rank inference contract. A failed census cannot reach that fake seam.
 7. Compare post-transaction OOM, fault, and reset counters with the baseline,
-   retain every event, and write a terminal receipt plus `SHA256SUMS`.
+   take one final active/absent service snapshot, retain every event plus the
+   exact adapter plan/policy/receipt bytes, and write a terminal receipt plus
+   `SHA256SUMS`. Successful and failed finalization use distinct
+   `COMMITTED.json` and `FAILED.json` markers.
 
-An event-write or sync failure is retained as a custody error when the
-remaining evidence root is writable, but it does not undo a successfully
-validated cleanup/start/readiness action or stop worker-first recovery. Failure
-to write the terminal receipt itself occurs only after recovery attempts and
-still remains a mandatory atomic-terminalization problem for a future real
-controller.
+A mandatory forward event-write or sync failure aborts the maintenance body
+before its next mutation and enters cleanup/recovery. Evidence failure during
+cleanup or recovery does not undo an already validated safety action or stop
+worker-first recovery. A provisional terminal or marker existence is not
+accepted as success. The executable `verify-bundle` path requires a canonical
+`COMMITTED.json` binding the terminal and `SHA256SUMS`, exact regular-file
+inventory with no staging or extra paths, every manifest digest, empty terminal
+errors, every recovery gate, the exact event sequence, and the sparse adapter
+receipt semantics recomputed from retained frozen inputs. Pre-publication
+failures make only a best-effort terminal-failure rewrite. A rename exception
+is treated as a possible lost response. If rename may have occurred, or a
+post-rename directory sync fails, the controller first attempts marker
+withdrawal and never mutates bytes an indeterminate surviving marker may bind.
+Windows supplies no directory-fsync primitive here, so this offline fake does
+not claim crash durability. Atomic two-node terminal reconciliation remains a
+mandatory future real-controller gate.
 
 Rank ownership is explicit: `nimo-2` owns the RPC worker and must be ready
 first; `nimo-1` owns the coordinator and may start only after worker readiness.
@@ -100,11 +116,29 @@ There is no single-node maintenance fallback in this controller. A partial or
 ambiguous dual-node state fails the transaction.
 
 The terminal differentiates `services_ready` from
-`recovery_census_complete`, `recovery_probe_complete`, and
+`recovery_census_complete`, `recovery_probe_complete`,
+`final_observation_matches_recovery`, and
 `recovery_complete`. Merely starting both services is not issue-#41 recovery;
 `services_ready` means the relevant preserved or restarted identities passed
 their modeled readiness contracts. `recovery_complete` additionally requires
-the exact-owner census and two-rank inference-contract proof.
+the exact-owner census, two-rank inference-contract proof, and final
+authoritative active/absent snapshot equality. Every proven-absent role must
+cross an explicit fresh start; a reappearing old PID or backward
+process/systemd monotonic identity refuses. A stop/start response error does
+not prove no effect: the
+independent postcondition decides whether a role is preserved, absent, or
+freshly active, while the error still makes the overall transaction fail.
+
+Verify a successful fake bundle through the sole local acceptance seam:
+
+```powershell
+python -B scripts/halofpx_strix_maintenance.py `
+  --evidence-root C:\absolute\path\to\offline-evidence `
+  verify-bundle
+```
+
+This verifies only the closed offline fake artifact. It is not a signature,
+two-node receipt, performance result, or target-execution qualification.
 
 ## Mandatory gates before any real-target promotion
 
@@ -156,9 +190,12 @@ python -B -m unittest tests.test_halofpx_strix_maintenance -v
 ```
 
 The fake-runner cases cover ordering, foreign/incomplete ownership, identity
-drift, absence proof, adapter and cleanup failures, worker-first recovery,
-stale identities, recovered-census gating, mandatory probe semantics,
-kernel-counter deltas, injected custody-write failure, replayed evidence roots,
-closed input schemas, changed PR-#51 bytes, the exact tracked example pair, the
-non-fake seam, and the public CLI's hard-off gate. They prove only the domain
-contract.
+drift, active/absent postconditions, adapter and cleanup failures, worker-first
+recovery, stale/reappearing/backward identities, actuator errors after side
+effects, final authoritative observation, recovered-census gating, exact
+bounded probe semantics, kernel-counter deltas, mandatory forward and best-
+effort recovery custody failures, marker publication cuts, terminal rewrite
+failure, closed-tree verification, replayed evidence roots, closed input
+schemas and scalar types, changed PR-#51 bytes, the exact tracked example pair,
+the non-fake seam, and the public CLI's hard-off gate. They prove only the
+domain contract.
