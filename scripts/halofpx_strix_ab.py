@@ -30,10 +30,16 @@ from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Any
 
 
-PLAN_SCHEMA = "halofpx.strix-ab-plan.v1"
+PLAN_SCHEMA_V1 = "halofpx.strix-ab-plan.v1"
+PLAN_SCHEMA_V2 = "halofpx.strix-ab-plan.v2"
+# Keep the historical public alias pinned to v1. Existing callers and fixtures
+# use it when constructing v1 plans, and initialized v1 runs are never migrated.
+PLAN_SCHEMA = PLAN_SCHEMA_V1
 PREFLIGHT_SCHEMA = "halofpx.strix-ab-preflight.v2"
 SAMPLE_SCHEMA = "halofpx.strix-ab-sample.v1"
-ANALYSIS_SCHEMA = "halofpx.strix-ab-analysis.v1"
+ANALYSIS_SCHEMA_V1 = "halofpx.strix-ab-analysis.v1"
+ANALYSIS_SCHEMA_V2 = "halofpx.strix-ab-analysis.v2"
+ANALYSIS_SCHEMA = ANALYSIS_SCHEMA_V1
 CLIENT_SCHEMA = "halofpx.client-timing.v1"
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
@@ -264,12 +270,18 @@ def validate_node(value: Any, where: str) -> dict[str, Any]:
 def condition_commands(plan: dict[str, Any], name: str) -> dict[str, list[str]]:
     condition = plan["conditions"][name]
     runtime = plan["runtime"]
+    generated_coordinator_args: list[str] = []
+    if plan["schema"] == PLAN_SCHEMA_V2:
+        # In v2 the condition batch is a typed plan field. It is rendered here
+        # exactly once so raw argv cannot silently select a different A/B.
+        generated_coordinator_args = ["--batch-size", str(runtime["batch_by_condition"][name])]
     return {
         "worker": [condition["worker_binary"]["path"]]
         + runtime["common_worker_args"]
         + condition["worker_args"],
         "coordinator": [condition["coordinator_binary"]["path"]]
         + runtime["common_coordinator_args"]
+        + generated_coordinator_args
         + condition["coordinator_args"],
     }
 
@@ -287,19 +299,49 @@ def require_argv_option(args: list[str], flag: str, expected: str, where: str) -
         raise PlanError(f"{where} must contain exactly one {flag} value equal to {expected!r}")
 
 
+def require_argv_aliases_absent(args: list[str], aliases: set[str], where: str) -> None:
+    for item in args:
+        option = item.split("=", 1)[0]
+        if option.startswith("--"):
+            # llama.cpp normalizes underscores in long options before lookup.
+            option = option.replace("_", "-")
+        if option in aliases:
+            raise PlanError(
+                f"{where} must omit {item.split('=', 1)[0]}; plan v2 generates the typed condition value")
+
+
+def require_canonical_argv_option(args: list[str], flag: str, expected: str, where: str) -> None:
+    matches = []
+    for index, item in enumerate(args):
+        option = item.split("=", 1)[0]
+        if option.startswith("--"):
+            option = option.replace("_", "-")
+        if option == flag:
+            matches.append(index)
+    if len(matches) != 1 or args[matches[0]] != flag or \
+            matches[0] + 1 >= len(args) or args[matches[0] + 1] != expected:
+        raise PlanError(
+            f"{where} must contain one canonical {flag} {expected} pair")
+
+
 def validate_plan(value: Any) -> dict[str, Any]:
     plan = require_mapping(value, "plan")
+    schema = plan.get("schema")
+    if schema not in {PLAN_SCHEMA_V1, PLAN_SCHEMA_V2}:
+        raise PlanError(
+            f"plan.schema must be {PLAN_SCHEMA_V1} or {PLAN_SCHEMA_V2}")
+    required_plan_keys = {
+        "schema", "experiment_id", "issues", "source", "model", "request",
+        "topology", "runtime", "execution", "conditions",
+    }
+    if schema == PLAN_SCHEMA_V2:
+        required_plan_keys.add("comparison")
     require_keys(
         plan,
-        {
-            "schema", "experiment_id", "issues", "source", "model", "request",
-            "topology", "runtime", "execution", "conditions",
-        },
+        required_plan_keys,
         {"notes"},
         "plan",
     )
-    if plan["schema"] != PLAN_SCHEMA:
-        raise PlanError(f"plan.schema must be {PLAN_SCHEMA}")
     if not ID_RE.fullmatch(require_string(plan["experiment_id"], "plan.experiment_id")):
         raise PlanError("plan.experiment_id must be a safe lowercase identifier")
     if not isinstance(plan["issues"], list) or not {15, 16}.issubset(set(plan["issues"])):
@@ -310,6 +352,15 @@ def validate_plan(value: Any) -> dict[str, Any]:
     require_string(source["repository"], "plan.source.repository")
     require_hash(source["off_commit"], "plan.source.off_commit", COMMIT_RE)
     require_hash(source["on_commit"], "plan.source.on_commit", COMMIT_RE)
+
+    comparison: dict[str, Any] | None = None
+    if schema == PLAN_SCHEMA_V2:
+        comparison = require_mapping(plan["comparison"], "plan.comparison")
+        require_keys(comparison, {"kind", "control", "candidate"}, set(), "plan.comparison")
+        if comparison["kind"] not in {"runtime_n_batch", "feature_build"}:
+            raise PlanError("plan.comparison.kind must be runtime_n_batch or feature_build")
+        if comparison["control"] != "off" or comparison["candidate"] != "on":
+            raise PlanError("plan.comparison must bind control=off and candidate=on")
 
     model = require_mapping(plan["model"], "plan.model")
     require_keys(
@@ -358,23 +409,49 @@ def validate_plan(value: Any) -> dict[str, Any]:
         raise PlanError("coordinator and worker hosts must be distinct")
 
     runtime = require_mapping(plan["runtime"], "plan.runtime")
+    runtime_keys = {
+        "lane", "cache_class", "context", "ubatch", "flash_attention",
+        "kv_k", "kv_v", "common_environment", "common_worker_args",
+        "common_coordinator_args",
+    }
+    runtime_keys.add("batch" if schema == PLAN_SCHEMA_V1 else "batch_by_condition")
     require_keys(
         runtime,
-        {
-            "lane", "cache_class", "context", "batch", "ubatch", "flash_attention",
-            "kv_k", "kv_v", "common_environment", "common_worker_args",
-            "common_coordinator_args",
-        },
+        runtime_keys,
         set(),
         "plan.runtime",
     )
     if runtime["lane"] != "cold_prompt_generation" or runtime["cache_class"] != "cold_cache_off":
-        raise PlanError("v1 qualifies only lane=cold_prompt_generation with cache_class=cold_cache_off")
+        if schema == PLAN_SCHEMA_V1:
+            raise PlanError("v1 qualifies only lane=cold_prompt_generation with cache_class=cold_cache_off")
+        raise PlanError("v2 qualifies only lane=cold_prompt_generation with cache_class=cold_cache_off")
     context = require_int(runtime["context"], "plan.runtime.context", 1)
-    batch = require_int(runtime["batch"], "plan.runtime.batch", 1)
     ubatch = require_int(runtime["ubatch"], "plan.runtime.ubatch", 1)
-    if batch < ubatch:
-        raise PlanError("plan.runtime.batch must be >= ubatch")
+    if schema == PLAN_SCHEMA_V1:
+        batch_by_condition = {
+            "off": require_int(runtime["batch"], "plan.runtime.batch", 1),
+            "on": runtime["batch"],
+        }
+    else:
+        raw_batches = require_mapping(
+            runtime["batch_by_condition"], "plan.runtime.batch_by_condition")
+        require_keys(raw_batches, {"off", "on"}, set(), "plan.runtime.batch_by_condition")
+        batch_by_condition = {
+            name: require_int(
+                raw_batches[name], f"plan.runtime.batch_by_condition.{name}", 1)
+            for name in ("off", "on")
+        }
+        assert comparison is not None
+        expected_batches = (
+            {"off": 512, "on": 2048}
+            if comparison["kind"] == "runtime_n_batch"
+            else {"off": 512, "on": 512}
+        )
+        if batch_by_condition != expected_batches or ubatch != 512:
+            raise PlanError(
+                f"plan v2 {comparison['kind']} requires batch_by_condition={expected_batches} and ubatch=512")
+    if any(batch < ubatch for batch in batch_by_condition.values()):
+        raise PlanError("every planned runtime batch must be >= ubatch")
     if context < request["prompt_tokens"] + request["output_tokens"]:
         raise PlanError("plan.runtime.context is smaller than prompt plus output tokens")
     if not isinstance(runtime["flash_attention"], bool):
@@ -385,6 +462,10 @@ def validate_plan(value: Any) -> dict[str, Any]:
     for name, item in environment.items():
         if not ENV_RE.fullmatch(name) or not isinstance(item, str):
             raise PlanError("common_environment must map safe variable names to strings")
+    if schema == PLAN_SCHEMA_V2 and any(
+            name in environment for name in ("LLAMA_ARG_BATCH", "LLAMA_ARG_UBATCH")):
+        raise PlanError(
+            "plan v2 common_environment must omit LLAMA_ARG_BATCH and LLAMA_ARG_UBATCH")
     runtime["common_worker_args"] = require_argv(
         runtime["common_worker_args"], "plan.runtime.common_worker_args", allow_empty=True)
     runtime["common_coordinator_args"] = require_argv(
@@ -393,7 +474,6 @@ def validate_plan(value: Any) -> dict[str, Any]:
         "--model": model["path"],
         "--rpc": topology["rpc_endpoint"],
         "--ctx-size": str(context),
-        "--batch-size": str(batch),
         "--ubatch-size": str(ubatch),
         "--cache-type-k": runtime["kv_k"],
         "--cache-type-v": runtime["kv_v"],
@@ -404,6 +484,18 @@ def validate_plan(value: Any) -> dict[str, Any]:
             runtime["common_coordinator_args"], flag, expected,
             "plan.runtime.common_coordinator_args",
         )
+    if schema == PLAN_SCHEMA_V1:
+        require_argv_option(
+            runtime["common_coordinator_args"], "--batch-size",
+            str(batch_by_condition["off"]), "plan.runtime.common_coordinator_args")
+    else:
+        require_argv_aliases_absent(
+            runtime["common_coordinator_args"],
+            {"-b", "--batch-size", "-ub"},
+            "plan.runtime.common_coordinator_args")
+        require_canonical_argv_option(
+            runtime["common_coordinator_args"], "--ubatch-size", str(ubatch),
+            "plan.runtime.common_coordinator_args")
 
     execution = require_mapping(plan["execution"], "plan.execution")
     require_keys(
@@ -449,7 +541,10 @@ def validate_plan(value: Any) -> dict[str, Any]:
         for role in ("coordinator_args", "worker_args"):
             if conditions[name][role]:
                 raise PlanError(
-                    f"plan.conditions.{name}.{role} must be empty; v1 compares feature branches/builds with matched common controls")
+                    f"plan.conditions.{name}.{role} must be empty; " + (
+                        "v1 compares feature branches/builds with matched common controls"
+                        if schema == PLAN_SCHEMA_V1
+                        else "v2 conditions use only frozen common and generated controls"))
 
     off_fingerprint = canonical_bytes({
         "commit": conditions["off"]["source_commit"],
@@ -463,8 +558,36 @@ def validate_plan(value: Any) -> dict[str, Any]:
         "worker": conditions["on"]["worker_binary"]["sha256"],
         "commands": condition_commands(plan, "on"),
     })
-    if off_fingerprint == on_fingerprint:
-        raise PlanError("off and on conditions are identical")
+    if schema == PLAN_SCHEMA_V1:
+        if off_fingerprint == on_fingerprint:
+            raise PlanError("off and on conditions are identical")
+    else:
+        assert comparison is not None
+        if comparison["kind"] == "runtime_n_batch":
+            if source["off_commit"] != source["on_commit"]:
+                raise PlanError("runtime_n_batch requires identical OFF and ON source commits")
+            for role in ("coordinator_binary", "worker_binary"):
+                if conditions["off"][role] != conditions["on"][role]:
+                    raise PlanError(
+                        f"runtime_n_batch requires identical OFF and ON {role} path and SHA-256")
+            off_commands = condition_commands(plan, "off")
+            on_commands = condition_commands(plan, "on")
+            if off_commands["worker"] != on_commands["worker"]:
+                raise PlanError("runtime_n_batch worker commands must be identical")
+            off_coordinator = list(off_commands["coordinator"])
+            on_coordinator = list(on_commands["coordinator"])
+            if off_coordinator[-2:] != ["--batch-size", "512"] or \
+                    on_coordinator[-2:] != ["--batch-size", "2048"] or \
+                    off_coordinator[:-2] != on_coordinator[:-2]:
+                raise PlanError(
+                    "runtime_n_batch coordinator commands must differ only in the generated batch value")
+        else:
+            if all(
+                    conditions["off"][role]["sha256"] == conditions["on"][role]["sha256"]
+                    for role in ("coordinator_binary", "worker_binary")):
+                raise PlanError("feature_build requires a distinct OFF/ON binary SHA-256")
+            if off_fingerprint == on_fingerprint:
+                raise PlanError("off and on feature_build conditions are identical")
     return plan
 
 
@@ -1052,7 +1175,7 @@ def analyze_run(root: Path) -> dict[str, Any]:
     ]
     complete = not missing and not failures
     report: dict[str, Any] = {
-        "schema": ANALYSIS_SCHEMA,
+        "schema": ANALYSIS_SCHEMA_V2 if plan["schema"] == PLAN_SCHEMA_V2 else ANALYSIS_SCHEMA_V1,
         "experiment_id": plan["experiment_id"],
         "plan_sha256": plan_digest(plan),
         "lane": plan["runtime"]["lane"],
@@ -1069,6 +1192,18 @@ def analyze_run(root: Path) -> dict[str, Any]:
         "performance_claim": False,
         "metrics": {},
     }
+    if plan["schema"] == PLAN_SCHEMA_V2:
+        report["comparison"] = {
+            "kind": plan["comparison"]["kind"],
+            "control": plan["comparison"]["control"],
+            "candidate": plan["comparison"]["candidate"],
+            "batch_by_condition": dict(plan["runtime"]["batch_by_condition"]),
+            "ubatch": plan["runtime"]["ubatch"],
+            "condition_commands_sha256": {
+                name: digest_bytes(canonical_bytes(condition_commands(plan, name)))
+                for name in ("off", "on")
+            },
+        }
     if complete:
         by_pair: dict[int, dict[str, list[dict[str, Any]]]] = {}
         all_content = set()
@@ -1155,7 +1290,7 @@ def main() -> int:
     try:
         if args.command == "validate":
             plan = load_plan(args.plan)
-            print(json.dumps({"schema": PLAN_SCHEMA, "experiment_id": plan["experiment_id"], "plan_sha256": plan_digest(plan)}, sort_keys=True))
+            print(json.dumps({"schema": plan["schema"], "experiment_id": plan["experiment_id"], "plan_sha256": plan_digest(plan)}, sort_keys=True))
         elif args.command == "init":
             init_run(args.plan, args.run_root)
         elif args.command == "preflight":

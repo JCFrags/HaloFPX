@@ -151,7 +151,10 @@ model-general evidence core used by #37.
 - Compare `n_batch/n_ubatch` `512/512` with `2048/512` while holding every
   other variable fixed. The 1,129-token stress prompt currently crosses three
   outer decode calls at `512/512`; the larger outer batch may reduce repeated
-  scheduler and RPC setup without changing microbatch size.
+  scheduler and RPC setup without changing microbatch size. The offline-
+  qualified plan-v2 contract now enforces identical commits and binaries and
+  generates the sole typed batch flag. Target execution remains blocked by
+  issues #37 and #41, so no direction or speed result exists yet.
 - Screen backend greedy sampling as a generation diagnostic. Do not promote it
   if cache eligibility or exact output parity changes.
 - Use one warmup and three interleaved pairs for direction. Require five

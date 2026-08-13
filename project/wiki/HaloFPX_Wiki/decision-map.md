@@ -32,6 +32,8 @@ Current accepted architecture decision records (ADRs) include:
   standalone live-derived cache authority.
 - [ADR-0054](../../../docs/halofpx/decisions/0054-default-off-world1-prefix-product-shell.md):
   default-off world-1 authenticated-prefix product shell.
+- [ADR-0056](../../../docs/halofpx/decisions/0056-versioned-strix-ab-runtime-comparison.md):
+  versioned Strix A/B runtime comparison.
 
 Read each complete decision in the HaloFPX implementation repository.
 Do not copy a decision into the Wiki as a replacement authority.

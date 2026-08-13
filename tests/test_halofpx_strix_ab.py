@@ -69,6 +69,26 @@ class StrixABTest(unittest.TestCase):
         AB.init_run(plan_path, run)
         return run
 
+    def make_v2(self, kind: str = "runtime_n_batch") -> dict:
+        plan = copy.deepcopy(self.plan)
+        plan["schema"] = AB.PLAN_SCHEMA_V2
+        plan["comparison"] = {"kind": kind, "control": "off", "candidate": "on"}
+        plan["runtime"].pop("batch")
+        plan["runtime"]["batch_by_condition"] = {
+            "off": 512,
+            "on": 2048 if kind == "runtime_n_batch" else 512,
+        }
+        args = plan["runtime"]["common_coordinator_args"]
+        batch_index = args.index("--batch-size")
+        del args[batch_index:batch_index + 2]
+        if kind == "runtime_n_batch":
+            plan["source"]["on_commit"] = plan["source"]["off_commit"]
+            plan["conditions"]["on"]["source_commit"] = plan["source"]["off_commit"]
+            for key in ("coordinator_binary", "worker_binary"):
+                plan["conditions"]["on"][key] = copy.deepcopy(
+                    plan["conditions"]["off"][key])
+        return plan
+
     def import_preflights(self, run: Path) -> None:
         for role, host in (("coordinator", "nimo-1"), ("worker", "nimo-2")):
             receipt = AB.collect_preflight(self.plan, role, observed_hostname=host)
@@ -89,6 +109,138 @@ class StrixABTest(unittest.TestCase):
         self.assertEqual(len(schedule["entries"]), 6)
         for pair in range(1, 4):
             self.assertEqual({entry["condition"] for entry in schedule["entries"] if entry["pair_id"] == pair}, {"off", "on"})
+
+    def test_v1_normalized_documents_and_canonical_identity_are_unchanged(self) -> None:
+        example = Path(__file__).parents[1] / "scripts" / "halofpx-strix-ab-plan.example.json"
+        plan = AB.load_plan(example)
+        normalized = lambda value: (json.dumps(value, indent=2, sort_keys=True) + "\n").encode()
+        self.assertEqual(hashlib.sha256(normalized(plan)).hexdigest(),
+                         "267e265d19a78ba2050936818bc35481da82486a022619dd3e5aada5ba4350f0")
+        self.assertEqual(hashlib.sha256(normalized(AB.make_schedule(plan))).hexdigest(),
+                         "eb48d0691c01936b11b79b4b07e3c85f19ec90c248de50b16c09bdc7907480b2")
+        self.assertEqual(hashlib.sha256(normalized(AB.commands_document(plan))).hexdigest(),
+                         "285bae02c3b45ba7c64aaa981541669bd932f0787229bfa611f67cf9d9478ebf")
+        self.assertEqual(AB.plan_digest(plan),
+                         "f6f1d7fc4e1aaec6b0dffddadb5eb539aaba1ad881b8f95b181394707bb76aeb")
+
+    def test_v2_runtime_batch_uses_identical_artifacts_and_one_generated_flag(self) -> None:
+        self.plan = self.make_v2()
+        AB.validate_plan(copy.deepcopy(self.plan))
+        commands = AB.commands_document(self.plan)["conditions"]
+        self.assertEqual(commands["off"]["worker"], commands["on"]["worker"])
+        self.assertEqual(commands["off"]["coordinator"][-2:], ["--batch-size", "512"])
+        self.assertEqual(commands["on"]["coordinator"][-2:], ["--batch-size", "2048"])
+        self.assertEqual(commands["off"]["coordinator"][:-2], commands["on"]["coordinator"][:-2])
+        for condition in ("off", "on"):
+            self.assertEqual(commands[condition]["coordinator"].count("--batch-size"), 1)
+
+        run = self.initialize()
+        self.import_preflights(run)
+        schedule = json.loads((run / "schedule.json").read_text(encoding="utf-8"))
+        for entry in schedule["entries"]:
+            response, client = self.raw_success(
+                110.0 if entry["condition"] == "on" else 100.0,
+                22.0 if entry["condition"] == "on" else 20.0,
+                900.0 if entry["condition"] == "on" else 1000.0,
+            )
+            AB.record_sample(
+                run, entry["pair_id"], entry["condition"], entry["order_index"],
+                response, client, "success", None, [])
+        report = AB.analyze_run(run)
+        self.assertEqual(report["schema"], AB.ANALYSIS_SCHEMA_V2)
+        self.assertEqual(report["comparison"]["kind"], "runtime_n_batch")
+        self.assertEqual(report["comparison"]["batch_by_condition"], {"off": 512, "on": 2048})
+        self.assertEqual(report["comparison"]["ubatch"], 512)
+        self.assertEqual(
+            report["comparison"]["condition_commands_sha256"],
+            {name: AB.digest_bytes(AB.canonical_bytes(AB.condition_commands(self.plan, name)))
+             for name in ("off", "on")},
+        )
+
+    def test_v2_runtime_batch_rejects_every_untyped_or_unmatched_control(self) -> None:
+        cases = []
+        broken = self.make_v2()
+        broken["runtime"]["batch_by_condition"]["on"] = 512
+        cases.append(("wrong-batch", broken))
+        broken = self.make_v2()
+        broken["runtime"]["batch_by_condition"]["on"] = True
+        cases.append(("boolean-batch", broken))
+        broken = self.make_v2()
+        broken["runtime"]["batch_by_condition"]["on"] = "2048"
+        cases.append(("string-batch", broken))
+        broken = self.make_v2()
+        broken["runtime"]["batch_by_condition"] = {"off": 2048, "on": 512}
+        cases.append(("swapped-batches", broken))
+        broken = self.make_v2()
+        broken["runtime"]["batch"] = 512
+        cases.append(("obsolete-v1-batch", broken))
+        broken = self.make_v2()
+        broken["runtime"]["ubatch"] = 256
+        cases.append(("wrong-ubatch", broken))
+        broken = self.make_v2()
+        broken["source"]["on_commit"] = "1" * 40
+        broken["conditions"]["on"]["source_commit"] = "1" * 40
+        cases.append(("different-commit", broken))
+        broken = self.make_v2()
+        broken["conditions"]["on"]["coordinator_binary"]["path"] = str(self.files["on-server"])
+        cases.append(("different-path", broken))
+        broken = self.make_v2()
+        broken["conditions"]["on"]["worker_binary"]["sha256"] = "f" * 64
+        cases.append(("different-hash", broken))
+        for name, extra in (
+                ("long-batch", ["--batch-size=2048"]),
+                ("short-batch", ["-b", "2048"]),
+                ("short-ubatch", ["-ub", "512"]),
+                ("underscore-batch", ["--batch_size", "4096"]),
+                ("underscore-batch-equals", ["--batch_size=4096"]),
+                ("underscore-ubatch", ["--ubatch_size", "4096"]),
+                ("underscore-ubatch-equals", ["--ubatch_size=4096"])):
+            broken = self.make_v2()
+            broken["runtime"]["common_coordinator_args"].extend(extra)
+            cases.append((name, broken))
+        broken = self.make_v2()
+        broken["runtime"]["common_environment"]["LLAMA_ARG_BATCH"] = "2048"
+        cases.append(("batch-env", broken))
+        broken = self.make_v2()
+        broken["runtime"]["common_environment"]["LLAMA_ARG_UBATCH"] = "512"
+        cases.append(("ubatch-env", broken))
+        broken = self.make_v2()
+        args = broken["runtime"]["common_coordinator_args"]
+        index = args.index("--ubatch-size")
+        del args[index:index + 2]
+        args.append("--ubatch-size=512")
+        cases.append(("noncanonical-ubatch", broken))
+        broken = self.make_v2()
+        broken["comparison"]["control"] = "on"
+        cases.append(("swapped-control", broken))
+        broken = self.make_v2()
+        broken["comparison"]["candidate"] = "off"
+        cases.append(("swapped-candidate", broken))
+        broken = self.make_v2()
+        broken["comparison"]["kind"] = "arbitrary"
+        cases.append(("unknown-kind", broken))
+        broken = self.make_v2()
+        broken["comparison"]["extra"] = True
+        cases.append(("unknown-comparison-field", broken))
+        for name, plan in cases:
+            with self.subTest(name=name), self.assertRaises(AB.PlanError):
+                AB.validate_plan(plan)
+
+    def test_v2_feature_build_keeps_distinct_binary_rule(self) -> None:
+        plan = self.make_v2("feature_build")
+        AB.validate_plan(copy.deepcopy(plan))
+        for key in ("coordinator_binary", "worker_binary"):
+            plan["conditions"]["on"][key]["sha256"] = plan["conditions"]["off"][key]["sha256"]
+        with self.assertRaisesRegex(AB.PlanError, "distinct OFF/ON binary"):
+            AB.validate_plan(plan)
+
+    def test_v1_same_binary_hashes_with_distinct_paths_remains_accepted_by_core(self) -> None:
+        plan = copy.deepcopy(self.plan)
+        plan["source"]["on_commit"] = plan["source"]["off_commit"]
+        plan["conditions"]["on"]["source_commit"] = plan["source"]["off_commit"]
+        for key in ("coordinator_binary", "worker_binary"):
+            plan["conditions"]["on"][key]["sha256"] = plan["conditions"]["off"][key]["sha256"]
+        AB.validate_plan(plan)
 
     def test_feature_branches_may_use_empty_condition_arguments(self) -> None:
         plan = copy.deepcopy(self.plan)
