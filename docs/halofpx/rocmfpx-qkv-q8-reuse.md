@@ -3,15 +3,16 @@
 Status: default-off source candidate for
 [GitHub issue #42](https://github.com/JCFrags/HaloFPX/issues/42).
 
-Publication-source head: `760276e39123622aadf5ef915e9c2b4f92172f8f`.
+Publication-source head: `eed1c06488e4075eee444403884ecec1a1275fb3`.
 Core implementation/hardening head:
-`7a6984c5a03df384be269d1c266ee993fa2184ea`. Exact base:
-`3758febacfc07fdc6e84b63637131b02d413de59`. The first two commits contain the
+`884150aa15ed9b52b5eb9989d417131aaaf9d8d3`. Exact base:
+`3bf10a1f4afcb18dfa17c657f17d0e54c82d48fb`. The first two commits contain the
 source candidate and independent-review hardening; the third corrects the
 pinned container's absolute `hipconfig` command and binds it in the source
 contract. The base includes merged PR #45's dense-FFN Q8_1 reuse, PR #44's
-target OOM authority, and PR #49's longest-prefix selector; none is Q/K/V
-target qualification.
+target OOM authority, PR #49's longest-prefix selector, PR #51's blocked A/B
+adapter draft, PR #52's standalone live-authority slice, and PR #54's
+fail-closed world-1 prefix product shell; none is Q/K/V target qualification.
 
 ## Purpose and claim boundary
 

@@ -10,9 +10,9 @@ The immutable publication boundary below remains valid, but current work has
 advanced beyond L111:
 
 - the Q/K/V candidate's exact base `main` at this update is
-  `3758febacfc07fdc6e84b63637131b02d413de59`. Its core implementation head is
-  `7a6984c5a03df384be269d1c266ee993fa2184ea`, and its publication-source head
-  is `760276e39123622aadf5ef915e9c2b4f92172f8f`. The incident record separately
+  `3bf10a1f4afcb18dfa17c657f17d0e54c82d48fb`. Its core implementation head is
+  `884150aa15ed9b52b5eb9989d417131aaaf9d8d3`, and its publication-source head
+  is `eed1c06488e4075eee444403884ecec1a1275fb3`. The incident record separately
   names source base `b77f2bce6e7875ab065e09894f45915585c9f156`. These are dated repository
   boundaries, not live pointers. A fresh worker must record its checked-out
   `git rev-parse HEAD` and `git rev-parse origin/main` rather than assuming a
@@ -64,6 +64,16 @@ advanced beyond L111:
 - [PR #48](https://github.com/JCFrags/HaloFPX/pull/48) added the portable small
   Qwen3 pure-ROCmFPX fixture lane under issue #43. Target qualification remains
   open.
+- [PR #51](https://github.com/JCFrags/HaloFPX/pull/51) merged the blocked,
+  read-only-first CachyOS A/B adapter draft. It does not authorize target work
+  while issue #41 remains open.
+- [PR #52](https://github.com/JCFrags/HaloFPX/pull/52) merged the standalone
+  default-off typed live-derived cache-authority slice. Loader capture,
+  request/context resolution, reload invalidation, and product adaptation
+  remain open under issue #33.
+- [PR #54](https://github.com/JCFrags/HaloFPX/pull/54) merged the default-off,
+  fail-closed world-1 authenticated-prefix product shell. Positive model-backed
+  restore and any cache-performance claim remain open.
 - Issue [#41](https://github.com/JCFrags/HaloFPX/issues/41) is the active P0
   stop gate: do not run experiments on either production Strix Halo machine
   until an isolated maintenance window resolves the HMM/OOM incident.

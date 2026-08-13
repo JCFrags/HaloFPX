@@ -3,12 +3,13 @@
 Status: **[VERIFIED] host source/graph qualification only** for the patch set
 captured at source head `d429a6e933dac620d91f58f58f8c27e3335ceefa`,
 based on `ad4930fd632f2f57bbe852dc2268ba3b5b7f5666`. The candidate was then
-rebased to publication-source head
-`760276e39123622aadf5ef915e9c2b4f92172f8f`, based on
-`3758febacfc07fdc6e84b63637131b02d413de59`. Exact range-diff, blob, and
-Q/K/V-region comparisons transfer only the bounded source confidence described
-below; they do not turn the raw capture into evidence produced at the rebased
-head.
+rebased first to source head `760276e39123622aadf5ef915e9c2b4f92172f8f`
+on `3758febacfc07fdc6e84b63637131b02d413de59`, then to current publication-
+source head `eed1c06488e4075eee444403884ecec1a1275fb3` on
+`3bf10a1f4afcb18dfa17c657f17d0e54c82d48fb`. Exact range-diff, blob, and Q/K/V-
+region comparisons transfer only the bounded source confidence described
+below; they do not turn the raw capture into evidence produced at either
+rebased head.
 
 ## Scope and hard boundary
 
@@ -68,10 +69,11 @@ this evidence subtree so the captured bytes remain stable.
 The third captured source commit changes only the pinned-container `hipconfig`
 command and its source-contract assertion. The fresh build and retained 3/3
 run were performed at `d429a6e9`, after that correction but before the final
-rebase to `760276e3`. The final audit found the implementation blobs and Q/K/V
-workflow/test regions byte-identical after the rebase. An incremental post-
-rebase 3/3 contract run and 54/54 CPU `ADD` lane also passed, but those console
-bytes are not part of this raw capture.
+rebase to `760276e3`. The final base integration then produced equivalent
+source head `eed1c064`; the implementation/test blobs remained byte-identical
+and the delimited Q/K/V workflow region remained equal after newline
+normalization. Incremental post-rebase 3/3 contract runs and a 54/54 CPU `ADD`
+lane also passed, but those console bytes are not part of this raw capture.
 
 ## Exact environment
 
@@ -89,8 +91,8 @@ Windows Git supplied the exact source state because the linked worktree's
 fresh CMake build therefore reports its embedded Git identity as unknown; the
 retained Windows Git state and blob list bind the captured implementation
 paths to `d429a6e9`. Independent range-diff and blob comparisons bind the
-reviewed Q/K/V source equivalence to `760276e3`; they are not a substitute for
-a fresh raw build at that later head.
+reviewed Q/K/V source equivalence through `760276e3` to `eed1c064`; they are
+not a substitute for a fresh raw build at either later head.
 
 ## Results
 

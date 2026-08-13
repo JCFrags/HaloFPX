@@ -3,6 +3,16 @@
 Status: **[VERIFIED] GPU-less compile/link evidence** for source head
 `113e411706e02704cf1c6c01d8973acbe0cab5b9`.
 
+That raw head contained Q/K/V publication source `760276e39123622aadf5ef915e9c2b4f92172f8f`
+on base `3758febacfc07fdc6e84b63637131b02d413de59`. The candidate was subsequently
+rebased to equivalent publication source
+`eed1c06488e4075eee444403884ecec1a1275fb3` on exact base
+`3bf10a1f4afcb18dfa17c657f17d0e54c82d48fb`. The implementation and focused
+test blobs compare byte-identically, and the delimited Q/K/V CI region is equal
+after newline normalization. This transfers bounded compile confidence to the
+rebased source; it does not make the raw logs a build produced at the later
+head.
+
 ## Boundary
 
 Both clean build trees used the exact pinned workflow image:
