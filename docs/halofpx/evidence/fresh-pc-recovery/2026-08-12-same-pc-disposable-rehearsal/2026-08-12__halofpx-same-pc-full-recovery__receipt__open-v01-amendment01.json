@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "amends_receipt": "2026-08-12__halofpx-same-pc-full-recovery__receipt__open-v01",
+  "normative": true,
+  "field": "feature_off_build.generator",
+  "correction": {
+    "generator": "Unix Makefiles",
+    "make_program": "/usr/bin/gmake",
+    "make_version": "GNU Make 4.4.1",
+    "ninja_version": "1.13.2",
+    "ninja_role": "installed environment inventory only; not used by the feature-off lane"
+  },
+  "reason": "The v01 receipt listed Ninja beside the feature-off toolchain without distinguishing the installed tool from the generator actually selected by the exact current CI command.",
+  "authoritative_continuation_ledger": "2026-08-12__halofpx-same-pc-full-recovery__sha256-ledger__v02.txt",
+  "prior_ledger_status": "v01 remains retained and valid for its original pre-amendment scope",
+  "build_result_changed": false,
+  "same_pc_status_changed": false,
+  "issue_2_status_changed": false
+}

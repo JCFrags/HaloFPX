@@ -17,6 +17,7 @@ filename resembles a historical file.
 | Generated build trees and caches | [RECOMMENDATION] rebuild, not canonical | Do not treat local build output as a transferable source of truth. |
 | Primary model | [OPEN] absent | Obtain exact bytes independently; verify size and SHA-256 before use. |
 | Small Qwen3-0.6B ROCmFPX fixture | [VERIFIED] registry/recipe/exact identities included and three derived GGUFs published in immutable private prerelease `fixture-qwen3-0.6b-rocmfpx-pure-v1`; [MEASURED] off-target conversion/load evidence | Download from the exact tag or reconstruct outside the clone; verify the release attestation and every recorded size/hash before use. |
+| Same-PC full recovery rehearsal | [MEASURED] bounded same-PC result tracked as small receipts only | Read the [scoped receipt index](docs/halofpx/evidence/fresh-pc-recovery/2026-08-12-same-pc-disposable-rehearsal/README.md); the approximately 50 GB raw/download/reconstruction/build tree remains local and issue #2 remains open. |
 | Credentials and live service state | intentionally excluded | Re-provision through the current operator authority; never restore from project artifacts. |
 
 The machine-readable companions are the publication
@@ -28,6 +29,26 @@ are the packaging, source-role, sensitivity, retention, and restore authority.
 The final tag, release, and attestation identities are in the
 [`publication receipt`](docs/publication/release-verification-2026-08-12.md).
 These records cannot supersede project decisions.
+
+## Same-PC recovery rehearsal receipt
+
+The small final receipt, normative generator amendment, and authoritative v02
+SHA-256 ledger from the 2026-08-12 same-PC disposable rehearsal are tracked in
+[`docs/halofpx/evidence/fresh-pc-recovery/2026-08-12-same-pc-disposable-rehearsal/`](docs/halofpx/evidence/fresh-pc-recovery/2026-08-12-same-pc-disposable-rehearsal/README.md).
+The run used a brand-new explicit directory on the existing Windows 11 + WSL2
+control PC, exact draft PR #56 commit
+`bdd87e2e29d56d1e9d7fc302c08d7f6c170fa519`, and the pinned continuation
+registry. It exercised full release acquisition, reconstruction, bundle and
+fixture recovery, validators, and the documented feature-off compile lane
+without contacting either Strix Halo target.
+
+This is **[MEASURED] same-PC evidence only**. It is not a never-used-PC result,
+does not establish the fresh-PC recovery runner as a complete trust authority,
+and does not satisfy [issue #2](https://github.com/JCFrags/HaloFPX/issues/2).
+The v02 ledger names the retained local raw evidence but does not embed it. Git
+intentionally contains no downloaded release payload, reconstructed archive,
+recovered repository, build tree, virtual environment, or command-output tree
+from this rehearsal.
 
 ## Git history preservation
 

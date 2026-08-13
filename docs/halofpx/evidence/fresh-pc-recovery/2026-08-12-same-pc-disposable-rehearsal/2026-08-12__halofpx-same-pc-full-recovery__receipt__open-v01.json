@@ -1,0 +1,310 @@
+{
+  "schema_version": 1,
+  "receipt_id": "2026-08-12__halofpx-same-pc-full-recovery__open-v01",
+  "label": "SAME-PC DISPOSABLE REHEARSAL",
+  "status": "PASS_SAME_PC_DISPOSABLE_REHEARSAL",
+  "acceptance_status": "ISSUE_2_OPEN_NOT_SATISFIED",
+  "started_at_utc": "2026-08-13T06:14:21.0672173Z",
+  "completed_at_utc": "2026-08-13T06:59:40.7183462Z",
+  "local_rehearsal_date": "2026-08-12",
+  "root": "C:\\Users\\britt\\Documents\\HaloFPX_FullRecovery_Rehearsal_20260812",
+  "scope": {
+    "new_explicit_root_was_absent_before_creation": true,
+    "existing_project_tree_used_as_authority": false,
+    "project_code_and_continuation_assets_source": "GitHub",
+    "target_or_ssh_access": false,
+    "never_used_pc": false,
+    "host": "existing Windows 11 Pro and WSL2 PC",
+    "overlay_or_cleanup": false,
+    "credentials_retained": false,
+    "claim_boundary": "No AMD Strix Halo target compatibility, quality, performance, HIP, Vulkan, single-node, or dual-node claim."
+  },
+  "source_authority": {
+    "repository": "JCFrags/HaloFPX",
+    "repository_id": 1332159679,
+    "owner_id": 222912166,
+    "visibility": "private",
+    "draft_pull_request": 56,
+    "commit": "bdd87e2e29d56d1e9d7fc302c08d7f6c170fa519",
+    "origin_main_at_rehearsal": "9bfccf25d43af0c446df591035e9cdac0b74d6c0",
+    "origin": "https://github.com/JCFrags/HaloFPX.git",
+    "detached": true,
+    "shallow": false,
+    "clean": true,
+    "fsck_full_exit": 0,
+    "registry_path": "docs/publication/continuation-releases.json",
+    "registry_sha256": "93d4874d8a836554c3da94442dff08b33ebb175a2ce4c16a8437546a7e015a96"
+  },
+  "release_authority": {
+    "release_count": 4,
+    "asset_count": 52,
+    "asset_bytes": 24696192820,
+    "strict_api_identity_state_size_digest": "PASS",
+    "github_release_attestations": "PASS",
+    "releases": [
+      {
+        "tag": "evidence-2026-08-12",
+        "release_id": 369369453,
+        "tag_object": "ddbdc98d5a98ea19fd96daf11d848360721aae74",
+        "peeled_commit": "7c801894062c2e09122c18447da66d50da60c050",
+        "asset_count": 41,
+        "asset_bytes": 23317868085
+      },
+      {
+        "tag": "evidence-ffn-q8-reuse-3402aa7-2026-08-12",
+        "release_id": 369641490,
+        "tag_object": "7e68d8a2eaa36a5a115ca2736f6bfca66ee4770f",
+        "peeled_commit": "7e68d8a2eaa36a5a115ca2736f6bfca66ee4770f",
+        "asset_count": 1,
+        "asset_bytes": 40697
+      },
+      {
+        "tag": "evidence-ffn-q8-reuse-source-bundle-3402aa7-2026-08-12",
+        "release_id": 369647794,
+        "tag_object": "0db715c6e436be88a4d5444763421020f53dc728",
+        "peeled_commit": "0db715c6e436be88a4d5444763421020f53dc728",
+        "asset_count": 1,
+        "asset_bytes": 13082
+      },
+      {
+        "tag": "fixture-qwen3-0.6b-rocmfpx-pure-v1",
+        "release_id": 369653983,
+        "tag_object": "44f4ce5b29986e3c0bb6cd8f00238e09d24c00f3",
+        "peeled_commit": "44f4ce5b29986e3c0bb6cd8f00238e09d24c00f3",
+        "asset_count": 9,
+        "asset_bytes": 1378270956
+      }
+    ]
+  },
+  "publication_assets": {
+    "download_status": "PASS",
+    "downloaded_asset_count": 52,
+    "downloaded_bytes": 24696192820,
+    "exact_tag_scoped_directories": true,
+    "all_size_and_sha256_checks": "PASS",
+    "original_verifier_status": "PASS",
+    "original_verifier_result": "Verified 39 assets, 2 split payloads, exact directory membership, and both trusted control files.",
+    "fresh_clone_manifest_identity_regression": "PASS",
+    "fresh_clone_manifest_identity_regression_exit": 0,
+    "split_payloads": [
+      {
+        "name": "l24-source-v2.tar",
+        "ordered_parts": 10,
+        "size_bytes": 17101714432,
+        "sha256": "5920dbdb2f1d29eac0be84c82611a9869318fae2ec5b3fe1392fd2ef9abef3cf",
+        "status": "PASS"
+      },
+      {
+        "name": "halofpx-project-p63-formal-evidence.tar.gz",
+        "ordered_parts": 2,
+        "size_bytes": 2516292772,
+        "sha256": "412dc86ea616b91e77b8618ffae3e4cadf9597c30a32fb91b5a2d3df41a98892",
+        "status": "PASS"
+      }
+    ],
+    "reconstructed_bytes": 19618007204,
+    "downloaded_plus_reconstructed_bytes": 44314200024
+  },
+  "git_bundle_recovery": {
+    "complete_bundles_verified": 7,
+    "legacy_implementation_head": "620ef60aa446990335ef46c7d76738f797e62f8f",
+    "legacy_wiki_head": "b1c2d8aef707fb03920fc189ccd26395fa61879d",
+    "donor_ref_counts": {
+      "rocmfpx": 9,
+      "cachyllama": 7,
+      "llama_ai": 4,
+      "llama_cpp": 7485
+    },
+    "strix_fa_fixes_head": "a18067a85e986f7798f43d98345ed5b86b55cf88",
+    "ffn_thin_bundle_head": "3402aa7fbe820496726bfb45504549830634d7bd",
+    "ffn_thin_bundle_status": "PASS",
+    "status": "PASS"
+  },
+  "ffn_archive": {
+    "size_bytes": 40697,
+    "sha256": "7a154b62d665c0a1324a84eda8adadde32006a1467f259bfb7e583f9797a82b0",
+    "member_count": 8,
+    "safe_path_type_link_duplicate_checks": "PASS",
+    "extraction_root_was_new": true,
+    "extracted_regular_files": 8,
+    "status": "PASS"
+  },
+  "validation_environments": {
+    "validation_venv": {
+      "python": "3.12.13",
+      "requirements_authority": "requirements/requirements-halofpx-validation.txt",
+      "packages": ["PyYAML==6.0.3"]
+    },
+    "fixture_venv": {
+      "python": "3.12.13",
+      "editable_gguf_commit": "bdd87e2e29d56d1e9d7fc302c08d7f6c170fa519",
+      "frozen_packages": [
+        "certifi==2026.7.22",
+        "charset-normalizer==3.5.0",
+        "gguf==0.19.0 editable at bdd87e2e",
+        "idna==3.18",
+        "numpy==2.5.2",
+        "PyYAML==6.0.3",
+        "requests==2.34.2",
+        "tqdm==4.70.0",
+        "urllib3==2.7.0"
+      ]
+    }
+  },
+  "validators": {
+    "all_exit_zero": true,
+    "wiki_manifest": "PASS",
+    "wiki_sections_complete": 86,
+    "wiki_sections_schema_valid": 86,
+    "wiki_unit_tests": 5,
+    "strix_ab_tests": 41,
+    "fixture_contract_tests": 12,
+    "fresh_recovery_contract_tests": 33,
+    "documentation_validator": {
+      "status": "PASS",
+      "explicit_rerun_exit": 0,
+      "markdown_files": 556,
+      "category_manifests": 12,
+      "authoritative_orphans": 0,
+      "broken_internal_links": 0,
+      "protected_files": 2883,
+      "protected_content_digest_sha256": "54e0fb0e2f8eed329e64197d4cdeee3f81aa92f05a504b5d5e0c3c7047022583"
+    }
+  },
+  "fixture_recovery": {
+    "fixture_id": "qwen3-0.6b-rocmfpx-pure-v1",
+    "release_companion_assets_copied_and_rehashed": 9,
+    "artifact_root_was_new": true,
+    "consumer_commit": "b77f2bce6e7875ab065e09894f45915585c9f156",
+    "consumer_clean": true,
+    "completion_binary_sha256": "8623982c5c29d05b5f1df304f10ebf2f4eba26b058e86773b707761cc8637940",
+    "completion_binary_matches_historical_observation": false,
+    "historical_binary_match_required": false,
+    "models": [
+      {
+        "id": "q3-pure",
+        "size_bytes": 266957248,
+        "sha256": "d1404c1afc61ffe49357c14c6d3dbfb252a72e87744fb7e491e7a2e205321fff",
+        "tensors": 310,
+        "f32_tensors": 113,
+        "target_format_tensors": 197,
+        "requested_generated_tokens": 4,
+        "retained_generated_text": " the word that is",
+        "smoke_exit": 0
+      },
+      {
+        "id": "q6-pure",
+        "size_bytes": 490451392,
+        "sha256": "8d5c0eb545651c7518508632d9c00138cb64c22902eb83f5b8d7d52cf5fae8cc",
+        "tensors": 310,
+        "f32_tensors": 113,
+        "target_format_tensors": 197,
+        "requested_generated_tokens": 4,
+        "retained_generated_text": " the one that is",
+        "smoke_exit": 0
+      },
+      {
+        "id": "q8-pure",
+        "size_bytes": 620822976,
+        "sha256": "ec152fed6e498cad29e75c32e11c8d520fed34bea26c5ad5bfef8a4e210a4bd7",
+        "tensors": 310,
+        "f32_tensors": 113,
+        "target_format_tensors": 197,
+        "requested_generated_tokens": 4,
+        "retained_generated_text": " the one that is",
+        "smoke_exit": 0
+      }
+    ],
+    "claim_boundary": "Off-target WSL2 CPU tensor-check/four-token smoke only; no quality or performance acceptance.",
+    "status": "PASS"
+  },
+  "feature_off_build": {
+    "source_commit": "bdd87e2e29d56d1e9d7fc302c08d7f6c170fa519",
+    "recipe": ".github/workflows/halofpx-ci.yml feature-off-build",
+    "configuration": "Release static; GGML_NATIVE/RPC/local-state and tests/tools/examples/server/webui/OpenSSL OFF",
+    "cmake": "4.2.3",
+    "ninja": "1.13.2",
+    "compiler": "GCC/G++ 15.2.0",
+    "target": "llama",
+    "output": "build/ci-feature-off-pr56/src/libllama.a",
+    "output_size_bytes": 9359840,
+    "output_sha256": "711d02e407223e06755499a48de4df985e9638e17d6d7c92074636950cae42cc",
+    "status": "PASS_COMPILE_ONLY",
+    "test_boundary": "The exact documented lane disables tests and has no runtime/CTest step."
+  },
+  "host_environment": {
+    "windows": "Windows 11 Pro 10.0.26200 build 26200, 64-bit",
+    "powershell": "7.6.3",
+    "github_cli": "2.96.0",
+    "windows_git": "2.55.0.windows.2",
+    "wsl_kernel": "6.18.33.2-microsoft-standard-WSL2",
+    "wsl_git": "2.53.0",
+    "wsl_cmake": "4.2.3",
+    "wsl_ninja": "1.13.2",
+    "wsl_compiler": "GCC/G++ 15.2.0"
+  },
+  "storage": {
+    "minimum_required_bytes": 75161927680,
+    "initial_free_bytes": 201880731648,
+    "terminal_snapshot_at_utc": "2026-08-13T06:57:39.8921620Z",
+    "terminal_snapshot_free_bytes": 152791101440,
+    "terminal_snapshot_free_gib": 142.3,
+    "retained_rehearsal_bytes_before_receipts": 50107213417,
+    "cleanup_performed": false
+  },
+  "retained_interruptions_and_retries": [
+    {
+      "phase": "validator wrapper",
+      "first_attempt": "Outer 120-second capture timed out while the documentation validator continued; the seven-row summary later recorded exit 0.",
+      "resolution": "A separate non-overwriting documentation-validator rerun recorded explicit exit 0."
+    },
+    {
+      "phase": "fixture venv bootstrap",
+      "first_attempt": "PowerShell/Bash quoting lost the root variable and attempted /workspace; permission denied before the intended venv existed.",
+      "resolution": "A literal-path, containment-checked script created the venv in the rehearsal workspace and recorded the freeze."
+    },
+    {
+      "phase": "fixture consumer build",
+      "first_attempt": "An accidental 1-second outer timeout left only a partial attempt1 CMakeFiles directory; it was retained and never reused.",
+      "second_attempt": "All 242 build steps completed and linked the binary; a later 120-second outer timeout occurred during post-build reporting.",
+      "resolution": "A separate read-only receipt proved no active process, exact clean b77 source, exact cache flags, up-to-date target, binary hash, and embedded b77 commit."
+    },
+    {
+      "phase": "terminal Git receipt",
+      "first_attempt": "A PowerShell helper passed an invalid working directory to git -C and stopped before verification.",
+      "second_attempt": "Native Windows Git rejected the WSL-created linked-worktree Linux .git pointer; main-clone checks had passed.",
+      "resolution": "Attempt3 used Windows Git for the fresh clone and WSL Git only for the fixture worktree, then recorded clean state and fsck exit 0."
+    }
+  ],
+  "github_tracking": {
+    "issue": "https://github.com/JCFrags/HaloFPX/issues/2",
+    "issue_state_after_comment": "OPEN",
+    "bounded_same_pc_comment": "https://github.com/JCFrags/HaloFPX/issues/2#issuecomment-5277106922"
+  },
+  "continuation_routes": [
+    "HANDOFF.md",
+    "ARTIFACTS.md",
+    "project/WORKER_START_HERE.md",
+    "project/wiki/HaloFPX_Wiki/README.md",
+    "project/wiki/HaloFPX_Wiki/evidence-map.md",
+    "project/wiki/HaloFPX_Wiki/decision-map.md",
+    "docs/publication/continuation-releases.json"
+  ],
+  "remaining_open_boundaries": [
+    "Issue #2 still requires a never-used-PC GitHub-only rehearsal.",
+    "No Strix Halo target or SSH execution occurred in this rehearsal.",
+    "The primary large model is not part of this recovery lane.",
+    "The fixture BF16 source remains external and was not needed for release-derived verification/smoke.",
+    "Historical FFN binaries and raw checksum stdout that were never published remain unavailable.",
+    "Agent Harness remains an external referenced authority.",
+    "No blanket public redistribution authority is inferred from private release availability."
+  ],
+  "evidence": {
+    "raw_directory": "raw",
+    "download_directory": "downloads",
+    "recovered_directory": "recovered",
+    "build_directory": "build",
+    "temporary_scripts_retained": "tmp",
+    "sha256_ledger": "receipts/2026-08-12__halofpx-same-pc-full-recovery__sha256-ledger__v01.txt"
+  }
+}

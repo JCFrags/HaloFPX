@@ -13,6 +13,12 @@ SHA256SUMS text eol=lf
 *.yaml text eol=lf
 *.yml text eol=lf
 
+# Preserve the imported terminal artifacts byte-for-byte. The v02 ledger has
+# original CRLF line endings; the Markdown receipt has one intentional hard
+# line break represented by two trailing spaces.
+docs/halofpx/evidence/fresh-pc-recovery/**/2026-08-12__halofpx-same-pc-full-recovery__sha256-ledger__v02.txt binary
+docs/halofpx/evidence/fresh-pc-recovery/**/2026-08-12__halofpx-same-pc-full-recovery__receipt__open-v01.md whitespace=-trailing-space
+
 # Preserve pinned third-party source prose verbatim, including its whitespace.
 docs/halofpx/fixtures/qwen3-0.6b-rocmfpx/source-distribution-README-28675487.md -diff
 
