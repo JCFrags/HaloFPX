@@ -5,7 +5,7 @@ status: "needs-machine-validation"
 last_verified: "2026-08-12"
 applies_to:
   repositories: ["charlie12345/ROCmFPX", "JCFrags/HaloFPX"]
-  software_versions: ["a5605a7", "4a156395db62604cf37e27e6459e3ee0e3949c48"]
+  software_versions: ["a5605a7", "4a156395db62604cf37e27e6459e3ee0e3949c48", "6c88472bf5f567a1064f27f4d8a90fc8e2b47a02", "b77f2bce6e7875ab065e09894f45915585c9f156"]
   hardware_revisions: ["gfx1151 pending"]
 related_sections: ["31", "37"]
 ---
@@ -56,5 +56,14 @@ sha256sum /models/model-ROCmFP4-STRIX_LEAN*.gguf
 
 Record quantizer stdout, source/output hashes, byte sizes, actual BPW, tensor-type histogram, imatrix hash, build flags, and recipe ID. Run CPU plus HIP/Vulkan backend-op tests and Section 31 quality gates. Root is not required.
 
-**[RECOMMENDATION]** Reject any artifact with invalid scale bytes, unexpected tensor fallback/type, unexplained tensor omission, non-finite output, backend-op failure, or a quality regression beyond its approved tier.
+## Portable small-fixture control
 
+For an off-target conversion/load control that does not require the primary
+model, use the [Qwen3-0.6B portable fixture recipe](../../../../../docs/halofpx/fixtures/qwen3-0.6b-rocmfpx/README.md).
+It downloads an immutable BF16 GGUF, requires the exact compatible artifact-
+producer commit, emits pure Q3/Q6/Q8 ROCmFPX files through verified partials,
+checks their hashes and tensor census, then smokes them with exact pinned b77
+on CPU [S30-L02]. This lane is not a quality or performance gate and cannot
+replace HIP/Vulkan or target-machine qualification.
+
+**[RECOMMENDATION]** Reject any artifact with invalid scale bytes, unexpected tensor fallback/type, unexplained tensor omission, non-finite output, backend-op failure, or a quality regression beyond its approved tier.

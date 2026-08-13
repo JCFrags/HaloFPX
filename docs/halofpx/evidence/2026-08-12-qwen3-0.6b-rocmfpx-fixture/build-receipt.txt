@@ -1,0 +1,123 @@
+HaloFPX Qwen3-0.6B portable ROCmFPX fixture build receipt
+Date: 2026-08-12
+Tracking: https://github.com/JCFrags/HaloFPX/issues/43
+Claim scope: off-target build/conversion/load control only
+Target machines contacted: no
+
+CONTROL ENVIRONMENT
+  Host: local Windows workstation
+  Linux build control: Ubuntu 26.04 under WSL2
+  Kernel: 6.18.33.2-microsoft-standard-WSL2
+  C/C++: GNU 15.2.0
+  CMake: 4.2.3
+  Ninja: 1.13.2
+  Git: 2.53.0
+  OpenSSL: 3.5.5
+  Final Linux recipe census environment:
+    Python 3.14.4
+    repository gguf-py 0.19.0 from the recipe-bearing checkout
+    NumPy 2.5.2
+
+DISK AUDIT BEFORE DOWNLOAD
+  Windows C: approximately 254.36 GiB free
+  Windows D: approximately 67.87 GiB free
+  WSL root: approximately 926 GiB free
+  Existing matching GGUF audit: no source candidate found in Documents,
+    Downloads, or the local Hugging Face cache before download
+  Canonical external root selected:
+    C:\Users\britt\Documents\HaloFPX_ROCmFPX_Fixture_Artifacts_20260812
+
+TEST-START MAIN BUILD AUTHORITY
+  source commit: b77f2bce6e7875ab065e09894f45915585c9f156
+  source tree: /home/britt/halofpx-fixture-b77
+  build tree: /home/britt/halofpx-fixture-b77/build-portable-fixture-cpu
+  generator: Ninja
+  CMake configuration:
+    -DCMAKE_BUILD_TYPE=Release
+    -DBUILD_SHARED_LIBS=OFF
+    -DGGML_NATIVE=OFF
+    -DGGML_CUDA=OFF
+    -DGGML_HIP=OFF
+    -DGGML_VULKAN=OFF
+    -DGGML_RPC=ON
+    -DGGML_RPC_HALOFPX_LOCAL_STATE=ON
+    -DLLAMA_CURL=OFF
+    -DLLAMA_BUILD_SERVER=OFF
+    -DLLAMA_BUILD_TESTS=OFF
+  targets: llama-quantize llama-completion
+  result: configure and build passed on WSL2 Linux
+  llama-quantize SHA-256:
+    0b00ee10d86dd440e1f83873ef65481c162bb044a436300d1ce6f351e9e4a10b
+  llama-completion SHA-256:
+    14276f08ebeb7f3a4bfee4aebb4daf99d05e7f2e1334cb1b9e716586062c3f54
+  configure log: cmake-configure-wsl-clone-cpu.txt
+    bytes=1763 sha256=2ca9b6b3867e1ce69dc99d33285d488bbadbb78e8357af4a8560f868e5579079
+  build log: cmake-build-wsl-clone-cpu.txt
+    bytes=27785 sha256=e0a9e7fdd135eaf55f43f2b7718ff71ab93069d78eafa5ae7066c716c6c34c06
+
+NATIVE WINDOWS BUILD OBSERVATIONS
+  Exact-main Windows CPU-only attempts did not produce llama-quantize.
+  - RPC disabled: llama-context retained unresolved RPC references.
+  - RPC enabled with local state disabled: unresolved
+    ggml_backend_rpc_halofpx_mutable_negotiate_preflight.
+  - RPC local state enabled: configuration rejected it because the feature is
+    supported only on Linux.
+  Therefore the portable off-target lane uses Linux/WSL2 for these exact pins.
+
+PINNED-B77 ARTIFACT-PRODUCTION RESULT
+  Command form for each format:
+    llama-quantize --pure SOURCE OUTPUT FORMAT 8
+  Q3/Q6/Q8 result: all exited nonzero at the same gate:
+    tensor 'output_norm.weight' has no loader-owned GGUF source-offset authority
+  Failed partial headers were moved from derived/ to logs/:
+    failed-main-b77-Q3_0_ROCMFPX-header.gguf
+    failed-main-b77-Q6_0_ROCMFPX-header.gguf
+    failed-main-b77-Q8_0_ROCMFPX-header.gguf
+  Each failed header:
+    bytes=5951936
+    sha256=e58a513f57ad57ce6c55f0a5bf5dae4dae0a28126420cde401525b20cc2eb7fb
+  Failure log identities:
+    quantize-q3-pure.txt bytes=3947
+      sha256=79bf55a7bfc8bb87af71d53f0e9cf39932a473b114f36e29aff7cacb8e94f292
+    quantize-q6-pure.txt bytes=3947
+      sha256=674e5add1b237c6530f09b2b5a8f59f55b7c016d1a121dabf2718926e5e285be
+    quantize-q8-pure.txt bytes=3947
+      sha256=a9da5e90c400edb74af47f138130a760cdc97091540445d6bd3f7f59f7edf7e1
+
+PINNED COMPATIBLE ARTIFACT PRODUCER
+  Enforcing change identified by source history:
+    620ef60aa446990335ef46c7d76738f797e62f8f
+  Pinned parent used for artifact production:
+    6c88472bf5f567a1064f27f4d8a90fc8e2b47a02
+  Scope: artifact production only; pinned test-start main b77 remains the smoke consumer
+  source tree: /home/britt/halofpx-fixture-6c88472
+  build tree: /home/britt/halofpx-fixture-6c88472/build-portable-fixture-cpu
+  CMake configuration: identical CPU-only Linux configuration above
+  result: configure/build passed; all three pure conversions passed
+  llama-quantize SHA-256:
+    2607634c06a712bd32b57552e6413b0e9d706020519f30a88c1d06c0b9ef0feb
+  llama-completion SHA-256:
+    a8620f925cc58a267e3c4f7bc0dfb4feb5d5279cbd83e964798e4c69ff0db6f9
+  configure log: cmake-configure-wsl-compatible-cpu.txt
+    bytes=1767 sha256=5d7fa7f3fb77283f64ea34331d31d9fd5d6dc4b8e4c1e3c12989c4643176dbae
+  build log: cmake-build-wsl-compatible-cpu.txt
+    bytes=27861 sha256=cdd52b19c0d5e96a7f291e41560030b8b1bfceee178725e0c67297e2c71f2173
+  conversion logs:
+    quantize-compatible-q3-pure.txt bytes=50152
+      sha256=3ce1ffb9103ce6ca001db65f5f0b5c4cc619c90fef9293ebfae06571f9f7075b
+    quantize-compatible-q6-pure.txt bytes=50152
+      sha256=e9cf1b8bfa7ce12d438f05e29bfd5ee1a475c92d3b13a98e409542afbcb47d3e
+    quantize-compatible-q8-pure.txt bytes=50152
+      sha256=6dd9d773a687b64f8fad4254887ef6f492c625c56ed819da4346c0c5600b0466
+    quantize-compatible-q3-repeat.txt bytes=50156
+      sha256=9e9374964c126467c8979ccf5bff704f057c1a637a9e8b45919e21d45de102e4
+
+REPRODUCIBILITY RESULT
+  The Q3 repeat was recorded as matching the Q3 size and SHA-256 after
+  validation. The repeat
+  payload was deleted after path, size, and digest validation because it was a
+  duplicate multi-hundred-megabyte artifact; its log remains retained.
+
+EXCLUDED CLAIMS
+  No model quality, elapsed-time, throughput, HIP, Vulkan, single-node target,
+  dual-node target, cache behavior, or distributed behavior claim is made.
