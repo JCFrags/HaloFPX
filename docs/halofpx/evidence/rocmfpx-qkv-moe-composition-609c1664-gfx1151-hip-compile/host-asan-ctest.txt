@@ -1,0 +1,31 @@
+Test project /mnt/c/Users/britt/Documents/HaloFPX_NextPrefill_Worktree/build/moe-q8-reuse-asan
+      Start 118: test-halofpx-rocmfpx-moe-q8-reuse-off
+ 1/11 Test #118: test-halofpx-rocmfpx-moe-q8-reuse-off ...............   Passed    0.01 sec
+      Start 119: test-halofpx-rocmfpx-moe-q8-reuse-on
+ 2/11 Test #119: test-halofpx-rocmfpx-moe-q8-reuse-on ................   Passed    0.01 sec
+      Start 120: test-halofpx-rocmfpx-qkv-moe-composition-p0-d0-m0
+ 3/11 Test #120: test-halofpx-rocmfpx-qkv-moe-composition-p0-d0-m0 ...   Passed    0.07 sec
+      Start 121: test-halofpx-rocmfpx-qkv-moe-composition-p0-d0-m1
+ 4/11 Test #121: test-halofpx-rocmfpx-qkv-moe-composition-p0-d0-m1 ...   Passed    0.07 sec
+      Start 122: test-halofpx-rocmfpx-qkv-moe-composition-p0-d1-m0
+ 5/11 Test #122: test-halofpx-rocmfpx-qkv-moe-composition-p0-d1-m0 ...   Passed    0.07 sec
+      Start 123: test-halofpx-rocmfpx-qkv-moe-composition-p0-d1-m1
+ 6/11 Test #123: test-halofpx-rocmfpx-qkv-moe-composition-p0-d1-m1 ...   Passed    0.16 sec
+      Start 124: test-halofpx-rocmfpx-qkv-moe-composition-p1-d0-m0
+ 7/11 Test #124: test-halofpx-rocmfpx-qkv-moe-composition-p1-d0-m0 ...   Passed    0.09 sec
+      Start 125: test-halofpx-rocmfpx-qkv-moe-composition-p1-d0-m1
+ 8/11 Test #125: test-halofpx-rocmfpx-qkv-moe-composition-p1-d0-m1 ...   Passed    0.10 sec
+      Start 126: test-halofpx-rocmfpx-qkv-moe-composition-p1-d1-m0
+ 9/11 Test #126: test-halofpx-rocmfpx-qkv-moe-composition-p1-d1-m0 ...   Passed    0.10 sec
+      Start 127: test-halofpx-rocmfpx-qkv-moe-composition-p1-d1-m1
+10/11 Test #127: test-halofpx-rocmfpx-qkv-moe-composition-p1-d1-m1 ...   Passed    0.07 sec
+      Start 128: test-halofpx-rocmfpx-moe-q8-reuse-source-contract
+11/11 Test #128: test-halofpx-rocmfpx-moe-q8-reuse-source-contract ...   Passed    0.04 sec
+
+100% tests passed, 0 tests failed out of 11
+
+Label Time Summary:
+halofpx    =   0.80 sec*proc (11 tests)
+main       =   0.80 sec*proc (11 tests)
+
+Total Test time (real) =   1.00 sec

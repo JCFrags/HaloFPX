@@ -5,8 +5,12 @@ Status: default-off source candidate under
 performance qualification are blocked by issue #41.
 
 Initial audited base: `9bfccf25d43af0c446df591035e9cdac0b74d6c0`.
-Publication head: `[OPEN]` until the candidate is rebased on the next accepted
-`main`, reviewed, and published as a draft pull request.
+Historical qualified source head: `609c166421ecf3eecaa67340e4f40fcb750a0f48`,
+whose exact parent was then-accepted `main`
+`3d9a0c3cc52168f696d600099742c7caf964161f`. Current integration source
+commit `8cf0ab82bfc09839b3cc9284b0264a2a14800d6b` rebases the candidate onto
+accepted `main` `2c40caec7d2bc583e36c4846ac505b4fb790178e`. Target qualification
+remains open.
 
 ## Purpose and claim boundary
 
@@ -108,13 +112,26 @@ accidental QKV marker ownership.
 
 ## Qualification state
 
-**[VERIFIED]** At the current source-candidate boundary, macro-OFF and macro-ON
-host selectors, the executable QKV/MoE composition graph, and the exact source
-contract pass, and `test-backend-ops` compiles with the new graph cases. These
-facts establish host/source shape only.
+**[VERIFIED]** At rebased source commit
+`8cf0ab82bfc09839b3cc9284b0264a2a14800d6b`, the composed Release host suite
+passes 17/17, the focused ASan/UBSan suite passes 11/11, and
+`test-backend-ops` compiles. The eight-state matrix executes every
+prompt-QKV/decode-QKV/routed-MoE option combination.
 
-**[OPEN]** A pinned GPU-less `gfx1151` HIP compile, feature-composition checks,
-independent review, target numerical parity, graph replay, real-model
+**[VERIFIED]** The historical pinned ROCm 7.2.4 GPU-less qualification at
+`609c166421ecf3eecaa67340e4f40fcb750a0f48` compiles and links both symmetric
+endpoints 170/170 for exact `gfx1151`: all three options OFF and all three
+options ON. The retained compile databases prove the expected three macros
+absent/present in `ggml-cuda.cu`, `mmq.cu`, and `mmvq.cu`.
+[Raw evidence](evidence/rocmfpx-qkv-moe-composition-609c1664-gfx1151-hip-compile/README.md)
+binds the exact source, toolchain, image, caches, logs, library hashes, and
+device absence. Its recorded `ggml/CMakeLists.txt`, `ggml/src/ggml-hip`, and
+relevant `ggml/src/ggml-cuda` blobs are byte-identical at the rebased source
+commit. The full rebased tree and top-level CMake composition differ, however,
+so the receipt remains historical source-blob evidence and is not presented as
+a fresh compile of `8cf0ab82bfc09839b3cc9284b0264a2a14800d6b`.
+
+**[OPEN]** Target numerical parity, runtime counters, graph replay, real-model
 reachability, and matched performance remain required. Issue #41 blocks all
 target work. Do not turn the feature on in ordinary builds or report a gain
 from compile or submission-count evidence.
