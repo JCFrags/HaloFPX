@@ -3212,6 +3212,24 @@ private:
                     res->n_decode_total          = metrics.n_decode_total;
                     res->n_busy_slots_total      = metrics.n_busy_slots_total;
 
+                    if (task.include_sampling_sync_metrics) {
+                        llama_output_sync_stats output_sync_stats {};
+                        if (!llama_get_output_sync_stats(ctx_tgt, &output_sync_stats)) {
+                            send_error(task, "Failed to read sampling synchronization metrics", ERROR_TYPE_SERVER);
+                            break;
+                        }
+                        // The core API calls this field "generation", but the
+                        // state advances it at output synchronization epoch
+                        // boundaries such as output reserve/reset.
+                        res->sampling_sync = {
+                            /* .output_epochs      = */ output_sync_stats.generation,
+                            /* .completed_barriers = */ output_sync_stats.completed_barriers,
+                            /* .reused_barriers    = */ output_sync_stats.reused_barriers,
+                            /* .graph_submissions  = */ output_sync_stats.graph_submissions,
+                            /* .output_transfers   = */ output_sync_stats.output_transfers,
+                        };
+                    }
+
                     if (task.metrics_reset_bucket) {
                         metrics.reset_bucket();
                     }
@@ -5593,9 +5611,10 @@ void server_routes::init_routes() {
             return res;
         }
 
-        // request slots data using task queue
+        // request the server and context metrics snapshot using the task queue
         {
             server_task task(SERVER_TASK_TYPE_METRICS);
+            task.include_sampling_sync_metrics = true;
             task.id = res->rd.get_new_id();
             res->rd.post_task(std::move(task), true); // high-priority task
         }
@@ -5683,6 +5702,11 @@ void server_routes::init_routes() {
                             << "llamacpp:"        << name << " " << value << "\n";
             }
         }
+
+        // Keep the cumulative uint64_t values out of the JSON metric table.
+        // Its numeric fallback is double and cannot exactly represent every
+        // counter above 2^53. This writer emits exact decimal integers.
+        server_write_sampling_sync_prometheus(prometheus, res_task->sampling_sync);
 
         res->headers["Process-Start-Time-Unix"] = std::to_string(res_task->t_start);
         res->content_type = "text/plain; version=0.0.4";

@@ -1020,6 +1020,17 @@ if (BUILD_TESTING)
         COMMAND test-server-token-probabilities)
     set_tests_properties(test-server-token-probabilities PROPERTIES
         LABELS "main;server;halofpx")
+
+    add_executable(test-server-sampling-sync-metrics
+        tests/test-server-sampling-sync-metrics.cpp)
+    target_compile_features(test-server-sampling-sync-metrics PRIVATE cxx_std_17)
+    target_include_directories(test-server-sampling-sync-metrics PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_SOURCE_DIR}/src)
+    add_test(NAME test-server-sampling-sync-metrics
+        COMMAND test-server-sampling-sync-metrics)
+    set_tests_properties(test-server-sampling-sync-metrics PROPERTIES
+        LABELS "main;server;halofpx")
 endif()
 
 
