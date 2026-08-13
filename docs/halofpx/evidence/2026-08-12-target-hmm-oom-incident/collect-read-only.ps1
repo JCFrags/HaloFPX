@@ -1118,12 +1118,53 @@ function Get-OutputArtifactMetadata {
     }
 }
 
+function ConvertTo-PosixSingleQuotedLiteral {
+    param([Parameter(Mandatory)] [AllowEmptyString()] [string] $Text)
+
+    if ($Text.IndexOf([char] 0) -ge 0) {
+        throw "POSIX command text must not contain NUL."
+    }
+    if ($Text.IndexOf("`r", [StringComparison]::Ordinal) -ge 0 -or
+        $Text.IndexOf("`n", [StringComparison]::Ordinal) -ge 0) {
+        throw "POSIX command text must be one line."
+    }
+    if ($Text.IndexOf('\', [StringComparison]::Ordinal) -ge 0) {
+        throw "POSIX command text must not contain backslash because the SSH login shell and /bin/sh quote it differently."
+    }
+
+    $singleQuote = [string] [char] 39
+    $doubleQuote = [string] [char] 34
+    $escapedSingleQuote = [string]::Concat(
+        $singleQuote,
+        $doubleQuote,
+        $singleQuote,
+        $doubleQuote,
+        $singleQuote
+    )
+    return [string]::Concat(
+        $singleQuote,
+        $Text.Replace($singleQuote, $escapedSingleQuote),
+        $singleQuote
+    )
+}
+
+function New-PosixRemoteCommand {
+    param([Parameter(Mandatory)] [ValidateNotNullOrEmpty()] [string] $Body)
+
+    # The caller supplies only source-literal, closed-world read-only command
+    # bodies.  The absolute shell path and -eu options make their status
+    # independent of the SSH account's configured login shell.
+    return "exec /bin/sh -eu -c {0}" -f (ConvertTo-PosixSingleQuotedLiteral -Text $Body)
+}
+
 function Invoke-CapturedCommand {
     param(
         [Parameter(Mandatory)] [string] $Name,
         [Parameter(Mandatory)] [string] $FilePath,
         [Parameter(Mandatory)] [AllowEmptyCollection()] [AllowEmptyString()] [string[]] $ArgumentList,
-        [int[]] $AllowedExitCodes = @(0)
+        [int[]] $AllowedExitCodes = @(0),
+        [ValidateSet("must-be-empty", "record-only")]
+        [string] $StderrPolicy = "must-be-empty"
     )
 
     $script:CommandSequence += 1
@@ -1137,7 +1178,7 @@ function Invoke-CapturedCommand {
     $failureMessage = $null
 
     $record = [ordered]@{
-        schema                         = "halofpx.read-only-command.v2"
+        schema                         = "halofpx.read-only-command.v3"
         sequence                       = $script:CommandSequence
         name                           = $Name
         argv                           = @($FilePath) + @($ArgumentList)
@@ -1152,6 +1193,7 @@ function Invoke-CapturedCommand {
         pid                            = $null
         exit_code                      = $null
         allowed_exit_codes             = @($AllowedExitCodes)
+        stderr_policy                  = $StderrPolicy
         job_created                    = $false
         job_kill_on_close_configured   = $false
         breakaway_disabled             = $false
@@ -1285,6 +1327,9 @@ function Invoke-CapturedCommand {
                 "nonzero-exit"
             }
             $failureMessage = "Read-only capture '$Name' failed with exit code $($nativeResult.ExitCode)."
+        } elseif ($StderrPolicy -eq "must-be-empty" -and $nativeResult.StderrStoredBytes -ne 0) {
+            $record.failure_class = "unexpected-stderr"
+            $failureMessage = "Read-only capture '$Name' returned exit code $($nativeResult.ExitCode) but emitted $($nativeResult.StderrStoredBytes) stderr bytes."
         }
     } catch {
         if ($null -eq $record.failure_class) {
@@ -1354,6 +1399,145 @@ if ($SelfTest) {
             }
         }
 
+        $multilineRefused = $false
+        try {
+            New-PosixRemoteCommand -Body "first`nsecond" | Out-Null
+        } catch {
+            $multilineRefused = $_.Exception.Message.Contains("one line")
+        }
+        if (-not $multilineRefused) {
+            throw "Self-test expected multiline POSIX command refusal."
+        }
+
+        $nulRefused = $false
+        try {
+            New-PosixRemoteCommand -Body ([string]::Concat("first", [char] 0, "second")) | Out-Null
+        } catch {
+            $nulRefused = $_.Exception.Message.Contains("NUL")
+        }
+        if (-not $nulRefused) {
+            throw "Self-test expected NUL POSIX command refusal."
+        }
+
+        $backslashRefused = $false
+        try {
+            New-PosixRemoteCommand -Body 'printf backslash\fixture' | Out-Null
+        } catch {
+            $backslashRefused = $_.Exception.Message.Contains("backslash")
+        }
+        if (-not $backslashRefused) {
+            throw "Self-test expected backslash POSIX command refusal."
+        }
+
+        $fakeLoginShell = Join-Path $selfTestRoot "fake-fish-login-shell.ps1"
+        Write-Utf8File -Path $fakeLoginShell -Text @'
+param([Parameter(Mandatory)] [string] $RemoteCommand)
+
+$rawPrefix = "set -eu;"
+if ($RemoteCommand.StartsWith($rawPrefix, [StringComparison]::Ordinal)) {
+    [Console]::Error.Write("set: invalid option combination")
+    [Console]::Out.Write("continued-after-invalid-set")
+    exit 0
+}
+
+$shellPrefix = "exec /bin/sh -eu -c "
+if (-not $RemoteCommand.StartsWith($shellPrefix, [StringComparison]::Ordinal)) {
+    [Console]::Error.Write("fake-shell: missing POSIX shell boundary")
+    exit 90
+}
+
+$literal = $RemoteCommand.Substring($shellPrefix.Length)
+$singleQuote = [string] [char] 39
+$doubleQuote = [string] [char] 34
+$escapedSingleQuote = [string]::Concat(
+    $singleQuote,
+    $doubleQuote,
+    $singleQuote,
+    $doubleQuote,
+    $singleQuote
+)
+if ($literal.Length -lt 2 -or
+    -not $literal.StartsWith($singleQuote, [StringComparison]::Ordinal) -or
+    -not $literal.EndsWith($singleQuote, [StringComparison]::Ordinal)) {
+    [Console]::Error.Write("fake-shell: malformed POSIX literal")
+    exit 91
+}
+
+$inner = $literal.Substring(1, $literal.Length - 2)
+$parts = [regex]::Split($inner, [regex]::Escape($escapedSingleQuote))
+if (@($parts | Where-Object { $_.Contains($singleQuote) }).Count -ne 0) {
+    [Console]::Error.Write("fake-shell: unescaped single quote")
+    exit 92
+}
+$body = $parts -join $singleQuote
+
+if ($body -ceq "exit 23") {
+    exit 23
+}
+if ($body -ceq "printf unexpected >&2") {
+    [Console]::Error.Write("unexpected-inner-stderr")
+    exit 0
+}
+[Console]::Out.Write($body)
+'@
+
+        Invoke-CapturedCommand -Name "raw-fish-record-only" -FilePath $pwshExecutable -ArgumentList @(
+            "-NoProfile", "-NonInteractive", "-File", $fakeLoginShell,
+            "set -eu; self-test-read-only"
+        ) -StderrPolicy record-only
+
+        $fishDiagnosticRefused = $false
+        try {
+            Invoke-CapturedCommand -Name "raw-fish-default-shell" -FilePath $pwshExecutable -ArgumentList @(
+                "-NoProfile", "-NonInteractive", "-File", $fakeLoginShell,
+                "set -eu; self-test-read-only"
+            )
+        } catch {
+            $fishDiagnosticRefused = $_.Exception.Message.Contains("stderr bytes")
+        }
+        if (-not $fishDiagnosticRefused) {
+            throw "Self-test expected fish-style setup diagnostic refusal."
+        }
+
+        $quotedBody = 'printf "%s" "owner''s record"'
+        $wrappedQuotedBody = New-PosixRemoteCommand -Body $quotedBody
+        Invoke-CapturedCommand -Name "posix-wrapper-success" -FilePath $pwshExecutable -ArgumentList @(
+            "-NoProfile", "-NonInteractive", "-File", $fakeLoginShell, $wrappedQuotedBody
+        ) -StderrPolicy must-be-empty
+        $decodedBody = [System.IO.File]::ReadAllText(
+            (Join-Path $OutputRoot "posix-wrapper-success.stdout.log"),
+            $utf8NoBom
+        )
+        if (-not [string]::Equals($decodedBody, $quotedBody, [StringComparison]::Ordinal)) {
+            throw "Self-test POSIX single-quote round trip mismatch."
+        }
+
+        $wrappedNonzeroRefused = $false
+        try {
+            Invoke-CapturedCommand -Name "posix-wrapper-nonzero" -FilePath $pwshExecutable -ArgumentList @(
+                "-NoProfile", "-NonInteractive", "-File", $fakeLoginShell,
+                (New-PosixRemoteCommand -Body "exit 23")
+            ) -StderrPolicy must-be-empty
+        } catch {
+            $wrappedNonzeroRefused = $_.Exception.Message.Contains("exit code 23")
+        }
+        if (-not $wrappedNonzeroRefused) {
+            throw "Self-test expected wrapped command nonzero propagation."
+        }
+
+        $wrappedStderrRefused = $false
+        try {
+            Invoke-CapturedCommand -Name "posix-wrapper-stderr" -FilePath $pwshExecutable -ArgumentList @(
+                "-NoProfile", "-NonInteractive", "-File", $fakeLoginShell,
+                (New-PosixRemoteCommand -Body "printf unexpected >&2")
+            ) -StderrPolicy must-be-empty
+        } catch {
+            $wrappedStderrRefused = $_.Exception.Message.Contains("stderr bytes")
+        }
+        if (-not $wrappedStderrRefused) {
+            throw "Self-test expected wrapped command stderr refusal."
+        }
+
         $nonzeroRefused = $false
         try {
             Invoke-CapturedCommand -Name "nonzero" -FilePath $pwshExecutable -ArgumentList @(
@@ -1416,34 +1600,71 @@ Start-Process -FilePath $PwshPath -ArgumentList $childArguments -NoNewWindow | O
         }
 
         $records = @(Get-Content -LiteralPath $ledgerPath | ForEach-Object { $_ | ConvertFrom-Json })
-        if ($records.Count -ne 5) { throw "Self-test command ledger cardinality mismatch." }
+        if ($records.Count -ne 10) { throw "Self-test command ledger cardinality mismatch." }
+        if (@($records | Where-Object schema -ne "halofpx.read-only-command.v3").Count -ne 0) {
+            throw "Self-test command ledger schema mismatch."
+        }
         if ($records[0].failure_class -ne $null -or $records[0].exit_code -ne 0 -or
+            $records[0].stderr_policy -ne "must-be-empty" -or
             -not $records[0].parent_reaped -or -not $records[0].tree_cleanup_proven -or
             -not $records[0].atomic_job_list -or -not $records[0].restricted_handle_list -or
             -not $records[0].job_membership_verified -or -not $records[0].output_artifacts_within_limit) {
             throw "Self-test argv-success ledger mismatch."
         }
-        if ($records[1].failure_class -ne "nonzero-exit" -or $records[1].exit_code -ne 7) {
+        if ($records[1].failure_class -ne $null -or $records[1].exit_code -ne 0 -or
+            $records[1].stderr_policy -ne "record-only" -or $records[1].stderr_stored_bytes -le 0 -or
+            -not [string]::Equals(
+                $records[1].argv[-1],
+                "set -eu; self-test-read-only",
+                [StringComparison]::Ordinal
+            ) -or -not ([System.IO.File]::ReadAllText(
+                (Join-Path $OutputRoot "raw-fish-record-only.stdout.log"),
+                $utf8NoBom
+            ).Contains("continued-after-invalid-set"))) {
+            throw "Self-test fish-style record-only stderr ledger mismatch."
+        }
+        if ($records[2].failure_class -ne "unexpected-stderr" -or $records[2].exit_code -ne 0 -or
+            $records[2].stderr_policy -ne "must-be-empty" -or $records[2].stderr_stored_bytes -le 0 -or
+            -not ([System.IO.File]::ReadAllText(
+                (Join-Path $OutputRoot "raw-fish-default-shell.stderr.log"),
+                $utf8NoBom
+            ).Contains("invalid option combination"))) {
+            throw "Self-test fish-style stderr refusal ledger mismatch."
+        }
+        if ($records[3].failure_class -ne $null -or $records[3].exit_code -ne 0 -or
+            $records[3].stderr_policy -ne "must-be-empty" -or $records[3].stderr_stored_bytes -ne 0 -or
+            -not [string]::Equals($records[3].argv[-1], $wrappedQuotedBody, [StringComparison]::Ordinal)) {
+            throw "Self-test POSIX wrapper success ledger mismatch."
+        }
+        if ($records[4].failure_class -ne "nonzero-exit" -or $records[4].exit_code -ne 23 -or
+            $records[4].stderr_policy -ne "must-be-empty" -or $records[4].stderr_stored_bytes -ne 0) {
+            throw "Self-test POSIX wrapper nonzero ledger mismatch."
+        }
+        if ($records[5].failure_class -ne "unexpected-stderr" -or $records[5].exit_code -ne 0 -or
+            $records[5].stderr_policy -ne "must-be-empty" -or $records[5].stderr_stored_bytes -le 0) {
+            throw "Self-test POSIX wrapper stderr ledger mismatch."
+        }
+        if ($records[6].failure_class -ne "nonzero-exit" -or $records[6].exit_code -ne 7) {
             throw "Self-test nonzero ledger mismatch."
         }
-        if ($records[2].failure_class -ne "timeout" -or -not $records[2].timed_out -or
-            -not $records[2].tree_termination_requested -or -not $records[2].tree_termination_api_succeeded -or
-            -not $records[2].parent_reaped -or -not $records[2].tree_cleanup_proven -or
-            $records[2].active_processes_final -ne 0) {
+        if ($records[7].failure_class -ne "timeout" -or -not $records[7].timed_out -or
+            -not $records[7].tree_termination_requested -or -not $records[7].tree_termination_api_succeeded -or
+            -not $records[7].parent_reaped -or -not $records[7].tree_cleanup_proven -or
+            $records[7].active_processes_final -ne 0) {
             throw "Self-test timeout ledger mismatch."
         }
-        if ($records[3].failure_class -ne "timeout" -or -not $records[3].timed_out -or
-            -not $records[3].parent_exited_before_deadline -or -not $records[3].tree_cleanup_proven -or
-            $records[3].active_processes_final -ne 0 -or $records[3].total_processes_observed -lt 2) {
+        if ($records[8].failure_class -ne "timeout" -or -not $records[8].timed_out -or
+            -not $records[8].parent_exited_before_deadline -or -not $records[8].tree_cleanup_proven -or
+            $records[8].active_processes_final -ne 0 -or $records[8].total_processes_observed -lt 2) {
             throw "Self-test inherited-stdout child ledger mismatch."
         }
-        if ($records[4].failure_class -ne "start-error" -or $records[4].started -or
-            $null -ne $records[4].pid -or $records[4].tree_cleanup_proven -ne $null -or
-            $records[4].failure_stage -ne "create-process-suspended") {
+        if ($records[9].failure_class -ne "start-error" -or $records[9].started -or
+            $null -ne $records[9].pid -or $records[9].tree_cleanup_proven -ne $null -or
+            $records[9].failure_stage -ne "create-process-suspended") {
             throw "Self-test start-error ledger mismatch."
         }
 
-        "PASS: atomic Job Object collector argv fidelity, nonzero refusal, deadline cleanup, inherited-stdout descendant cleanup, start-error ledger, and output bounds"
+        "PASS: atomic Job Object collector argv fidelity, POSIX-shell quoting, cross-shell unsafe-input refusal, fish-style stderr refusal, stderr policy, nonzero propagation, deadline cleanup, inherited-stdout descendant cleanup, start-error ledger, and output bounds"
         return
     } finally {
         if ($selfTestRoot -and (Test-Path -LiteralPath $selfTestRoot)) {
@@ -1477,28 +1698,28 @@ $sshOptions = @(
 
 Invoke-CapturedCommand -Name "nimo-2-kernel-oom-window" -FilePath $sshExecutable -ArgumentList ($sshOptions + @(
     "nimo-2",
-    "journalctl -k --since '2026-08-12 19:10:05.500000' --until '2026-08-12 19:10:15.629000' --no-pager -o short-iso-precise"
-))
+    (New-PosixRemoteCommand -Body "journalctl -k --since '2026-08-12 19:10:05.500000' --until '2026-08-12 19:10:15.629000' --no-pager -o short-iso-precise")
+)) -StderrPolicy must-be-empty
 
 Invoke-CapturedCommand -Name "nimo-2-worker-restart-window" -FilePath $sshExecutable -ArgumentList ($sshOptions + @(
     "nimo-2",
-    "journalctl -u minimax-m27-rpc-worker.service --since '2026-08-12 19:08:00' --until '2026-08-12 19:18:00' --no-pager -o short-iso-precise"
-))
+    (New-PosixRemoteCommand -Body "journalctl -u minimax-m27-rpc-worker.service --since '2026-08-12 19:08:00' --until '2026-08-12 19:18:00' --no-pager -o short-iso-precise")
+)) -StderrPolicy must-be-empty
 
 Invoke-CapturedCommand -Name "nimo-1-coordinator-restart-window" -FilePath $sshExecutable -ArgumentList ($sshOptions + @(
     "nimo-1",
-    "journalctl -u minimax-m27-q6-server.service --since '2026-08-12 19:08:00' --until '2026-08-12 19:18:00' --no-pager -o short-iso-precise"
-))
+    (New-PosixRemoteCommand -Body "journalctl -u minimax-m27-q6-server.service --since '2026-08-12 19:08:00' --until '2026-08-12 19:18:00' --no-pager -o short-iso-precise")
+)) -StderrPolicy must-be-empty
 
 Invoke-CapturedCommand -Name "nimo-2-current-authority" -FilePath $sshExecutable -ArgumentList ($sshOptions + @(
     "nimo-2",
-    "set -eu; date --iso-8601=ns; free -k; cat /proc/meminfo; systemctl --system show minimax-m27-rpc-worker.service -p Id -p ActiveState -p SubState -p MainPID -p InvocationID -p NRestarts -p Result -p ExecMainCode -p ExecMainStatus -p ControlGroup"
-))
+    (New-PosixRemoteCommand -Body "date --iso-8601=ns; free -k; cat /proc/meminfo; systemctl --system show minimax-m27-rpc-worker.service -p Id -p ActiveState -p SubState -p MainPID -p InvocationID -p NRestarts -p Result -p ExecMainCode -p ExecMainStatus -p ControlGroup")
+)) -StderrPolicy must-be-empty
 
 Invoke-CapturedCommand -Name "nimo-1-current-authority" -FilePath $sshExecutable -ArgumentList ($sshOptions + @(
     "nimo-1",
-    "set -eu; date --iso-8601=ns; free -k; cat /proc/meminfo; systemctl --system show minimax-m27-q6-server.service -p Id -p ActiveState -p SubState -p MainPID -p InvocationID -p NRestarts -p Result -p ExecMainCode -p ExecMainStatus -p ControlGroup; curl -fsS http://127.0.0.1:8081/health"
-))
+    (New-PosixRemoteCommand -Body "date --iso-8601=ns; free -k; cat /proc/meminfo; systemctl --system show minimax-m27-q6-server.service -p Id -p ActiveState -p SubState -p MainPID -p InvocationID -p NRestarts -p Result -p ExecMainCode -p ExecMainStatus -p ControlGroup; curl -fsS http://127.0.0.1:8081/health")
+)) -StderrPolicy must-be-empty
 
 Invoke-CapturedCommand -Name "github-issue-41" -FilePath $ghExecutable -ArgumentList @(
     "issue",
@@ -1508,7 +1729,7 @@ Invoke-CapturedCommand -Name "github-issue-41" -FilePath $ghExecutable -Argument
     "JCFrags/HaloFPX",
     "--json",
     "number,title,state,url,body,labels,comments"
-)
+) -StderrPolicy record-only
 
 $checksumLines = Get-ChildItem -LiteralPath $OutputRoot -File |
     Where-Object Name -ne "SHA256SUMS" |
