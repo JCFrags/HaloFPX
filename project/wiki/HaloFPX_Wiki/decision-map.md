@@ -45,6 +45,8 @@ Current accepted architecture decision records (ADRs) include:
 
 Current proposed architecture decision records include:
 
+- [ADR-0064 (proposed)](../../../docs/halofpx/decisions/0064-offline-strix-hmm-admission-snapshot.md):
+  offline closed-world Strix HMM admission snapshot.
 - [ADR-0066 (proposed)](../../../docs/halofpx/decisions/0066-offline-two-node-maintenance-nonce-protocol.md):
   offline two-node maintenance nonce protocol and explicit distributed
   uncertainty boundary.

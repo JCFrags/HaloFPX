@@ -1,0 +1,31 @@
+{
+  "decision": "ADMIT",
+  "issue": 41,
+  "performance_result": false,
+  "policy_sha256": "e75f18b1c564643bed5882afd377a70d9e6e78ca10572de6bd87a97c81984fab",
+  "reason_codes": [],
+  "roles": {
+    "coordinator": {
+      "classification": "ADMIT",
+      "hmm_headroom_bytes": 17179869184,
+      "host": "nimo-1",
+      "node_snapshot_sha256": "bf2d73d55878eb2de0222b7af9ecd955626d495612667f5575181d432f1e8f9b",
+      "production_identity_sha256": "3131533450592b2c6fe152095c4e15becdb4532e346d1747495d59370468a13a",
+      "reason_codes": [],
+      "role": "coordinator"
+    },
+    "worker": {
+      "classification": "ADMIT",
+      "hmm_headroom_bytes": 17179869184,
+      "host": "nimo-2",
+      "node_snapshot_sha256": "3a6bad0c95e48f5df0b1f8c964ffc8f02a47fcce878cf3c798fb09eb2236f48f",
+      "production_identity_sha256": "c622e76a01b08c180d63c008e08b1272e3e73f073cb2e3fa02d590b48054883b",
+      "reason_codes": [],
+      "role": "worker"
+    }
+  },
+  "schema": "halofpx.strix-hmm-admission-result.v1",
+  "snapshot_sha256": "e942b3d9dcd10e9bddc5484d1e8eb19bf804cf29dae28851a420c13f8846837a",
+  "target_execution_authority": false,
+  "trusted_now_utc": "2026-08-13T07:01:00Z"
+}
