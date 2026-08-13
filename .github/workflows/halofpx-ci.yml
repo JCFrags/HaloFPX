@@ -39,9 +39,11 @@ jobs:
           python-version: "3.12"
 
       - name: Install validator dependencies
-        run: >-
-          python -m pip install --disable-pip-version-check
-          -r requirements/requirements-halofpx-validation.txt
+        run: |
+          python -m pip install --disable-pip-version-check \
+            -r requirements/requirements-halofpx-validation.txt
+          python -m pip install --disable-pip-version-check --require-hashes \
+            -r project/project-management/documentation/github-wiki-mirror-requirements.txt
 
       - name: Check generated wiki manifest
         working-directory: project
@@ -50,6 +52,17 @@ jobs:
       - name: Validate wiki structure
         working-directory: project
         run: python research/prompts/tools/validate_wiki.py wiki/HaloFPX_Wiki
+
+      - name: Verify deterministic GitHub Wiki convenience mirror
+        run: >-
+          python project/project-management/documentation/github_wiki_mirror.py
+          --repo . verify --source-ref "$(git rev-parse HEAD)"
+
+      - name: Run GitHub Wiki mirror contract tests
+        run: >-
+          python -m unittest
+          project/project-management/documentation/test_github_wiki_mirror.py
+          -v
 
       - name: Run validator unit tests
         working-directory: project

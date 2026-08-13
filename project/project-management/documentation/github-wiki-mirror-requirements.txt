@@ -1,0 +1,17 @@
+# Offline-capable runtime lock for github_wiki_mirror.py.
+# Bootstrap may download these exact universal wheels once; generation and
+# validation perform no network access after installation.
+#
+# Primary provenance:
+# - https://pypi.org/project/markdown-it-py/4.2.0/
+# - https://github.com/executablebooks/markdown-it-py/tree/4.2.0
+# - https://pypi.org/project/mdurl/0.1.2/
+#
+# Both distributions and the bundled upstream markdown-it implementation are
+# MIT-licensed. The hashes below are SHA-256 of the exact PyPI wheel artifacts.
+--only-binary=:all:
+
+markdown-it-py==4.2.0 \
+    --hash=sha256:9f7ebbcd14fe59494226453aed97c1070d83f8d24b6fc3a3bcf9a38092641c4a
+mdurl==0.1.2 \
+    --hash=sha256:84008a41e51615a49fc9966191ff91509e3c40b939176e643fd50a5c2196b8f8

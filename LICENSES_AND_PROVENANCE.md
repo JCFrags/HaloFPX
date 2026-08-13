@@ -117,3 +117,11 @@ Before changing visibility or exporting a release, the reviewer must at least:
 Until those steps are complete, use this repository for private engineering and
 evidence preservation only. Do not describe the combined monorepo as “MIT
 licensed” without the implementation/research boundary stated above.
+
+The optional GitHub Wiki is a generated duplicate of the private canonical
+[`project/wiki/HaloFPX_Wiki`](project/wiki/HaloFPX_Wiki) content, including
+support artifacts that retain their source-specific terms. It is not a second
+license boundary and receives no blanket MIT grant. Any repository or Wiki
+visibility change must review the exact generated Wiki tree under the same
+public-release gate; enabling or mirroring the Wiki does not authorize public
+redistribution.
