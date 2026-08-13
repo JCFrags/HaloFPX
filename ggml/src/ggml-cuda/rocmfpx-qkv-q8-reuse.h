@@ -219,6 +219,37 @@ static inline bool halofpx_rocmfpx_qkv_is_ordinary_mul_mat(const ggml_tensor * n
     return true;
 }
 
+// Moving a projection before an intervening in-place write can change the
+// bytes that it reads even when the tensor dependency graph remains
+// topologically valid. ggml represents an in-place result as a view of the
+// allocation that it writes, and ggml_new_tensor_impl canonicalizes nested
+// views to their owning root. Refuse the whole semantic group if compaction
+// would cross a non-metadata write to the activation or any projection weight.
+static inline bool halofpx_rocmfpx_qkv_crossed_writes_are_safe(
+        const ggml_cgraph * cgraph,
+        const halofpx_rocmfpx_qkv_graph_group & group) {
+    const int earliest = *std::min_element(group.indices.begin(), group.indices.end());
+    const int latest = *std::max_element(group.indices.begin(), group.indices.end());
+    const std::array<const ggml_tensor *, 4> protected_roots = {
+        group.activation,
+        group.nodes[HALOFPX_ROCMFPX_QKV_ROLE_Q]->src[0],
+        group.nodes[HALOFPX_ROCMFPX_QKV_ROLE_K]->src[0],
+        group.nodes[HALOFPX_ROCMFPX_QKV_ROLE_V]->src[0],
+    };
+
+    for (int i = earliest + 1; i < latest; ++i) {
+        const ggml_tensor * crossed = cgraph->nodes[i];
+        if (!crossed || ggml_op_is_empty(crossed->op) || crossed->view_src == nullptr) {
+            continue;
+        }
+        if (std::find(protected_roots.begin(), protected_roots.end(), crossed->view_src) !=
+                protected_roots.end()) {
+            return false;
+        }
+    }
+    return true;
+}
+
 // Finds exact, ordinary, unscaled Q/K/V projection groups.  This is semantic
 // recognition only: allocation locality, pointer ranges, MMQ selection and the
 // exact gfx1151 runtime are checked again at dispatch.
@@ -333,6 +364,7 @@ halofpx_rocmfpx_qkv_find_graph_groups(const ggml_cgraph * cgraph) {
             }
         }
         valid = valid && direct_consumers[0] == 1 && direct_consumers[1] == 1 && direct_consumers[2] == 1;
+        valid = valid && halofpx_rocmfpx_qkv_crossed_writes_are_safe(cgraph, group);
         if (valid) {
             groups.push_back(group);
         }

@@ -501,6 +501,84 @@ jobs:
           ctest --test-dir build/ci-rocmfpx-qkv-q8-reuse
           --output-on-failure
           -R '^test-halofpx-rocmfpx-qkv-q8-reuse-(off|on|source-contract)$'
+
+  rocmfpx-qkv-q8-reuse-hip-compile:
+    name: ROCmFPX QKV Q8_1 reuse off-target gfx1151 HIP compile
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    container:
+      image: docker.io/rocm/dev-ubuntu-24.04@sha256:bdc8e61026cbb844ede93d44d2c50055f51ebb2041906b60182bf3bee3139054
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Install bounded build dependencies
+        run: |
+          apt-get update
+          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+            build-essential cmake git hipblas-dev ninja-build python3 rocblas-dev
+          rm -rf /var/lib/apt/lists/*
+
+      - name: Check out repository
+        # actions/checkout v4.4.0
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Record pinned ROCm compiler identity
+        run: |
+          hipconfig --full
+          /opt/rocm/lib/llvm/bin/clang++ --version
+
+      - name: Configure feature-on gfx1151 HIP translation units
+        run: |
+          cmake -S . -B build/ci-rocmfpx-qkv-q8-reuse-hip -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_SHARED_LIBS=ON \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+            -DCMAKE_HIP_COMPILER=/opt/rocm/lib/llvm/bin/clang++ \
+            -DCMAKE_HIP_ARCHITECTURES=gfx1151 \
+            -DGPU_TARGETS=gfx1151 \
+            -DGGML_CUDA=OFF \
+            -DGGML_HIP=ON \
+            -DGGML_HIP_ROCMFPX_QKV_Q8_REUSE=ON \
+            -DGGML_HIP_ROCMFPX_FFN_Q8_REUSE=OFF \
+            -DGGML_NATIVE=OFF \
+            -DGGML_RPC=OFF \
+            -DGGML_VULKAN=OFF \
+            -DLLAMA_BUILD_TESTS=OFF \
+            -DLLAMA_BUILD_TOOLS=OFF \
+            -DLLAMA_BUILD_EXAMPLES=OFF \
+            -DLLAMA_BUILD_SERVER=OFF \
+            -DLLAMA_BUILD_WEBUI=OFF \
+            -DLLAMA_OPENSSL=OFF \
+            -DLLAMA_CURL=OFF
+
+      - name: Compile and link the feature-on HIP backend
+        run: >-
+          cmake --build build/ci-rocmfpx-qkv-q8-reuse-hip
+          --target ggml-hip
+          --parallel 1
+
+      - name: Verify exact macro and architecture in modified translation units
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          entries = json.loads(Path("build/ci-rocmfpx-qkv-q8-reuse-hip/compile_commands.json").read_text())
+          for suffix in ("/ggml/src/ggml-cuda/ggml-cuda.cu", "/ggml/src/ggml-cuda/mmq.cu"):
+              matches = [entry for entry in entries if entry["file"].replace("\\", "/").endswith(suffix)]
+              if len(matches) != 1:
+                  raise SystemExit(f"expected one compile command for {suffix}, found {len(matches)}")
+              entry = matches[0]
+              command = entry.get("command") or " ".join(entry["arguments"])
+              for required in ("-DGGML_HIP_ROCMFPX_QKV_Q8_REUSE", "--offload-arch=gfx1151"):
+                  if required not in command:
+                      raise SystemExit(f"{required} missing from {suffix}")
+          PY
+          find build/ci-rocmfpx-qkv-q8-reuse-hip -name 'libggml-hip.so*' -print -quit | grep -q .
   # HALOFPX_QKV_Q8_REUSE_CI_END
 
   prompt-cache-integrity-test:

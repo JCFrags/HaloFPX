@@ -47,6 +47,11 @@ struct graph_options {
     bool activation_view = false;
     bool nondefault_precision = false;
     bool nondefault_hint = false;
+    bool crossed_activation_write = false;
+    bool crossed_weight_write = false;
+    bool crossed_activation_metadata = false;
+    bool crossed_q_output_write = false;
+    bool v_before_k = false;
 };
 
 struct graph_fixture {
@@ -125,8 +130,36 @@ struct graph_fixture {
         ggml_set_name(v_reshape, "Vcur-reshape-0");
 
         ggml_build_forward_expand(graph, q_reshape);
-        ggml_build_forward_expand(graph, k_reshape);
-        ggml_build_forward_expand(graph, v_reshape);
+
+        if (options.crossed_activation_write) {
+            ggml_tensor * write = ggml_scale_inplace(ctx, activation, 2.0f);
+            ggml_set_name(write, "crossed-activation-write");
+            ggml_build_forward_expand(graph, write);
+        }
+        if (options.crossed_weight_write) {
+            ggml_tensor * donor = ggml_new_tensor_2d(ctx, options.type_k, hidden, kv_width);
+            ggml_tensor * write = ggml_cpy(ctx, donor, weight_k);
+            ggml_set_name(write, "crossed-weight-write");
+            ggml_build_forward_expand(graph, write);
+        }
+        if (options.crossed_activation_metadata) {
+            ggml_tensor * metadata = ggml_reshape_2d(ctx, activation, hidden, options.columns);
+            ggml_set_name(metadata, "crossed-activation-metadata");
+            ggml_build_forward_expand(graph, metadata);
+        }
+        if (options.crossed_q_output_write) {
+            ggml_tensor * write = ggml_scale_inplace(ctx, q_reshape, 2.0f);
+            ggml_set_name(write, "crossed-q-output-write");
+            ggml_build_forward_expand(graph, write);
+        }
+
+        if (options.v_before_k) {
+            ggml_build_forward_expand(graph, v_reshape);
+            ggml_build_forward_expand(graph, k_reshape);
+        } else {
+            ggml_build_forward_expand(graph, k_reshape);
+            ggml_build_forward_expand(graph, v_reshape);
+        }
 
         if (options.fourth_matmul) {
             ggml_tensor * weight_x = ggml_new_tensor_2d(ctx, options.type_q, hidden, kv_width);
@@ -169,9 +202,15 @@ static bool expect_no_group(const graph_options & options, const char * label) {
         std::fprintf(stderr, "negative graph passed QKV recognizer: %s\n", label);
         return false;
     }
-    const auto before = fixture.nonprojections();
+    const std::vector<ggml_tensor *> before(
+        fixture.graph->nodes, fixture.graph->nodes + fixture.graph->n_nodes);
     const auto result = halofpx_rocmfpx_qkv_plan_graph_reorder(fixture.graph);
-    if (result.eligible_groups != 0 || result.moved_groups != 0 || fixture.nonprojections() != before) {
+    const bool unchanged = std::equal(before.begin(), before.end(), fixture.graph->nodes);
+    const bool unstamped =
+        fixture.q->op_params[HALOFPX_ROCMFPX_QKV_Q8_REUSE_MAGIC_PARAM] == 0 &&
+        fixture.k->op_params[HALOFPX_ROCMFPX_QKV_Q8_REUSE_MAGIC_PARAM] == 0 &&
+        fixture.v->op_params[HALOFPX_ROCMFPX_QKV_Q8_REUSE_MAGIC_PARAM] == 0;
+    if (result.eligible_groups != 0 || result.moved_groups != 0 || !unchanged || !unstamped) {
         std::fprintf(stderr, "negative graph was changed by QKV planner: %s\n", label);
         return false;
     }
@@ -229,6 +268,26 @@ static bool test_graph_reorder() {
         !std::equal(order_before_second.begin(), order_before_second.end(), fixture.graph->nodes)) {
         std::fprintf(stderr, "QKV graph reorder is not idempotent\n");
         return false;
+    }
+    return true;
+}
+
+static bool test_safe_crossings_and_projection_order() {
+    std::array<graph_options, 3> safe_options = {};
+    safe_options[0].crossed_activation_metadata = true;
+    safe_options[1].crossed_q_output_write = true;
+    safe_options[2].v_before_k = true;
+    for (const graph_options & options : safe_options) {
+        graph_fixture fixture(options);
+        const auto groups = halofpx_rocmfpx_qkv_find_graph_groups(fixture.graph);
+        const auto result = halofpx_rocmfpx_qkv_plan_graph_reorder(fixture.graph);
+        const int q_index = fixture.index_of(fixture.q);
+        if (groups.size() != 1 || result.eligible_groups != 1 || result.moved_groups != 1 ||
+            q_index < 0 || fixture.graph->nodes[q_index + 1] != fixture.k ||
+            fixture.graph->nodes[q_index + 2] != fixture.v) {
+            std::fprintf(stderr, "safe QKV crossing/order positive control was rejected\n");
+            return false;
+        }
     }
     return true;
 }
@@ -397,8 +456,15 @@ int main() {
     negative = {};
     negative.nondefault_hint = true;
     if (!expect_no_group(negative, "hint")) return 1;
+    negative = {};
+    negative.crossed_activation_write = true;
+    if (!expect_no_group(negative, "crossed-activation-inplace-write")) return 1;
+    negative = {};
+    negative.crossed_weight_write = true;
+    if (!expect_no_group(negative, "crossed-weight-copy-write")) return 1;
 
-    if (!test_graph_reorder() || !test_build_gate() || !test_projection_name_parser()) {
+    if (!test_graph_reorder() || !test_safe_crossings_and_projection_order() ||
+        !test_build_gate() || !test_projection_name_parser()) {
         return 1;
     }
 

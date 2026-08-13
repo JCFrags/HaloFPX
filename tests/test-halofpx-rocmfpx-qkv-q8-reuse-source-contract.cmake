@@ -8,6 +8,7 @@ set(QKV_HEADER "${SOURCE_ROOT}/ggml/src/ggml-cuda/rocmfpx-qkv-q8-reuse.h")
 set(CUDA_DISPATCH "${SOURCE_ROOT}/ggml/src/ggml-cuda/ggml-cuda.cu")
 set(MMQ_SOURCE "${SOURCE_ROOT}/ggml/src/ggml-cuda/mmq.cu")
 set(BACKEND_TEST "${SOURCE_ROOT}/tests/test-backend-ops.cpp")
+set(SELECTOR_TEST "${SOURCE_ROOT}/tests/test-halofpx-rocmfpx-qkv-q8-reuse.cpp")
 set(TEST_CMAKE "${SOURCE_ROOT}/tests/CMakeLists.txt")
 set(CI_WORKFLOW "${SOURCE_ROOT}/.github/workflows/halofpx-ci.yml")
 
@@ -18,6 +19,7 @@ foreach(REQUIRED_FILE IN ITEMS
         "${CUDA_DISPATCH}"
         "${MMQ_SOURCE}"
         "${BACKEND_TEST}"
+        "${SELECTOR_TEST}"
         "${TEST_CMAKE}"
         "${CI_WORKFLOW}")
     if(NOT EXISTS "${REQUIRED_FILE}")
@@ -31,6 +33,7 @@ file(READ "${QKV_HEADER}" QKV_HEADER_TEXT)
 file(READ "${CUDA_DISPATCH}" CUDA_DISPATCH_TEXT)
 file(READ "${MMQ_SOURCE}" MMQ_SOURCE_TEXT)
 file(READ "${BACKEND_TEST}" BACKEND_TEST_TEXT)
+file(READ "${SELECTOR_TEST}" SELECTOR_TEST_TEXT)
 file(READ "${TEST_CMAKE}" TEST_CMAKE_TEXT)
 file(READ "${CI_WORKFLOW}" CI_WORKFLOW_TEXT)
 
@@ -91,6 +94,9 @@ foreach(REQUIRED_HEADER_TEXT IN ITEMS
         "Vcur-"
         "blk.%d.%s.weight"
         "consumer->op != GGML_OP_RESHAPE"
+        "halofpx_rocmfpx_qkv_crossed_writes_are_safe"
+        "ggml_op_is_empty(crossed->op)"
+        "crossed->view_src"
         "halofpx_rocmfpx_qkv_plan_graph_reorder"
         "HALOFPX_ROCMFPX_QKV_Q8_REUSE_GRAPH_MAGIC")
     require_text(QKV_HEADER_TEXT "${REQUIRED_HEADER_TEXT}" "missing host selector/reorder contract")
@@ -179,6 +185,8 @@ foreach(REQUIRED_BACKEND_TEST_TEXT IN ITEMS
         "test_halofpx_rocmfpx_qkv_q8_reuse"
         "HALOFPX_ROCMFPX_QKV_Q8_REUSE"
         "prepare_graph_before_allocation"
+        "backend->iface.graph_optimize(backend, graph);"
+        "expected_planned = distinct_v_activation ? 0 : 1"
         "before_backend_compare"
         "after_backend_compare"
         "metrics.triple_dispatches == expected_triples"
@@ -190,6 +198,17 @@ foreach(REQUIRED_BACKEND_TEST_TEXT IN ITEMS
         "GGML_TYPE_Q6_0_ROCMFPX"
         "GGML_TYPE_Q8_0_ROCMFPX")
     require_text(BACKEND_TEST_TEXT "${REQUIRED_BACKEND_TEST_TEXT}" "backend-op QKV runtime contract is incomplete")
+endforeach()
+string(FIND "${BACKEND_TEST_TEXT}" "halofpx_rocmfpx_qkv_plan_graph_reorder(graph)" DIRECT_PLANNER_IN_BACKEND_TEST)
+if(NOT DIRECT_PLANNER_IN_BACKEND_TEST EQUAL -1)
+    message(FATAL_ERROR "backend-op QKV case bypasses the registered production graph optimizer")
+endif()
+foreach(REQUIRED_ALIAS_TEST_TEXT IN ITEMS
+        "crossed-activation-inplace-write"
+        "crossed-weight-copy-write"
+        "crossed_activation_metadata"
+        "crossed_q_output_write")
+    require_text(SELECTOR_TEST_TEXT "${REQUIRED_ALIAS_TEST_TEXT}" "QKV alias crossing test is missing")
 endforeach()
 require_text(TEST_CMAKE_TEXT
     "test-halofpx-rocmfpx-qkv-q8-reuse-\${HALOFPX_QKV_Q8_REUSE_MODE}"
@@ -208,5 +227,14 @@ require_text(CI_REGION
 require_text(CI_REGION
     "test-backend-ops"
     "focused QKV CI does not compile the backend-op graph case")
+foreach(REQUIRED_HIP_CI_TEXT IN ITEMS
+        "rocmfpx-qkv-q8-reuse-hip-compile:"
+        "sha256:bdc8e61026cbb844ede93d44d2c50055f51ebb2041906b60182bf3bee3139054"
+        "-DGPU_TARGETS=gfx1151"
+        "-DGGML_HIP_ROCMFPX_QKV_Q8_REUSE=ON"
+        "--target ggml-hip"
+        "--offload-arch=gfx1151")
+    require_text(CI_REGION "${REQUIRED_HIP_CI_TEXT}" "off-target gfx1151 HIP compile contract is incomplete")
+endforeach()
 
 message(STATUS "PASS: ROCmFPX QKV Q8_1 reuse default-off/source/runtime-test contract")

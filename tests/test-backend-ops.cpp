@@ -20,6 +20,7 @@
 #include <ggml-backend.h>
 #include <ggml-cpp.h>
 
+#include "ggml-backend-impl.h"
 #include "rocmfpx-qkv-q8-reuse.h"
 
 #include <algorithm>
@@ -6154,15 +6155,40 @@ struct test_halofpx_rocmfpx_qkv_q8_reuse : public test_case {
     }
 
     bool prepare_graph_before_allocation(ggml_backend_t backend, ggml_cgraph * graph) override {
-        GGML_UNUSED(backend);
-        const auto result = halofpx_rocmfpx_qkv_plan_graph_reorder(graph);
-        const size_t expected = distinct_v_activation ? 0 : 1;
-        if (result.eligible_groups != expected || result.moved_groups != expected) {
-            std::fprintf(stderr,
-                "QKV test planner mismatch: eligible=%zu moved=%zu expected=%zu ",
-                result.eligible_groups, result.moved_groups, expected);
+        ggml_backend_reg_t reg = ggml_backend_dev_backend_reg(ggml_backend_get_device(backend));
+        metrics_proc = (metrics_proc_t) ggml_backend_reg_get_proc_address(
+            reg, "halofpx_rocmfpx_qkv_q8_reuse_metrics_v1");
+        if (!metrics_proc || !backend->iface.graph_optimize) {
+            std::fprintf(stderr, "QKV metrics or production graph optimizer is missing ");
             return false;
         }
+
+        halofpx_rocmfpx_qkv_q8_reuse_metrics_v1 metrics = {};
+        metrics.struct_size = sizeof(metrics);
+        metrics.version = HALOFPX_ROCMFPX_QKV_Q8_REUSE_METRICS_VERSION;
+        if (!metrics_proc(backend, true, &metrics) || metrics.graph_groups_planned != 0 ||
+            metrics.triple_dispatches != 0 || metrics.q8_conversions_submitted != 0 ||
+            metrics.mmq_submissions != 0) {
+            std::fprintf(stderr, "QKV metrics pre-planning reset failed ");
+            return false;
+        }
+
+        // Exercise the backend interface's registered production optimizer at
+        // the same pre-allocation boundary used by the scheduler.
+        backend->iface.graph_optimize(backend, graph);
+
+        metrics = {};
+        metrics.struct_size = sizeof(metrics);
+        metrics.version = HALOFPX_ROCMFPX_QKV_Q8_REUSE_METRICS_VERSION;
+        const uint64_t expected_planned = distinct_v_activation ? 0 : 1;
+        if (!metrics_proc(backend, false, &metrics) ||
+            metrics.graph_groups_planned != expected_planned ||
+            metrics.triple_dispatches != 0 || metrics.q8_conversions_submitted != 0 ||
+            metrics.mmq_submissions != 0) {
+            std::fprintf(stderr, "QKV production optimizer planning mismatch ");
+            return false;
+        }
+
         if (distinct_v_activation) {
             return q->op_params[HALOFPX_ROCMFPX_QKV_Q8_REUSE_MAGIC_PARAM] == 0 &&
                    k->op_params[HALOFPX_ROCMFPX_QKV_Q8_REUSE_MAGIC_PARAM] == 0 &&
@@ -6184,9 +6210,6 @@ struct test_halofpx_rocmfpx_qkv_q8_reuse : public test_case {
     }
 
     bool before_backend_compare(ggml_backend_t backend) override {
-        ggml_backend_reg_t reg = ggml_backend_dev_backend_reg(ggml_backend_get_device(backend));
-        metrics_proc = (metrics_proc_t) ggml_backend_reg_get_proc_address(
-            reg, "halofpx_rocmfpx_qkv_q8_reuse_metrics_v1");
         if (!metrics_proc) {
             std::fprintf(stderr, "QKV metrics proc is missing ");
             return false;
@@ -6194,11 +6217,12 @@ struct test_halofpx_rocmfpx_qkv_q8_reuse : public test_case {
         halofpx_rocmfpx_qkv_q8_reuse_metrics_v1 metrics = {};
         metrics.struct_size = sizeof(metrics);
         metrics.version = HALOFPX_ROCMFPX_QKV_Q8_REUSE_METRICS_VERSION;
-        if (!metrics_proc(backend, true, &metrics)) {
-            std::fprintf(stderr, "QKV metrics reset failed ");
+        if (!metrics_proc(backend, false, &metrics)) {
+            std::fprintf(stderr, "QKV metrics pre-compute snapshot failed ");
             return false;
         }
-        return metrics.graph_groups_planned == 0 && metrics.triple_dispatches == 0 &&
+        const uint64_t expected_planned = distinct_v_activation ? 0 : 1;
+        return metrics.graph_groups_planned == expected_planned && metrics.triple_dispatches == 0 &&
                metrics.q8_conversions_submitted == 0 && metrics.mmq_submissions == 0;
     }
 
@@ -6215,7 +6239,8 @@ struct test_halofpx_rocmfpx_qkv_q8_reuse : public test_case {
         }
         const uint64_t expected_triples = distinct_v_activation ? 0 : 1;
         const uint64_t expected_conversions = distinct_v_activation ? 3 : 1;
-        const bool ok = metrics.graph_groups_planned == 0 &&
+        const uint64_t expected_planned = distinct_v_activation ? 0 : 1;
+        const bool ok = metrics.graph_groups_planned == expected_planned &&
                         metrics.triple_dispatches == expected_triples &&
                         metrics.q8_conversions_submitted == expected_conversions &&
                         metrics.mmq_submissions == 3;
