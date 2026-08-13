@@ -140,6 +140,23 @@ python -B scripts/halofpx_strix_maintenance.py `
 This verifies only the closed offline fake artifact. It is not a signature,
 two-node receipt, performance result, or target-execution qualification.
 
+## Offline independent-watchdog qualification
+
+[ADR-0065](decisions/0065-offline-independent-two-node-recovery-watchdog.md)
+and the [recovery-watchdog guide](strix-recovery-watchdog.md) add a separate
+offline-only state-machine model for the independent recovery actor named by
+gate 5 below. It arms and cross-binds two built-in fake nodes before modeled
+mutation, chooses recovery after controller loss at every closed mutation cut,
+requires worker readiness before coordinator recovery, and retains paired
+terminal custody. Its adversarial model includes peer loss, reboot, deadline
+expiry at every phase, cleanup and start response ambiguity, stale identity,
+HMM/restart/kernel drift, and corrupt terminal records.
+
+This is design qualification only. It has no Runner, target transport,
+service-manager adapter, installer, or target-execution command, and its target
+gate is literal false. It does not satisfy gate 5 on either physical machine
+or weaken any other cumulative gate.
+
 ## Mandatory gates before any real-target promotion
 
 A future real controller must be a separate reviewed change. It must keep all

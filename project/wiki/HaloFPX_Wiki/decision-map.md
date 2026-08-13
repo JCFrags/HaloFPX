@@ -40,6 +40,8 @@ Current accepted architecture decision records (ADRs) include:
   default-off world-1 live-authority install boundary; no positive source.
 - [ADR-0059](../../../docs/halofpx/decisions/0059-inclusive-world1-cache-maintenance-telemetry.md):
   inclusive world-1 cache-maintenance telemetry.
+- [ADR-0065](../../../docs/halofpx/decisions/0065-offline-independent-two-node-recovery-watchdog.md):
+  offline-only independent two-node recovery-watchdog model.
 
 Read each complete decision in the HaloFPX implementation repository.
 Do not copy a decision into the Wiki as a replacement authority.
