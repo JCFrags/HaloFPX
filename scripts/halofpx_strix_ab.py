@@ -11,6 +11,7 @@ analyzed.
 from __future__ import annotations
 
 import argparse
+import base64
 import datetime as dt
 import hashlib
 import json
@@ -21,15 +22,16 @@ import random
 import re
 import shutil
 import socket
+import stat
 import statistics
 import sys
 import tempfile
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Any
 
 
 PLAN_SCHEMA = "halofpx.strix-ab-plan.v1"
-PREFLIGHT_SCHEMA = "halofpx.strix-ab-preflight.v1"
+PREFLIGHT_SCHEMA = "halofpx.strix-ab-preflight.v2"
 SAMPLE_SCHEMA = "halofpx.strix-ab-sample.v1"
 ANALYSIS_SCHEMA = "halofpx.strix-ab-analysis.v1"
 CLIENT_SCHEMA = "halofpx.client-timing.v1"
@@ -51,19 +53,130 @@ def digest_bytes(value: bytes) -> str:
     return hashlib.sha256(value).hexdigest()
 
 
-def digest_file(path: Path) -> str:
+def reject_symlink_components(path: Path, where: str) -> None:
+    absolute = path.absolute()
+    for component in reversed((absolute, *absolute.parents)):
+        try:
+            if component.is_symlink():
+                raise PlanError(f"{where} has a symbolic-link path component: {component}")
+        except OSError as exc:
+            raise PlanError(f"cannot inspect {where} path component: {component}: {exc}") from exc
+
+
+def read_regular_bytes(path: Path, where: str) -> bytes:
+    reject_symlink_components(path, where)
+    flags = os.O_RDONLY | getattr(os, "O_BINARY", 0) | getattr(os, "O_NOFOLLOW", 0)
+    try:
+        descriptor = os.open(path, flags)
+        try:
+            before = os.fstat(descriptor)
+            if not stat.S_ISREG(before.st_mode):
+                raise PlanError(f"{where} is not a regular file: {path}")
+            with os.fdopen(descriptor, "rb", closefd=False) as handle:
+                content = handle.read()
+            after = os.fstat(descriptor)
+            if (before.st_dev, before.st_ino, before.st_size) != (after.st_dev, after.st_ino, after.st_size) or \
+                    len(content) != after.st_size:
+                raise PlanError(f"{where} changed while it was read: {path}")
+            return content
+        finally:
+            os.close(descriptor)
+    except PlanError:
+        raise
+    except OSError as exc:
+        raise PlanError(f"cannot read regular {where}: {path}: {exc}") from exc
+
+
+def regular_file_identity(path: Path, where: str = "hashed artifact") -> tuple[str, int]:
+    reject_symlink_components(path, where)
     hasher = hashlib.sha256()
-    with path.open("rb") as handle:
-        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
-            hasher.update(chunk)
-    return hasher.hexdigest()
+    flags = os.O_RDONLY | getattr(os, "O_BINARY", 0) | getattr(os, "O_NOFOLLOW", 0)
+    descriptor = os.open(path, flags)
+    try:
+        before = os.fstat(descriptor)
+        if not stat.S_ISREG(before.st_mode):
+            raise PlanError(f"{where} is not a regular file: {path}")
+        with os.fdopen(descriptor, "rb", closefd=False) as handle:
+            for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+                hasher.update(chunk)
+        after = os.fstat(descriptor)
+        if (before.st_dev, before.st_ino, before.st_size) != (after.st_dev, after.st_ino, after.st_size):
+            raise PlanError(f"{where} changed while it was read: {path}")
+    finally:
+        os.close(descriptor)
+    return hasher.hexdigest(), after.st_size
+
+
+def digest_file(path: Path) -> str:
+    return regular_file_identity(path)[0]
+
+
+def reject_json_constant(value: str) -> None:
+    raise ValueError(f"non-finite JSON number {value}")
+
+
+def unique_json_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    result: dict[str, Any] = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f"duplicate JSON key {key!r}")
+        result[key] = value
+    return result
+
+
+def validate_completion_request(raw: bytes, plan: dict[str, Any]) -> dict[str, Any]:
+    """Validate the exact deterministic cache-off request bytes.
+
+    The adapter sends these same bytes.  Keeping this check byte-oriented avoids
+    accepting one file at preflight and a reserialized or replaced body later.
+    """
+    try:
+        request = json.loads(
+            raw.decode("utf-8", errors="strict"),
+            object_pairs_hook=unique_json_object,
+            parse_constant=reject_json_constant,
+        )
+    except (UnicodeError, json.JSONDecodeError, ValueError) as exc:
+        raise PlanError(f"request is not strict duplicate-free UTF-8 JSON: {exc}") from exc
+    request = require_mapping(request, "request")
+    required = {
+        "prompt", "n_predict", "stream", "cache_prompt", "seed", "temperature", "ignore_eos",
+    }
+    require_keys(request, required, set(), "request")
+    if not isinstance(request["prompt"], str) or not request["prompt"] or "\x00" in request["prompt"]:
+        raise PlanError("request.prompt must be a nonempty string without NUL")
+    n_predict = request["n_predict"]
+    if isinstance(n_predict, bool) or not isinstance(n_predict, int) or n_predict != plan["request"]["output_tokens"]:
+        raise PlanError("request.n_predict must be the planned output-token integer")
+    if request["stream"] is not True:
+        raise PlanError("request.stream must be true")
+    if request["cache_prompt"] is not False:
+        raise PlanError("request.cache_prompt must be false")
+    if request["ignore_eos"] is not True:
+        raise PlanError("request.ignore_eos must be true for fixed-length measurement")
+    seed = request["seed"]
+    if isinstance(seed, bool) or not isinstance(seed, int) or not 0 <= seed < 0xffffffff:
+        raise PlanError("request.seed must be a fixed integer in [0, 0xffffffff)")
+    temperature = request["temperature"]
+    if isinstance(temperature, bool) or not isinstance(temperature, (int, float)) or \
+            not math.isfinite(temperature) or float(temperature) != 0.0:
+        raise PlanError("request.temperature must be finite zero")
+    return request
+
+
+def parse_json_bytes(content: bytes, where: str) -> Any:
+    try:
+        return json.loads(
+            content.decode("utf-8", errors="strict"),
+            object_pairs_hook=unique_json_object,
+            parse_constant=reject_json_constant,
+        )
+    except (UnicodeError, json.JSONDecodeError, ValueError) as exc:
+        raise PlanError(f"cannot parse {where}: {exc}") from exc
 
 
 def read_json(path: Path) -> Any:
-    try:
-        return json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
-        raise PlanError(f"cannot read JSON {path}: {exc}") from exc
+    return parse_json_bytes(read_regular_bytes(path, "JSON document"), str(path))
 
 
 def write_json(path: Path, value: Any) -> None:
@@ -113,10 +226,28 @@ def require_argv(value: Any, where: str, *, allow_empty: bool = False) -> list[s
     return [require_string(item, f"{where}[{index}]") for index, item in enumerate(value)]
 
 
+def is_canonical_absolute_path(value: str) -> bool:
+    """Accept canonical absolute paths for the host preparing a plan.
+
+    The evidence core is intentionally usable for offline fixture preparation
+    on Windows as well as on the CachyOS targets. The target-only execution
+    adapter applies the stricter POSIX-path gate before it can launch anything.
+    """
+    posix = PurePosixPath(value)
+    if posix.is_absolute() and posix.as_posix() == value and not any(
+            part in {".", ".."} for part in posix.parts):
+        return True
+    windows = PureWindowsPath(value)
+    return windows.is_absolute() and str(windows) == value and not any(
+        part in {".", ".."} for part in windows.parts)
+
+
 def validate_artifact(value: Any, where: str) -> dict[str, Any]:
     artifact = require_mapping(value, where)
     require_keys(artifact, {"path", "sha256"}, set(), where)
-    require_string(artifact["path"], f"{where}.path")
+    path = require_string(artifact["path"], f"{where}.path")
+    if not is_canonical_absolute_path(path):
+        raise PlanError(f"{where}.path must be absolute")
     require_hash(artifact["sha256"], f"{where}.sha256")
     return artifact
 
@@ -187,7 +318,9 @@ def validate_plan(value: Any) -> dict[str, Any]:
         {"provenance"},
         "plan.model",
     )
-    require_string(model["path"], "plan.model.path")
+    model_path = require_string(model["path"], "plan.model.path")
+    if not is_canonical_absolute_path(model_path):
+        raise PlanError("plan.model.path must be absolute")
     require_hash(model["sha256"], "plan.model.sha256")
     require_int(model["size_bytes"], "plan.model.size_bytes", 1)
     if model["format_family"] not in {"rocmfpx", "rocmfp4", "conventional-control"}:
@@ -201,7 +334,9 @@ def validate_plan(value: Any) -> dict[str, Any]:
         {"expected_content_sha256", "tokenizer_sha256"},
         "plan.request",
     )
-    require_string(request["path"], "plan.request.path")
+    request_path = require_string(request["path"], "plan.request.path")
+    if not is_canonical_absolute_path(request_path):
+        raise PlanError("plan.request.path must be absolute")
     require_hash(request["sha256"], "plan.request.sha256")
     require_int(request["prompt_tokens"], "plan.request.prompt_tokens", 1)
     require_int(request["output_tokens"], "plan.request.output_tokens", 2)
@@ -399,14 +534,39 @@ def host_matches(expected: str, observed: str) -> bool:
     return expected.lower().split(".", 1)[0] == observed.lower().split(".", 1)[0]
 
 
-def checked_artifact(artifact: dict[str, Any], where: str) -> dict[str, Any]:
+def checked_artifact(
+    artifact: dict[str, Any], where: str, *, retain_content: bool = False,
+) -> dict[str, Any]:
     path = Path(artifact["path"])
-    if not path.is_file():
-        raise PlanError(f"{where} is not a regular file: {path}")
-    actual = digest_file(path)
+    content = read_regular_bytes(path, where) if retain_content else None
+    if content is not None:
+        actual, size = digest_bytes(content), len(content)
+    else:
+        actual, size = regular_file_identity(path, where)
     if actual != artifact["sha256"]:
         raise PlanError(f"{where} SHA-256 mismatch: {actual}")
-    return {"path": str(path), "size_bytes": path.stat().st_size, "sha256": actual}
+    result = {"path": str(path), "size_bytes": size, "sha256": actual}
+    if content is not None:
+        result["content_base64"] = base64.b64encode(content).decode("ascii")
+    return result
+
+
+def decode_retained_artifact(value: Any, where: str) -> bytes:
+    record = require_mapping(value, where)
+    require_keys(record, {"path", "size_bytes", "sha256", "content_base64"}, set(), where)
+    require_string(record["path"], f"{where}.path")
+    size = require_int(record["size_bytes"], f"{where}.size_bytes", 1)
+    expected = require_hash(record["sha256"], f"{where}.sha256")
+    encoded = require_string(record["content_base64"], f"{where}.content_base64")
+    try:
+        content = base64.b64decode(encoded, validate=True)
+    except (ValueError, base64.binascii.Error) as exc:
+        raise PlanError(f"{where}.content_base64 is invalid") from exc
+    if base64.b64encode(content).decode("ascii") != encoded:
+        raise PlanError(f"{where}.content_base64 is not canonical")
+    if len(content) != size or digest_bytes(content) != expected:
+        raise PlanError(f"{where} retained bytes differ from size/SHA-256")
+    return content
 
 
 def collect_preflight(plan: dict[str, Any], role: str, observed_hostname: str | None = None) -> dict[str, Any]:
@@ -417,7 +577,8 @@ def collect_preflight(plan: dict[str, Any], role: str, observed_hostname: str | 
     if not host_matches(node["host"], observed):
         raise PlanError(f"expected host {node['host']}, observed {observed}")
     artifacts = {
-        "authority_receipt": checked_artifact(node["authority_receipt"], f"{role} authority receipt"),
+        "authority_receipt": checked_artifact(
+            node["authority_receipt"], f"{role} authority receipt", retain_content=True),
     }
     binary_key = "coordinator_binary" if role == "coordinator" else "worker_binary"
     for condition in ("off", "on"):
@@ -429,7 +590,10 @@ def collect_preflight(plan: dict[str, Any], role: str, observed_hostname: str | 
         if artifacts["model"]["size_bytes"] != plan["model"]["size_bytes"]:
             raise PlanError("model size differs from the plan")
         artifacts["request"] = checked_artifact(
-            {"path": plan["request"]["path"], "sha256": plan["request"]["sha256"]}, "request")
+            {"path": plan["request"]["path"], "sha256": plan["request"]["sha256"]},
+            "request", retain_content=True)
+        validate_completion_request(
+            decode_retained_artifact(artifacts["request"], "preflight request"), plan)
     os_release = ""
     os_release_path = Path("/etc/os-release")
     if os_release_path.is_file():
@@ -497,25 +661,70 @@ def validate_preflight_receipt(plan: dict[str, Any], receipt: dict[str, Any]) ->
         raise PlanError("preflight artifact set differs from the plan")
     for name, expected in expected_artifacts.items():
         actual = require_mapping(artifacts[name], f"preflight receipt.artifacts.{name}")
-        require_keys(actual, {"path", "size_bytes", "sha256"}, set(), f"preflight receipt.artifacts.{name}")
+        retained = name in {"authority_receipt", "request"}
+        required = {"path", "size_bytes", "sha256", "content_base64"} if retained else {
+            "path", "size_bytes", "sha256"}
+        require_keys(actual, required, set(), f"preflight receipt.artifacts.{name}")
         require_int(actual["size_bytes"], f"preflight receipt.artifacts.{name}.size_bytes", 1)
         if actual["path"] != str(Path(expected["path"])) or actual["sha256"] != expected["sha256"]:
             raise PlanError(f"preflight {name} identity differs from the plan")
         if "size_bytes" in expected and actual["size_bytes"] != expected["size_bytes"]:
             raise PlanError(f"preflight {name} size differs from the plan")
+        if retained:
+            content = decode_retained_artifact(actual, f"preflight receipt.artifacts.{name}")
+            if name == "request":
+                validate_completion_request(content, plan)
     require_mapping(receipt["system"], "preflight receipt.system")
     return role
+
+
+def retained_input_path(root: Path, role: str, name: str) -> Path:
+    if name == "request" and role == "coordinator":
+        return root / "inputs" / "request.raw"
+    if name == "authority_receipt" and role in {"coordinator", "worker"}:
+        return root / "inputs" / f"authority-{role}.raw"
+    raise PlanError("invalid retained input role/name")
+
+
+def write_bytes_exclusive(path: Path, content: bytes) -> None:
+    reject_symlink_components(path.parent, "retained-input parent")
+    path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+    reject_symlink_components(path.parent, "retained-input parent")
+    try:
+        flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_BINARY", 0) | getattr(os, "O_NOFOLLOW", 0)
+        descriptor = os.open(path, flags, 0o600)
+        with os.fdopen(descriptor, "wb") as handle:
+            handle.write(content)
+            handle.flush()
+            os.fsync(handle.fileno())
+    except FileExistsError as exc:
+        raise PlanError(f"retained input already exists: {path}") from exc
 
 
 def import_preflight(root: Path, receipt_path: Path) -> None:
     plan = load_plan(root / "plan.json")
     validate_run_contract(root, plan)
-    receipt = require_mapping(read_json(receipt_path), "preflight receipt")
+    receipt_bytes = read_regular_bytes(receipt_path, "preflight receipt")
+    receipt = require_mapping(parse_json_bytes(receipt_bytes, "preflight receipt"), "preflight receipt")
     role = validate_preflight_receipt(plan, receipt)
     destination = root / "preflight" / f"{role}.json"
     if destination.exists():
         raise PlanError(f"preflight already imported for {role}")
-    write_json(destination, receipt)
+    retained = {"authority_receipt": decode_retained_artifact(
+        receipt["artifacts"]["authority_receipt"], "authority receipt")}
+    if role == "coordinator":
+        retained["request"] = decode_retained_artifact(receipt["artifacts"]["request"], "request")
+    written: list[Path] = []
+    try:
+        for name, content in retained.items():
+            target = retained_input_path(root, role, name)
+            write_bytes_exclusive(target, content)
+            written.append(target)
+        write_bytes_exclusive(destination, receipt_bytes)
+    except Exception:
+        for path in written:
+            path.unlink(missing_ok=True)
+        raise
 
 
 def parse_timestamp(value: Any, where: str) -> dt.datetime:
@@ -713,10 +922,22 @@ def validate_preflights(root: Path, plan: dict[str, Any]) -> dict[str, str]:
         path = root / "preflight" / f"{role}.json"
         if not path.is_file():
             raise PlanError(f"missing {role} preflight receipt")
-        receipt = require_mapping(read_json(path), f"{role} preflight")
+        receipt_bytes = read_regular_bytes(path, f"{role} preflight")
+        receipt = require_mapping(parse_json_bytes(receipt_bytes, f"{role} preflight"), f"{role} preflight")
         if validate_preflight_receipt(plan, receipt) != role:
             raise PlanError(f"invalid {role} preflight receipt")
-        hashes[role] = digest_file(path)
+        retained_names = ["authority_receipt"] + (["request"] if role == "coordinator" else [])
+        for name in retained_names:
+            expected = decode_retained_artifact(
+                receipt["artifacts"][name], f"{role} preflight {name}")
+            retained_path = retained_input_path(root, role, name)
+            try:
+                observed = read_regular_bytes(retained_path, f"retained {role} {name}")
+            except PlanError as exc:
+                raise PlanError(f"retained {role} {name} bytes are missing or changed") from exc
+            if observed != expected:
+                raise PlanError(f"retained {role} {name} bytes are missing or changed")
+        hashes[role] = digest_bytes(receipt_bytes)
     return hashes
 
 
