@@ -35,10 +35,12 @@ repository.
 
 Model weights are not included. Any model downloaded or quantized for ROCmFP4
 testing remains subject to the original model publisher's license and terms.
-The portable Qwen3-0.6B ROCmFPX fixture likewise includes only a registry,
-recipe, evidence, and retained Apache-2.0 license text; its model bytes remain
-external. See `docs/halofpx/fixtures/qwen3-0.6b-rocmfpx/README.md` for the exact
-distribution revision, hashes, license declaration, and provenance boundary.
+The portable Qwen3-0.6B ROCmFPX fixture publishes three derived GGUFs only in
+immutable private prerelease `fixture-qwen3-0.6b-rocmfpx-pure-v1`, beside its
+Apache-2.0 license snapshot, pinned source card/config, modification notice,
+manifest, and checksums. Its exact BF16 source remains external. See
+`docs/halofpx/fixtures/qwen3-0.6b-rocmfpx/README.md` for the distribution
+revision, hashes, license declaration, and provenance boundary.
 
 ## ROCmFP4 Additions
 

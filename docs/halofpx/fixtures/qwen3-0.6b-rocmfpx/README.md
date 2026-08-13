@@ -137,9 +137,10 @@ census phase.
 
 ## Publication state
 
-No GGUF in this registry is tracked by Git. The intended private prerelease
+No GGUF in this registry is tracked by Git. The immutable private prerelease
 publishes only the three derived GGUFs; the BF16 source remains an exact pinned
-Hugging Face download.
+Hugging Face download. The final remote identities and attestation checks are
+in the [publication receipt](../../evidence/2026-08-12-qwen3-0.6b-rocmfpx-fixture/publication-receipt.json).
 [The tracked release manifest](qwen3-0.6b-rocmfpx-pure-v1-release-manifest.json)
 and [checksum ledger](qwen3-0.6b-rocmfpx-pure-v1-SHA256SUMS.txt) define the
 complete nine-asset set for tag `fixture-qwen3-0.6b-rocmfpx-pure-v1`.

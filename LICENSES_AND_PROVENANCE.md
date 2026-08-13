@@ -64,7 +64,10 @@ preserves the license text and exact artifact identities. The card does not
 encode the upstream base-checkpoint revision used to create the BF16 GGUF, so
 the immutable distribution revision and GGUF hash—not an inferred base-model
 revision—are the source authority. No model bytes are included in Git or yet
-approved/published as release assets.
+published publicly. The three derived GGUFs are published only in immutable
+private prerelease `fixture-qwen3-0.6b-rocmfpx-pure-v1` beside the pinned card,
+config, Apache-2.0 license snapshot, modification notice, manifest, and
+checksums. The BF16 source is not mirrored.
 
 ## Provenance rules for continued work
 

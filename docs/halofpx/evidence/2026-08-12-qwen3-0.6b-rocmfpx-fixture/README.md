@@ -28,8 +28,10 @@ measurements all remain **[OPEN]**.
    consumer and bounded acceptance outcome.
 5. [`publication-preflight.json`](publication-preflight.json) records the
    repository/permission observation, official host-limit sources, exact asset
-   sizes, and deliberate no-upload state.
-6. The portable contract and executable procedure are in
+   sizes, and deliberate pre-upload state.
+6. [`publication-receipt.json`](publication-receipt.json) records the final
+   immutable tag, target, asset IDs/sizes/digests, and attestation verification.
+7. The portable contract and executable procedure are in
    [`../../fixtures/qwen3-0.6b-rocmfpx/`](../../fixtures/qwen3-0.6b-rocmfpx/)
    and [`scripts/materialize-rocmfpx-fixture.py`](../../../../scripts/materialize-rocmfpx-fixture.py).
 
@@ -46,13 +48,12 @@ logs, dynamic Hub API captures, and failed partial headers. It is workstation
 evidence, not a portable path or Git authority. The registry and recipe can
 rebuild its necessary contents under any caller-selected external root.
 
-The large files are deliberately absent from Git and have not been uploaded as
-release assets. [GitHub blocks ordinary Git files larger than 100 MiB](https://docs.github.com/en/repositories/working-with-files/managing-large-files/about-large-files-on-github).
-Each candidate is below [GitHub's 2 GiB per-release-asset limit](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases),
-and the checked repository identity reported sufficient permissions on
-2026-08-12. Limits, permissions, license/provenance accompaniment, and the
-immutable release manifest must still be rechecked immediately before any
-publication.
+The large files are deliberately absent from Git. The three derived GGUFs and
+six license/provenance/control companions were published in the immutable
+private prerelease
+[`fixture-qwen3-0.6b-rocmfpx-pure-v1`](https://github.com/JCFrags/HaloFPX/releases/tag/fixture-qwen3-0.6b-rocmfpx-pure-v1).
+The exact BF16 source was not mirrored and remains the pinned Hugging Face
+download. The publication receipt records the complete verified release state.
 
 ## Warnings retained without promotion
 

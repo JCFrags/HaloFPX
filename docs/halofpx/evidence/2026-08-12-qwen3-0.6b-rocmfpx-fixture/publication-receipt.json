@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "tracking_issue": "https://github.com/JCFrags/HaloFPX/issues/43",
+  "pull_request": "https://github.com/JCFrags/HaloFPX/pull/48",
+  "release": {
+    "id": 369653983,
+    "tag": "fixture-qwen3-0.6b-rocmfpx-pure-v1",
+    "url": "https://github.com/JCFrags/HaloFPX/releases/tag/fixture-qwen3-0.6b-rocmfpx-pure-v1",
+    "target_commit": "44f4ce5b29986e3c0bb6cd8f00238e09d24c00f3",
+    "target_parent_recipe_commit": "94ab0fb356920d07f80125deff9277b3737d5e1b",
+    "draft": false,
+    "prerelease": true,
+    "immutable": true,
+    "published_at_utc": "2026-08-13T03:44:33Z",
+    "asset_count": 9
+  },
+  "history_reconciliation": {
+    "release_target_authority": "The immutable tag is permanently bound to 44f4ce5b, the fully verified branch head that contained recipe commit 94ab0fb3 and the tracked release manifest.",
+    "post_publication_main_advance": "After publication, main advanced to 72436b9c701c4a309a6393979db382c44d871e43. Pull request #48 was rebased onto that main; rewriting the immutable release tag was neither possible nor appropriate.",
+    "restore_rule": "Use the immutable tag for released asset authority and the merged pull-request lineage for the maintained current recipe."
+  },
+  "assets": [
+    {
+      "id": 512446923,
+      "name": "Qwen3-0.6B-LICENSE-c1899de2.txt",
+      "size_bytes": 11344,
+      "sha256": "c156170b718ec29139d3653d40ed1986fd92fb7e0959b5c71f3c48f62e6636f4",
+      "state": "uploaded"
+    },
+    {
+      "id": 512446921,
+      "name": "Qwen3-0.6B-Q3_0_ROCMFPX-pure.gguf",
+      "size_bytes": 266957248,
+      "sha256": "d1404c1afc61ffe49357c14c6d3dbfb252a72e87744fb7e491e7a2e205321fff",
+      "state": "uploaded"
+    },
+    {
+      "id": 512446922,
+      "name": "Qwen3-0.6B-Q6_0_ROCMFPX-pure.gguf",
+      "size_bytes": 490451392,
+      "sha256": "8d5c0eb545651c7518508632d9c00138cb64c22902eb83f5b8d7d52cf5fae8cc",
+      "state": "uploaded"
+    },
+    {
+      "id": 512446919,
+      "name": "Qwen3-0.6B-Q8_0_ROCMFPX-pure.gguf",
+      "size_bytes": 620822976,
+      "sha256": "ec152fed6e498cad29e75c32e11c8d520fed34bea26c5ad5bfef8a4e210a4bd7",
+      "state": "uploaded"
+    },
+    {
+      "id": 512446920,
+      "name": "Qwen3-0.6B-ROCMFPX-MODIFICATION-NOTICE.md",
+      "size_bytes": 1638,
+      "sha256": "7343c1ea8dbeb363493a2e0aa1abaa2263ff5c41f7965cd000389cb6f80379eb",
+      "state": "uploaded"
+    },
+    {
+      "id": 512446934,
+      "name": "qwen3-0.6b-rocmfpx-pure-v1-release-manifest.json",
+      "size_bytes": 7690,
+      "sha256": "8197be546a69792ddbb8db82b1fc1717258ca3b09000e41870332fb5e6f5d7c0",
+      "state": "uploaded"
+    },
+    {
+      "id": 512446940,
+      "name": "qwen3-0.6b-rocmfpx-pure-v1-SHA256SUMS.txt",
+      "size_bytes": 833,
+      "sha256": "2230c351bce3199023ae63508ab61936ec9d6f928783f38416b590b82ee9ef37",
+      "state": "uploaded"
+    },
+    {
+      "id": 512446932,
+      "name": "source-distribution-config-28675487.json",
+      "size_bytes": 752,
+      "sha256": "a5f8e23bdf1f9aa5944ed7fdb573985f9c3c87f67b728f8a317d5d005b6bb690",
+      "state": "uploaded"
+    },
+    {
+      "id": 512446929,
+      "name": "source-distribution-README-28675487.md",
+      "size_bytes": 17083,
+      "sha256": "8259b834c95b6f38aca22c26d25ea9987ef384bd0562de228ea814506f077e06",
+      "state": "uploaded"
+    }
+  ],
+  "verification": {
+    "draft_first_workflow": "All nine assets were uploaded while the release remained a draft. Local sizes and SHA-256 digests matched GitHub API state=uploaded before publication.",
+    "release_attestation": "gh release verify succeeded and bound tag target SHA-1 44f4ce5b plus all nine asset SHA-256 digests.",
+    "per_asset_attestation": "gh release verify-asset succeeded for every local staging file after publication.",
+    "git_tag_ref": "refs/tags/fixture-qwen3-0.6b-rocmfpx-pure-v1 resolved to 44f4ce5b29986e3c0bb6cd8f00238e09d24c00f3.",
+    "checked_at_utc": "2026-08-13T03:45:11Z"
+  },
+  "source_disposition": {
+    "bf16_republished": false,
+    "reason": "The exact BF16 source remains a pinned Hugging Face download; only the three derived GGUFs and six license/provenance/control assets were published."
+  },
+  "claim_boundary": "Publication and byte identity only. No target machine was contacted and no quality, performance, HIP, Vulkan, single-node Strix Halo, or dual-node qualification is claimed."
+}

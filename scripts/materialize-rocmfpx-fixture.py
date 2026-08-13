@@ -420,21 +420,65 @@ def validate_registry(registry: dict[str, Any], registry_path: Path) -> None:
             "release_asset_limit_source",
             "permission_observation",
             "required_before_publication",
+            "published_release",
         },
         "registry.publication",
     )
-    if publication["large_assets_published"] is not False:
+    if not isinstance(publication["large_assets_published"], bool):
         raise FixtureError(
-            "registry.publication.large_assets_published must remain false"
+            "registry.publication.large_assets_published must be boolean"
         )
     for key in publication:
-        if key != "large_assets_published":
+        if key not in {"large_assets_published", "published_release"}:
             require_string(publication[key], f"registry.publication.{key}")
     for key in ("ordinary_git_limit_source", "release_asset_limit_source"):
         if not publication[key].startswith("https://docs.github.com/"):
             raise FixtureError(
                 f"registry.publication.{key} must use official GitHub Docs"
             )
+    release = require_mapping(
+        publication["published_release"], "registry.publication.published_release"
+    )
+    expect_keys(
+        release,
+        {
+            "tag",
+            "url",
+            "target_commit",
+            "published_at_utc",
+            "immutable",
+            "asset_count",
+            "payload_scope",
+        },
+        "registry.publication.published_release",
+    )
+    if release["tag"] != "fixture-qwen3-0.6b-rocmfpx-pure-v1":
+        raise FixtureError("registry publication tag changed")
+    if release["url"] != (
+        "https://github.com/JCFrags/HaloFPX/releases/tag/"
+        "fixture-qwen3-0.6b-rocmfpx-pure-v1"
+    ):
+        raise FixtureError("registry publication URL changed")
+    require_commit(
+        release["target_commit"],
+        "registry.publication.published_release.target_commit",
+    )
+    if not re.fullmatch(
+        r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z", release["published_at_utc"]
+    ):
+        raise FixtureError("registry publication timestamp must be UTC RFC3339 seconds")
+    if release["immutable"] is not True:
+        raise FixtureError("registry published release must be immutable")
+    if release["asset_count"] != 9:
+        raise FixtureError("registry published release must contain nine assets")
+    require_string(
+        release["payload_scope"],
+        "registry.publication.published_release.payload_scope",
+    )
+    if publication["large_assets_published"] is not True:
+        raise FixtureError(
+            "registry published release requires large_assets_published=true"
+        )
 
     artifact_paths = [source["relative_path"]]
     artifact_paths.extend(sidecar["relative_path"] for sidecar in sidecars)

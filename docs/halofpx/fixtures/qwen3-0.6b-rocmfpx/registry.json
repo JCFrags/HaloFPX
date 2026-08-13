@@ -161,12 +161,21 @@
     }
   ],
   "publication": {
-    "large_assets_published": false,
+    "large_assets_published": true,
     "ordinary_git_limit": "GitHub blocks files larger than 100 MiB in ordinary Git.",
     "ordinary_git_limit_source": "https://docs.github.com/en/repositories/working-with-files/managing-large-files/about-large-files-on-github",
     "release_asset_limit": "Each GitHub release asset must be smaller than 2 GiB; all four GGUFs fit individually.",
     "release_asset_limit_source": "https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases",
     "permission_observation": "On 2026-08-12 the authenticated repository identity reported admin, maintain, push, pull, and triage permissions.",
-    "required_before_publication": "Recheck repository permissions and host limits, preserve this license/provenance set beside the assets, and publish an immutable size/hash manifest."
+    "required_before_publication": "Completed before publication: repository permissions and host limits were rechecked; the license, modification notice, pinned source captures, and immutable size/hash manifest were published beside the three derived payloads.",
+    "published_release": {
+      "tag": "fixture-qwen3-0.6b-rocmfpx-pure-v1",
+      "url": "https://github.com/JCFrags/HaloFPX/releases/tag/fixture-qwen3-0.6b-rocmfpx-pure-v1",
+      "target_commit": "44f4ce5b29986e3c0bb6cd8f00238e09d24c00f3",
+      "published_at_utc": "2026-08-13T03:44:33Z",
+      "immutable": true,
+      "asset_count": 9,
+      "payload_scope": "Three derived ROCmFPX GGUFs plus six license/provenance/control assets; the BF16 source remains external."
+    }
   }
 }

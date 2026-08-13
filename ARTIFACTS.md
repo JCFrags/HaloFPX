@@ -16,7 +16,7 @@ filename resembles a historical file.
 | Large raw source/formal/evidence payloads | [VERIFIED] published in immutable private release `evidence-2026-08-12`; remote size and SHA-256 matched | Restore only from a complete asset set and verify every part plus the reconstructed payload. |
 | Generated build trees and caches | [RECOMMENDATION] rebuild, not canonical | Do not treat local build output as a transferable source of truth. |
 | Primary model | [OPEN] absent | Obtain exact bytes independently; verify size and SHA-256 before use. |
-| Small Qwen3-0.6B ROCmFPX fixture | [VERIFIED] registry/recipe/exact identities included; [MEASURED] off-target conversion/load evidence; GGUF bytes not published | Reconstruct outside the clone from the immutable source and producer pins; verify every recorded size/hash before use. |
+| Small Qwen3-0.6B ROCmFPX fixture | [VERIFIED] registry/recipe/exact identities included and three derived GGUFs published in immutable private prerelease `fixture-qwen3-0.6b-rocmfpx-pure-v1`; [MEASURED] off-target conversion/load evidence | Download from the exact tag or reconstruct outside the clone; verify the release attestation and every recorded size/hash before use. |
 | Credentials and live service state | intentionally excluded | Re-provision through the current operator authority; never restore from project artifacts. |
 
 The machine-readable companions are the publication
@@ -291,13 +291,15 @@ record the immutable BF16 source, Apache-2.0 declaration and retained license
 text, compatible producer pin, pinned-b77 smoke consumer, exact output bytes,
 and tensor census.
 
-No fixture GGUF is in Git or a GitHub release. The BF16 source is `1198182848`
-bytes; derived Q3, Q6, and Q8 files are `266957248`, `490451392`, and
-`620822976` bytes. Ordinary Git cannot accept these files because each exceeds
-GitHub's 100 MiB block threshold. Each is individually below the current 2 GiB
-release-asset limit, but permissions, host limits, license/provenance packaging,
-and an immutable upload manifest must be rechecked at publication time. A clone
-is already sufficient to reconstruct and validate the bytes independently.
+No fixture GGUF is in Git. The BF16 source is `1198182848` bytes and remains an
+exact pinned Hugging Face download. Derived Q3, Q6, and Q8 files are
+`266957248`, `490451392`, and `620822976` bytes and are published with six
+license/provenance/control companions in immutable private prerelease
+[`fixture-qwen3-0.6b-rocmfpx-pure-v1`](https://github.com/JCFrags/HaloFPX/releases/tag/fixture-qwen3-0.6b-rocmfpx-pure-v1).
+The [publication receipt](docs/halofpx/evidence/2026-08-12-qwen3-0.6b-rocmfpx-fixture/publication-receipt.json)
+records tag target `44f4ce5b...`, all asset IDs/sizes/SHA-256 digests, and
+successful release/per-asset attestation verification. A clone remains
+sufficient to reconstruct and validate the bytes independently.
 
 The WSL2 CPU smoke is not target or quality evidence. HIP, Vulkan, single-node
 Strix Halo, dual-node distribution, and matched performance remain open under
