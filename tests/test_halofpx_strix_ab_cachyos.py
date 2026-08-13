@@ -109,7 +109,10 @@ class FakeRunner:
         observed_argv = tuple(observed_argv_list) + (("--unexpected",) if self.argv_mismatch else ())
         identity = AD.UnitIdentity(
             role, host, unit, pid, f"{self.start_count:032x}", 10000 + self.start_count,
-            20000 + self.start_count, f"cursor-{self.start_count}", observed_argv,
+            20000 + self.start_count,
+            "11111111-1111-4111-8111-111111111111" if host == "nimo-1" else
+            "22222222-2222-4222-8222-222222222222",
+            f"cursor-{self.start_count}", observed_argv,
             dict(environment), self.observed_sha256_override or executable_sha256, port,
             f"/user.slice/user-1000.slice/user@1000.service/app.slice/{unit}")
         self.units[(host, unit)] = identity
@@ -290,6 +293,7 @@ class AdapterTest(unittest.TestCase):
         runner = FakeRunner(self.files["request"].read_bytes())
         receipt_path = AD.execute_next(self.run, self.policy_path, runner)
         receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+        self.assertEqual(receipt["schema"], "halofpx.strix-ab-cachyos-execution.v2")
         self.assertEqual(receipt["outcome"]["status"], "success")
         self.assertEqual([cycle["kind"] for cycle in receipt["cycles"]], ["warmup", "measurement"])
         self.assertEqual(runner.start_count, 4)
@@ -626,6 +630,12 @@ class AdapterTest(unittest.TestCase):
             AD.CommandResult(0, after, b""),
             AD.CommandResult(0, b"", b""),
             AD.CommandResult(0, b"", b""),
+            AD.CommandResult(
+                0,
+                b'{"boot_id":"22222222-2222-4222-8222-222222222222",'
+                b'"monotonic_ns":3000000000}\n',
+                b"",
+            ),
         ])
         runner._process = mock.Mock(return_value={  # type: ignore[method-assign]
             "pid": 4242, "exe": "/bin/true", "exe_sha256": "0" * 64,
@@ -637,6 +647,8 @@ class AdapterTest(unittest.TestCase):
         self.assertEqual(proof["captured_pid"], 4242)
         self.assertEqual(proof["captured_control_group"], cgroup)
         self.assertEqual(proof["identity_source"], "cleanup-pre-state")
+        self.assertEqual(proof["boot_id"], "22222222-2222-4222-8222-222222222222")
+        self.assertEqual(proof["completed_monotonic_ns"], 3000000000)
         self.assertTrue(proof["captured_pid_absent"])
         self.assertTrue(proof["captured_cgroup_absent"])
 

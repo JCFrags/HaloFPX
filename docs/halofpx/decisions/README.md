@@ -65,6 +65,7 @@ replace verified evidence or advance the locked ROCmFPX base.
 - [ADR-0058](0058-default-off-world1-live-authority-install-boundary.md): default-off world-1 live-authority install boundary
 - [ADR-0059](0059-inclusive-world1-cache-maintenance-telemetry.md): inclusive world-1 cache-maintenance telemetry
 - [ADR-0060 (proposed)](0060-rocmfpx-routed-moe-q8-reuse.md): bounded ROCmFPX routed-MoE gate/up route and Q8_1 preparation reuse
+- [ADR-0062 (proposed)](0062-offline-strix-adapter-evidence-validator.md): offline complete PR-#51 adapter-evidence validator
 - [ADR-0064 (proposed)](0064-offline-strix-hmm-admission-snapshot.md): offline closed-world Strix HMM admission snapshot
 - [ADR-0065](0065-offline-independent-two-node-recovery-watchdog.md): offline-only independent two-node recovery-watchdog model
 - [ADR-0066 (proposed)](0066-offline-two-node-maintenance-nonce-protocol.md): offline two-node maintenance nonce protocol and uncertainty boundary

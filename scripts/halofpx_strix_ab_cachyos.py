@@ -43,7 +43,7 @@ except ModuleNotFoundError:
 
 
 POLICY_SCHEMA = "halofpx.strix-ab-cachyos-policy.v1"
-RECEIPT_SCHEMA = "halofpx.strix-ab-cachyos-execution.v1"
+RECEIPT_SCHEMA = "halofpx.strix-ab-cachyos-execution.v2"
 INTENT_SCHEMA = "halofpx.strix-ab-cachyos-intent.v1"
 ISSUE41_MANIFEST_RELATIVE = Path(
     "docs/halofpx/evidence/2026-08-12-target-hmm-oom-incident/manifest.json")
@@ -267,6 +267,7 @@ class UnitIdentity:
     invocation_id: str
     process_start_ticks: int
     start_monotonic_us: int
+    boot_id: str
     cursor_before: str
     argv: tuple[str, ...]
     environment: dict[str, str]
@@ -552,7 +553,8 @@ def assert_identity(identity: UnitIdentity, expected: dict[str, Any], protected_
         raise AdapterError("disposable PID is zero or collides with production")
     if not INVOCATION_RE.fullmatch(identity.invocation_id):
         raise AdapterError("disposable InvocationID is malformed")
-    if identity.process_start_ticks <= 0 or identity.start_monotonic_us <= 0 or not identity.cursor_before:
+    if identity.process_start_ticks <= 0 or identity.start_monotonic_us <= 0 or \
+            not identity.boot_id or not identity.cursor_before:
         raise AdapterError("disposable process freshness evidence is incomplete")
     if list(identity.argv) != expected["argv"] or identity.environment != expected["environment"]:
         raise AdapterError("live argv or allowlisted environment differs from frozen controls")
@@ -877,6 +879,20 @@ def run_cycle(
                         evidence_dir / "gpu-admission.json", gpu_admission, exclusive=True)
                 except Exception as exc:
                     record_error("GPU admission retention", exc)
+        if not request_failed:
+            stage = "worker post-request live proof"
+            try:
+                proof_controller_started_ns = time.monotonic_ns()
+                worker_after_request = runner.prove_live(identities["worker"])
+                proof_controller_ended_ns = time.monotonic_ns()
+                proofs["worker_after_request"] = {
+                    "controller_started_monotonic_ns": proof_controller_started_ns,
+                    "controller_ended_monotonic_ns": proof_controller_ended_ns,
+                    "proof": worker_after_request,
+                }
+            except Exception as exc:
+                request_failed = True
+                record_error(stage, exc)
         if request_failed:
             raise _CycleAbort()
 
@@ -1232,10 +1248,17 @@ print(json.dumps({'monotonic_ns':time.monotonic_ns(),'boot_id':read('/proc/sys/k
 '''
 
 
+REMOTE_CLOCK_PROGRAM = r'''
+import json,pathlib,time
+print(json.dumps({'boot_id':pathlib.Path('/proc/sys/kernel/random/boot_id').read_text().strip().lower(),
+                  'monotonic_ns':time.monotonic_ns()},sort_keys=True))
+'''
+
+
 REMOTE_REQUEST_PROGRAM = r'''
 import base64,datetime,hashlib,json,sys,time,urllib.request
 url=sys.argv[1]; expected=int(sys.argv[2]); timeout=float(sys.argv[3]); body=sys.stdin.buffer.read()
-wall_start=datetime.datetime.now(datetime.timezone.utc); start=time.monotonic_ns(); raw=bytearray(); contents=[]; stamps=[]; timings=None
+wall_start=datetime.datetime.now(datetime.timezone.utc); start=time.monotonic_ns(); raw=bytearray(); contents=[]; stamps=[]; timings=None; terminal=None; last_predicted=0
 request=urllib.request.Request(url,data=body,headers={'Content-Type':'application/json'},method='POST')
 with urllib.request.urlopen(request,timeout=timeout) as response:
     status=response.status
@@ -1246,19 +1269,29 @@ with urllib.request.urlopen(request,timeout=timeout) as response:
         stripped=line.strip()
         if not stripped.startswith(b'data:'):continue
         payload=stripped[5:].strip()
-        if payload==b'[DONE]':continue
+        if payload==b'[DONE]':raise RuntimeError('non-OAI completion stream emitted unsupported [DONE]')
         event=json.loads(payload.decode('utf-8','strict'))
+        if not isinstance(event,dict) or 'error' in event:raise RuntimeError('completion stream emitted error/non-object event')
+        if terminal is not None:raise RuntimeError('completion stream emitted data after terminal event')
+        stop=event.get('stop')
+        if stop is True:
+            terminal=event;timings=event.get('timings');continue
+        if stop is not False:raise RuntimeError('completion stream event lacks exact stop state')
+        tokens=event.get('tokens')
+        predicted=event.get('tokens_predicted')
+        if event.get('id_slot')!=-1 or not isinstance(tokens,list) or len(tokens)!=1 or isinstance(tokens[0],bool) or not isinstance(tokens[0],int) or isinstance(predicted,bool) or not isinstance(predicted,int) or predicted<=0 or predicted>expected or (stamps and predicted<=last_predicted):
+            raise RuntimeError('completion stream partial token/counter mismatch')
         content=event.get('content')
-        if isinstance(content,str) and content:
-            contents.append(content); stamps.append(time.monotonic_ns())
-        if isinstance(event.get('timings'),dict):timings=event['timings']
+        if not isinstance(content,str):raise RuntimeError('completion stream partial content is not text')
+        contents.append(content); stamps.append(time.monotonic_ns());last_predicted=predicted
 end=time.monotonic_ns(); wall_end=datetime.datetime.now(datetime.timezone.utc)
-if status!=200 or timings is None or len(stamps)!=expected:
+if status!=200 or not isinstance(terminal,dict) or not isinstance(timings,dict) or len(stamps)!=expected or last_predicted!=expected or terminal.get('content')!='' or terminal.get('tokens')!=[] or terminal.get('stop_type')!='limit' or terminal.get('truncated') is not False or terminal.get('stopping_word')!='' or terminal.get('tokens_predicted')!=expected or not isinstance(terminal.get('tokens_cached'),int) or terminal.get('tokens_cached')<0:
     raise RuntimeError(f'stream status/timing/token-event mismatch status={status} events={len(stamps)} expected={expected}')
 ttft=(stamps[0]-start)/1e6; itl=[(b-a)/1e6 for a,b in zip(stamps,stamps[1:])]
 print(json.dumps({'response':{'content':''.join(contents),'timings':timings},
- 'client':{'schema':'halofpx.client-timing.v1','started_at':wall_start.isoformat(),
- 'ended_at':wall_end.isoformat(),'http_status':status,'wall_ms':(end-start)/1e6,'ttft_ms':ttft,'itl_ms':itl},
+ 'client':{'schema':'halofpx.client-timing.v2','started_at':wall_start.isoformat(),
+ 'ended_at':wall_end.isoformat(),'http_status':status,'wall_ms':(end-start)/1e6,'ttft_ms':ttft,'itl_ms':itl,
+ 'remote_started_monotonic_ns':start,'remote_ended_monotonic_ns':end,'event_monotonic_ns':stamps},
  'raw_base64':base64.b64encode(raw).decode('ascii'),'sent_body_sha256':hashlib.sha256(body).hexdigest(),
  'started_monotonic_ns':start,'ended_monotonic_ns':end},sort_keys=True))
 '''
@@ -1345,6 +1378,20 @@ class SshCachyRunner:
         except (UnicodeError, json.JSONDecodeError) as exc:
             raise AdapterError("process identity output is malformed") from exc
         require_exact_keys(value, {"pid", "exe", "exe_sha256", "argv", "environment", "cgroup", "process_start_ticks"}, "process proof")
+        return value
+
+    def _host_clock(self, host: str) -> dict[str, Any]:
+        raw = self._required(host, ["python3", "-c", REMOTE_CLOCK_PROGRAM])
+        try:
+            value = json.loads(raw.decode("utf-8", errors="strict"))
+        except (UnicodeError, json.JSONDecodeError) as exc:
+            raise AdapterError("host clock evidence is malformed") from exc
+        require_exact_keys(value, {"boot_id", "monotonic_ns"}, "host clock evidence")
+        if not isinstance(value["boot_id"], str) or re.fullmatch(
+                r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+                value["boot_id"]) is None or isinstance(value["monotonic_ns"], bool) or \
+                not isinstance(value["monotonic_ns"], int) or value["monotonic_ns"] <= 0:
+            raise AdapterError("host clock evidence lacks exact boot/monotonic identity")
         return value
 
     def artifact(self, host: str, path: str) -> dict[str, Any]:
@@ -1520,6 +1567,13 @@ print(json.dumps({'path':sys.argv[1],'size_bytes':s.st_size,'sha256':h.hexdigest
             invocation = last.get("InvocationID", "").lower()
             if last["ActiveState"] == "active" and pid > 0 and start_mono > 0 and INVOCATION_RE.fullmatch(invocation):
                 process = self._process(host, pid)
+                boot_id = self._required(
+                    host, ["cat", "/proc/sys/kernel/random/boot_id"]).decode(
+                        "ascii", errors="strict").strip().lower()
+                if not re.fullmatch(
+                        r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+                        boot_id):
+                    raise AdapterError("new process boot identity is malformed")
                 control_group = last.get("ControlGroup", "")
                 process_control_group = parse_unified_cgroup(
                     process["cgroup"], "new process /proc cgroup proof")
@@ -1529,7 +1583,7 @@ print(json.dumps({'path':sys.argv[1],'size_bytes':s.st_size,'sha256':h.hexdigest
                     raise AdapterError("new process is outside the expected user transient unit/cgroup")
                 identity = UnitIdentity(
                     role, host, unit, pid, invocation, process["process_start_ticks"], start_mono,
-                    cursor, tuple(process["argv"]), dict(process["environment"]),
+                    boot_id, cursor, tuple(process["argv"]), dict(process["environment"]),
                     process["exe_sha256"], port, control_group)
                 expected = {
                     "role": role, "host": host, "unit": unit, "argv": list(argv),
@@ -1551,6 +1605,11 @@ print(json.dumps({'path':sys.argv[1],'size_bytes':s.st_size,'sha256':h.hexdigest
                 props.get("InvocationID", "").lower() != identity.invocation_id:
             raise AdapterError("disposable unit identity changed or is not active")
         process = self._process(identity.host, identity.pid)
+        current_boot_id = self._required(
+            identity.host, ["cat", "/proc/sys/kernel/random/boot_id"]).decode(
+                "ascii", errors="strict").strip().lower()
+        if current_boot_id != identity.boot_id:
+            raise AdapterError("disposable process boot identity changed")
         if process["process_start_ticks"] != identity.process_start_ticks or process["argv"] != list(identity.argv) or \
                 process["environment"] != identity.environment or process["exe_sha256"] != identity.executable_sha256:
             raise AdapterError("disposable process identity changed")
@@ -1567,7 +1626,14 @@ print(json.dumps({'path':sys.argv[1],'size_bytes':s.st_size,'sha256':h.hexdigest
             raise AdapterError("disposable listener is not exclusively PID-owned")
         if not require_listener and owners not in {[], [identity.pid]}:
             raise AdapterError("disposable port is owned by another PID during startup")
-        return {"systemd": props, "process": process, "listener_pids": owners}
+        clock = self._host_clock(identity.host)
+        if clock["boot_id"] != identity.boot_id or \
+                clock["monotonic_ns"] <= identity.start_monotonic_us * 1000:
+            raise AdapterError("live proof host clock differs from process identity")
+        return {
+            "systemd": props, "process": process, "listener_pids": owners,
+            "boot_id": clock["boot_id"], "observed_monotonic_ns": clock["monotonic_ns"],
+        }
 
     def wait_ready(self, identity: UnitIdentity, timeout_seconds: int) -> dict[str, Any]:
         deadline = time.monotonic() + timeout_seconds
@@ -1608,12 +1674,33 @@ with s:
                         hello = json.loads(raw.decode("utf-8", errors="strict"))
                     except (UnicodeError, json.JSONDecodeError) as exc:
                         raise AdapterError("RPC HELLO readiness output is malformed") from exc
-                    return {"kind": "pid-owned-rpc-hello", "ready": True, **hello}
+                    clock = self._host_clock(identity.host)
+                    return {
+                        "kind": "pid-owned-rpc-hello", "ready": True,
+                        "identity": {
+                            "role": identity.role, "host": identity.host, "unit": identity.unit,
+                            "pid": identity.pid, "invocation_id": identity.invocation_id,
+                            "process_start_ticks": identity.process_start_ticks,
+                        },
+                        "boot_id": clock["boot_id"],
+                        "observed_monotonic_ns": clock["monotonic_ns"], **hello,
+                    }
                 result = self._run(identity.host, [
                     "curl", "-fsS", "--max-time", "2", f"http://127.0.0.1:{identity.port}/health"])
                 if result.returncode == 0:
-                    return {"kind": "pid-owned-http-health", "ready": True,
-                            "body_sha256": sha256_bytes(result.stdout), "body_bytes": len(result.stdout)}
+                    clock = self._host_clock(identity.host)
+                    return {
+                        "kind": "pid-owned-http-health", "ready": True,
+                        "identity": {
+                            "role": identity.role, "host": identity.host, "unit": identity.unit,
+                            "pid": identity.pid, "invocation_id": identity.invocation_id,
+                            "process_start_ticks": identity.process_start_ticks,
+                        },
+                        "boot_id": clock["boot_id"],
+                        "observed_monotonic_ns": clock["monotonic_ns"],
+                        "body_sha256": sha256_bytes(result.stdout),
+                        "body_bytes": len(result.stdout),
+                    }
                 last = result.stderr.decode("utf-8", errors="replace")
             except AdapterError as exc:
                 last = str(exc)
@@ -1783,6 +1870,9 @@ with s:
                     pid_absent is not False and cgroup_absent is not False:
                 if stop.returncode != 0 or reset.returncode != 0:
                     raise AdapterError(f"cleanup stop/reset failed despite eventual absence: {host}/{unit}")
+                clock = self._host_clock(host)
+                if identity is not None and clock["boot_id"] != identity.boot_id:
+                    raise AdapterError("cleanup completion crossed the captured process boot")
                 return {"unit_absent": True, "port_closed": True, "stop_returncode": stop.returncode,
                         "reset_returncode": reset.returncode,
                         "captured_pid_absent": pid_absent,
@@ -1790,6 +1880,8 @@ with s:
                         "captured_pid": captured_pid,
                         "captured_control_group": captured_control_group,
                         "identity_source": identity_source,
+                        "boot_id": clock["boot_id"],
+                        "completed_monotonic_ns": clock["monotonic_ns"],
                         "pre_state": pre}
             time.sleep(0.05)
         raise AdapterError(f"cleanup did not unload unit/close port: {host}/{unit}: {last}")
