@@ -20,6 +20,9 @@ HaloFPX repository. It does not replace Project Lead authority.
   [`SHA256SUMS.txt`](SHA256SUMS.txt) to verify the private evidence release.
 - Use [`asset-provenance.json`](asset-provenance.json) to map every payload to
   its source role, purpose, sensitivity, retention rule, and safe restore path.
+- Use [`github-wiki-mirror.md`](github-wiki-mirror.md) to generate, validate,
+  publish, audit, or recover the non-authoritative GitHub Wiki convenience
+  mirror without weakening the in-repository Wiki's authority.
 
 ## Current authority
 

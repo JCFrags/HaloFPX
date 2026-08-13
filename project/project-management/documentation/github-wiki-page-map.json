@@ -1,0 +1,3220 @@
+{
+  "canonical_root": "project/wiki/HaloFPX_Wiki",
+  "entries": [
+    {
+      "destination": "S01-Wiki-Architecture-Navigation-and-Root-Manifest.md",
+      "kind": "page",
+      "source": "01_Wiki_Governance/01_Wiki_Architecture_Navigation_and_Root_Manifest/README.md"
+    },
+    {
+      "destination": "S01-Wiki-Architecture-Navigation-and-Root-Manifest--design-implications.md",
+      "kind": "page",
+      "source": "01_Wiki_Governance/01_Wiki_Architecture_Navigation_and_Root_Manifest/design_implications.md"
+    },
+    {
+      "destination": "S01-Wiki-Architecture-Navigation-and-Root-Manifest--facts-and-constraints.md",
+      "kind": "page",
+      "source": "01_Wiki_Governance/01_Wiki_Architecture_Navigation_and_Root_Manifest/facts_and_constraints.md"
+    },
+    {
+      "destination": "S01-Wiki-Architecture-Navigation-and-Root-Manifest--open-questions.md",
+      "kind": "page",
+      "source": "01_Wiki_Governance/01_Wiki_Architecture_Navigation_and_Root_Manifest/open_questions.md"
+    },
+    {
+      "destination": "S01-Wiki-Architecture-Navigation-and-Root-Manifest--procedures-and-checks.md",
+      "kind": "page",
+      "source": "01_Wiki_Governance/01_Wiki_Architecture_Navigation_and_Root_Manifest/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/01_Wiki_Governance/01_Wiki_Architecture_Navigation_and_Root_Manifest/section.yaml",
+      "kind": "asset",
+      "source": "01_Wiki_Governance/01_Wiki_Architecture_Navigation_and_Root_Manifest/section.yaml"
+    },
+    {
+      "destination": "S01-Wiki-Architecture-Navigation-and-Root-Manifest--sources.md",
+      "kind": "page",
+      "source": "01_Wiki_Governance/01_Wiki_Architecture_Navigation_and_Root_Manifest/sources.md"
+    },
+    {
+      "destination": "S02-Evidence-Citation-and-Source-Policy.md",
+      "kind": "page",
+      "source": "01_Wiki_Governance/02_Evidence_Citation_and_Source_Policy/README.md"
+    },
+    {
+      "destination": "S02-Evidence-Citation-and-Source-Policy--design-implications.md",
+      "kind": "page",
+      "source": "01_Wiki_Governance/02_Evidence_Citation_and_Source_Policy/design_implications.md"
+    },
+    {
+      "destination": "S02-Evidence-Citation-and-Source-Policy--facts-and-constraints.md",
+      "kind": "page",
+      "source": "01_Wiki_Governance/02_Evidence_Citation_and_Source_Policy/facts_and_constraints.md"
+    },
+    {
+      "destination": "S02-Evidence-Citation-and-Source-Policy--open-questions.md",
+      "kind": "page",
+      "source": "01_Wiki_Governance/02_Evidence_Citation_and_Source_Policy/open_questions.md"
+    },
+    {
+      "destination": "S02-Evidence-Citation-and-Source-Policy--procedures-and-checks.md",
+      "kind": "page",
+      "source": "01_Wiki_Governance/02_Evidence_Citation_and_Source_Policy/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/01_Wiki_Governance/02_Evidence_Citation_and_Source_Policy/section.yaml",
+      "kind": "asset",
+      "source": "01_Wiki_Governance/02_Evidence_Citation_and_Source_Policy/section.yaml"
+    },
+    {
+      "destination": "S02-Evidence-Citation-and-Source-Policy--sources.md",
+      "kind": "page",
+      "source": "01_Wiki_Governance/02_Evidence_Citation_and_Source_Policy/sources.md"
+    },
+    {
+      "destination": "S03-Glossary-Naming-and-Stable-Identifiers.md",
+      "kind": "page",
+      "source": "01_Wiki_Governance/03_Glossary_Naming_and_Stable_Identifiers/README.md"
+    },
+    {
+      "destination": "S03-Glossary-Naming-and-Stable-Identifiers--design-implications.md",
+      "kind": "page",
+      "source": "01_Wiki_Governance/03_Glossary_Naming_and_Stable_Identifiers/design_implications.md"
+    },
+    {
+      "destination": "S03-Glossary-Naming-and-Stable-Identifiers--facts-and-constraints.md",
+      "kind": "page",
+      "source": "01_Wiki_Governance/03_Glossary_Naming_and_Stable_Identifiers/facts_and_constraints.md"
+    },
+    {
+      "destination": "S03-Glossary-Naming-and-Stable-Identifiers--open-questions.md",
+      "kind": "page",
+      "source": "01_Wiki_Governance/03_Glossary_Naming_and_Stable_Identifiers/open_questions.md"
+    },
+    {
+      "destination": "S03-Glossary-Naming-and-Stable-Identifiers--procedures-and-checks.md",
+      "kind": "page",
+      "source": "01_Wiki_Governance/03_Glossary_Naming_and_Stable_Identifiers/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/01_Wiki_Governance/03_Glossary_Naming_and_Stable_Identifiers/section.yaml",
+      "kind": "asset",
+      "source": "01_Wiki_Governance/03_Glossary_Naming_and_Stable_Identifiers/section.yaml"
+    },
+    {
+      "destination": "S03-Glossary-Naming-and-Stable-Identifiers--sources.md",
+      "kind": "page",
+      "source": "01_Wiki_Governance/03_Glossary_Naming_and_Stable_Identifiers/sources.md"
+    },
+    {
+      "destination": "S04-Assumption-Open-Question-and-Decision-Ledgers.md",
+      "kind": "page",
+      "source": "01_Wiki_Governance/04_Assumption_Open_Question_and_Decision_Ledgers/README.md"
+    },
+    {
+      "destination": "S04-Assumption-Open-Question-and-Decision-Ledgers--design-implications.md",
+      "kind": "page",
+      "source": "01_Wiki_Governance/04_Assumption_Open_Question_and_Decision_Ledgers/design_implications.md"
+    },
+    {
+      "destination": "S04-Assumption-Open-Question-and-Decision-Ledgers--facts-and-constraints.md",
+      "kind": "page",
+      "source": "01_Wiki_Governance/04_Assumption_Open_Question_and_Decision_Ledgers/facts_and_constraints.md"
+    },
+    {
+      "destination": "S04-Assumption-Open-Question-and-Decision-Ledgers--open-questions.md",
+      "kind": "page",
+      "source": "01_Wiki_Governance/04_Assumption_Open_Question_and_Decision_Ledgers/open_questions.md"
+    },
+    {
+      "destination": "S04-Assumption-Open-Question-and-Decision-Ledgers--procedures-and-checks.md",
+      "kind": "page",
+      "source": "01_Wiki_Governance/04_Assumption_Open_Question_and_Decision_Ledgers/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/01_Wiki_Governance/04_Assumption_Open_Question_and_Decision_Ledgers/section.yaml",
+      "kind": "asset",
+      "source": "01_Wiki_Governance/04_Assumption_Open_Question_and_Decision_Ledgers/section.yaml"
+    },
+    {
+      "destination": "S04-Assumption-Open-Question-and-Decision-Ledgers--sources.md",
+      "kind": "page",
+      "source": "01_Wiki_Governance/04_Assumption_Open_Question_and_Decision_Ledgers/sources.md"
+    },
+    {
+      "destination": "S05-Research-Data-and-Benchmark-Artifact-Conventions.md",
+      "kind": "page",
+      "source": "01_Wiki_Governance/05_Research_Data_and_Benchmark_Artifact_Conventions/README.md"
+    },
+    {
+      "destination": "S05-Research-Data-and-Benchmark-Artifact-Conventions--design-implications.md",
+      "kind": "page",
+      "source": "01_Wiki_Governance/05_Research_Data_and_Benchmark_Artifact_Conventions/design_implications.md"
+    },
+    {
+      "destination": "S05-Research-Data-and-Benchmark-Artifact-Conventions--facts-and-constraints.md",
+      "kind": "page",
+      "source": "01_Wiki_Governance/05_Research_Data_and_Benchmark_Artifact_Conventions/facts_and_constraints.md"
+    },
+    {
+      "destination": "S05-Research-Data-and-Benchmark-Artifact-Conventions--open-questions.md",
+      "kind": "page",
+      "source": "01_Wiki_Governance/05_Research_Data_and_Benchmark_Artifact_Conventions/open_questions.md"
+    },
+    {
+      "destination": "S05-Research-Data-and-Benchmark-Artifact-Conventions--procedures-and-checks.md",
+      "kind": "page",
+      "source": "01_Wiki_Governance/05_Research_Data_and_Benchmark_Artifact_Conventions/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/01_Wiki_Governance/05_Research_Data_and_Benchmark_Artifact_Conventions/section.yaml",
+      "kind": "asset",
+      "source": "01_Wiki_Governance/05_Research_Data_and_Benchmark_Artifact_Conventions/section.yaml"
+    },
+    {
+      "destination": "S05-Research-Data-and-Benchmark-Artifact-Conventions--sources.md",
+      "kind": "page",
+      "source": "01_Wiki_Governance/05_Research_Data_and_Benchmark_Artifact_Conventions/sources.md"
+    },
+    {
+      "destination": "C01-Wiki-Governance.md",
+      "kind": "page",
+      "source": "01_Wiki_Governance/README.md"
+    },
+    {
+      "destination": "S06-Project-Charter-Vision-and-Intended-Outcomes.md",
+      "kind": "page",
+      "source": "02_Project_Definition/06_Project_Charter_Vision_and_Intended_Outcomes/README.md"
+    },
+    {
+      "destination": "S06-Project-Charter-Vision-and-Intended-Outcomes--design-implications.md",
+      "kind": "page",
+      "source": "02_Project_Definition/06_Project_Charter_Vision_and_Intended_Outcomes/design_implications.md"
+    },
+    {
+      "destination": "S06-Project-Charter-Vision-and-Intended-Outcomes--facts-and-constraints.md",
+      "kind": "page",
+      "source": "02_Project_Definition/06_Project_Charter_Vision_and_Intended_Outcomes/facts_and_constraints.md"
+    },
+    {
+      "destination": "S06-Project-Charter-Vision-and-Intended-Outcomes--open-questions.md",
+      "kind": "page",
+      "source": "02_Project_Definition/06_Project_Charter_Vision_and_Intended_Outcomes/open_questions.md"
+    },
+    {
+      "destination": "S06-Project-Charter-Vision-and-Intended-Outcomes--procedures-and-checks.md",
+      "kind": "page",
+      "source": "02_Project_Definition/06_Project_Charter_Vision_and_Intended_Outcomes/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/02_Project_Definition/06_Project_Charter_Vision_and_Intended_Outcomes/section.yaml",
+      "kind": "asset",
+      "source": "02_Project_Definition/06_Project_Charter_Vision_and_Intended_Outcomes/section.yaml"
+    },
+    {
+      "destination": "S06-Project-Charter-Vision-and-Intended-Outcomes--sources.md",
+      "kind": "page",
+      "source": "02_Project_Definition/06_Project_Charter_Vision_and_Intended_Outcomes/sources.md"
+    },
+    {
+      "destination": "S07-Users-Workloads-Personas-and-Use-Cases.md",
+      "kind": "page",
+      "source": "02_Project_Definition/07_Users_Workloads_Personas_and_Use_Cases/README.md"
+    },
+    {
+      "destination": "S07-Users-Workloads-Personas-and-Use-Cases--design-implications.md",
+      "kind": "page",
+      "source": "02_Project_Definition/07_Users_Workloads_Personas_and_Use_Cases/design_implications.md"
+    },
+    {
+      "destination": "S07-Users-Workloads-Personas-and-Use-Cases--facts-and-constraints.md",
+      "kind": "page",
+      "source": "02_Project_Definition/07_Users_Workloads_Personas_and_Use_Cases/facts_and_constraints.md"
+    },
+    {
+      "destination": "S07-Users-Workloads-Personas-and-Use-Cases--open-questions.md",
+      "kind": "page",
+      "source": "02_Project_Definition/07_Users_Workloads_Personas_and_Use_Cases/open_questions.md"
+    },
+    {
+      "destination": "S07-Users-Workloads-Personas-and-Use-Cases--procedures-and-checks.md",
+      "kind": "page",
+      "source": "02_Project_Definition/07_Users_Workloads_Personas_and_Use_Cases/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/02_Project_Definition/07_Users_Workloads_Personas_and_Use_Cases/section.yaml",
+      "kind": "asset",
+      "source": "02_Project_Definition/07_Users_Workloads_Personas_and_Use_Cases/section.yaml"
+    },
+    {
+      "destination": "S07-Users-Workloads-Personas-and-Use-Cases--sources.md",
+      "kind": "page",
+      "source": "02_Project_Definition/07_Users_Workloads_Personas_and_Use_Cases/sources.md"
+    },
+    {
+      "destination": "S08-Scope-Non-Goals-Boundaries-and-External-Dependencies.md",
+      "kind": "page",
+      "source": "02_Project_Definition/08_Scope_Non_Goals_Boundaries_and_External_Dependencies/README.md"
+    },
+    {
+      "destination": "S08-Scope-Non-Goals-Boundaries-and-External-Dependencies--design-implications.md",
+      "kind": "page",
+      "source": "02_Project_Definition/08_Scope_Non_Goals_Boundaries_and_External_Dependencies/design_implications.md"
+    },
+    {
+      "destination": "S08-Scope-Non-Goals-Boundaries-and-External-Dependencies--facts-and-constraints.md",
+      "kind": "page",
+      "source": "02_Project_Definition/08_Scope_Non_Goals_Boundaries_and_External_Dependencies/facts_and_constraints.md"
+    },
+    {
+      "destination": "S08-Scope-Non-Goals-Boundaries-and-External-Dependencies--open-questions.md",
+      "kind": "page",
+      "source": "02_Project_Definition/08_Scope_Non_Goals_Boundaries_and_External_Dependencies/open_questions.md"
+    },
+    {
+      "destination": "S08-Scope-Non-Goals-Boundaries-and-External-Dependencies--procedures-and-checks.md",
+      "kind": "page",
+      "source": "02_Project_Definition/08_Scope_Non_Goals_Boundaries_and_External_Dependencies/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/02_Project_Definition/08_Scope_Non_Goals_Boundaries_and_External_Dependencies/section.yaml",
+      "kind": "asset",
+      "source": "02_Project_Definition/08_Scope_Non_Goals_Boundaries_and_External_Dependencies/section.yaml"
+    },
+    {
+      "destination": "S08-Scope-Non-Goals-Boundaries-and-External-Dependencies--sources.md",
+      "kind": "page",
+      "source": "02_Project_Definition/08_Scope_Non_Goals_Boundaries_and_External_Dependencies/sources.md"
+    },
+    {
+      "destination": "S09-Functional-Requirements-SLOs-and-Acceptance-Criteria.md",
+      "kind": "page",
+      "source": "02_Project_Definition/09_Functional_Requirements_SLOs_and_Acceptance_Criteria/README.md"
+    },
+    {
+      "destination": "S09-Functional-Requirements-SLOs-and-Acceptance-Criteria--design-implications.md",
+      "kind": "page",
+      "source": "02_Project_Definition/09_Functional_Requirements_SLOs_and_Acceptance_Criteria/design_implications.md"
+    },
+    {
+      "destination": "S09-Functional-Requirements-SLOs-and-Acceptance-Criteria--facts-and-constraints.md",
+      "kind": "page",
+      "source": "02_Project_Definition/09_Functional_Requirements_SLOs_and_Acceptance_Criteria/facts_and_constraints.md"
+    },
+    {
+      "destination": "S09-Functional-Requirements-SLOs-and-Acceptance-Criteria--open-questions.md",
+      "kind": "page",
+      "source": "02_Project_Definition/09_Functional_Requirements_SLOs_and_Acceptance_Criteria/open_questions.md"
+    },
+    {
+      "destination": "S09-Functional-Requirements-SLOs-and-Acceptance-Criteria--procedures-and-checks.md",
+      "kind": "page",
+      "source": "02_Project_Definition/09_Functional_Requirements_SLOs_and_Acceptance_Criteria/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/02_Project_Definition/09_Functional_Requirements_SLOs_and_Acceptance_Criteria/section.yaml",
+      "kind": "asset",
+      "source": "02_Project_Definition/09_Functional_Requirements_SLOs_and_Acceptance_Criteria/section.yaml"
+    },
+    {
+      "destination": "S09-Functional-Requirements-SLOs-and-Acceptance-Criteria--sources.md",
+      "kind": "page",
+      "source": "02_Project_Definition/09_Functional_Requirements_SLOs_and_Acceptance_Criteria/sources.md"
+    },
+    {
+      "destination": "S10-Architecture-Principles-and-Tradeoff-Framework.md",
+      "kind": "page",
+      "source": "02_Project_Definition/10_Architecture_Principles_and_Tradeoff_Framework/README.md"
+    },
+    {
+      "destination": "S10-Architecture-Principles-and-Tradeoff-Framework--design-implications.md",
+      "kind": "page",
+      "source": "02_Project_Definition/10_Architecture_Principles_and_Tradeoff_Framework/design_implications.md"
+    },
+    {
+      "destination": "S10-Architecture-Principles-and-Tradeoff-Framework--facts-and-constraints.md",
+      "kind": "page",
+      "source": "02_Project_Definition/10_Architecture_Principles_and_Tradeoff_Framework/facts_and_constraints.md"
+    },
+    {
+      "destination": "S10-Architecture-Principles-and-Tradeoff-Framework--open-questions.md",
+      "kind": "page",
+      "source": "02_Project_Definition/10_Architecture_Principles_and_Tradeoff_Framework/open_questions.md"
+    },
+    {
+      "destination": "S10-Architecture-Principles-and-Tradeoff-Framework--procedures-and-checks.md",
+      "kind": "page",
+      "source": "02_Project_Definition/10_Architecture_Principles_and_Tradeoff_Framework/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/02_Project_Definition/10_Architecture_Principles_and_Tradeoff_Framework/section.yaml",
+      "kind": "asset",
+      "source": "02_Project_Definition/10_Architecture_Principles_and_Tradeoff_Framework/section.yaml"
+    },
+    {
+      "destination": "S10-Architecture-Principles-and-Tradeoff-Framework--sources.md",
+      "kind": "page",
+      "source": "02_Project_Definition/10_Architecture_Principles_and_Tradeoff_Framework/sources.md"
+    },
+    {
+      "destination": "C02-Project-Definition.md",
+      "kind": "page",
+      "source": "02_Project_Definition/README.md"
+    },
+    {
+      "destination": "S11-Repository-Lineage-Branches-Commits-and-Frozen-Baselines.md",
+      "kind": "page",
+      "source": "03_Repository_and_Engineering/11_Repository_Lineage_Branches_Commits_and_Frozen_Baselines/README.md"
+    },
+    {
+      "destination": "S11-Repository-Lineage-Branches-Commits-and-Frozen-Baselines--design-implications.md",
+      "kind": "page",
+      "source": "03_Repository_and_Engineering/11_Repository_Lineage_Branches_Commits_and_Frozen_Baselines/design_implications.md"
+    },
+    {
+      "destination": "S11-Repository-Lineage-Branches-Commits-and-Frozen-Baselines--facts-and-constraints.md",
+      "kind": "page",
+      "source": "03_Repository_and_Engineering/11_Repository_Lineage_Branches_Commits_and_Frozen_Baselines/facts_and_constraints.md"
+    },
+    {
+      "destination": "S11-Repository-Lineage-Branches-Commits-and-Frozen-Baselines--open-questions.md",
+      "kind": "page",
+      "source": "03_Repository_and_Engineering/11_Repository_Lineage_Branches_Commits_and_Frozen_Baselines/open_questions.md"
+    },
+    {
+      "destination": "S11-Repository-Lineage-Branches-Commits-and-Frozen-Baselines--procedures-and-checks.md",
+      "kind": "page",
+      "source": "03_Repository_and_Engineering/11_Repository_Lineage_Branches_Commits_and_Frozen_Baselines/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/03_Repository_and_Engineering/11_Repository_Lineage_Branches_Commits_and_Frozen_Baselines/section.yaml",
+      "kind": "asset",
+      "source": "03_Repository_and_Engineering/11_Repository_Lineage_Branches_Commits_and_Frozen_Baselines/section.yaml"
+    },
+    {
+      "destination": "S11-Repository-Lineage-Branches-Commits-and-Frozen-Baselines--sources.md",
+      "kind": "page",
+      "source": "03_Repository_and_Engineering/11_Repository_Lineage_Branches_Commits_and_Frozen_Baselines/sources.md"
+    },
+    {
+      "destination": "S12-Codebase-Architecture-and-Module-Map.md",
+      "kind": "page",
+      "source": "03_Repository_and_Engineering/12_Codebase_Architecture_and_Module_Map/README.md"
+    },
+    {
+      "destination": "S12-Codebase-Architecture-and-Module-Map--design-implications.md",
+      "kind": "page",
+      "source": "03_Repository_and_Engineering/12_Codebase_Architecture_and_Module_Map/design_implications.md"
+    },
+    {
+      "destination": "S12-Codebase-Architecture-and-Module-Map--facts-and-constraints.md",
+      "kind": "page",
+      "source": "03_Repository_and_Engineering/12_Codebase_Architecture_and_Module_Map/facts_and_constraints.md"
+    },
+    {
+      "destination": "S12-Codebase-Architecture-and-Module-Map--open-questions.md",
+      "kind": "page",
+      "source": "03_Repository_and_Engineering/12_Codebase_Architecture_and_Module_Map/open_questions.md"
+    },
+    {
+      "destination": "S12-Codebase-Architecture-and-Module-Map--procedures-and-checks.md",
+      "kind": "page",
+      "source": "03_Repository_and_Engineering/12_Codebase_Architecture_and_Module_Map/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/03_Repository_and_Engineering/12_Codebase_Architecture_and_Module_Map/section.yaml",
+      "kind": "asset",
+      "source": "03_Repository_and_Engineering/12_Codebase_Architecture_and_Module_Map/section.yaml"
+    },
+    {
+      "destination": "S12-Codebase-Architecture-and-Module-Map--sources.md",
+      "kind": "page",
+      "source": "03_Repository_and_Engineering/12_Codebase_Architecture_and_Module_Map/sources.md"
+    },
+    {
+      "destination": "S13-ROCmFPX-Feature-Kernel-Format-and-Patch-Inventory.md",
+      "kind": "page",
+      "source": "03_Repository_and_Engineering/13_ROCmFPX_Feature_Kernel_Format_and_Patch_Inventory/README.md"
+    },
+    {
+      "destination": "S13-ROCmFPX-Feature-Kernel-Format-and-Patch-Inventory--design-implications.md",
+      "kind": "page",
+      "source": "03_Repository_and_Engineering/13_ROCmFPX_Feature_Kernel_Format_and_Patch_Inventory/design_implications.md"
+    },
+    {
+      "destination": "S13-ROCmFPX-Feature-Kernel-Format-and-Patch-Inventory--facts-and-constraints.md",
+      "kind": "page",
+      "source": "03_Repository_and_Engineering/13_ROCmFPX_Feature_Kernel_Format_and_Patch_Inventory/facts_and_constraints.md"
+    },
+    {
+      "destination": "S13-ROCmFPX-Feature-Kernel-Format-and-Patch-Inventory--open-questions.md",
+      "kind": "page",
+      "source": "03_Repository_and_Engineering/13_ROCmFPX_Feature_Kernel_Format_and_Patch_Inventory/open_questions.md"
+    },
+    {
+      "destination": "S13-ROCmFPX-Feature-Kernel-Format-and-Patch-Inventory--procedures-and-checks.md",
+      "kind": "page",
+      "source": "03_Repository_and_Engineering/13_ROCmFPX_Feature_Kernel_Format_and_Patch_Inventory/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/03_Repository_and_Engineering/13_ROCmFPX_Feature_Kernel_Format_and_Patch_Inventory/section.yaml",
+      "kind": "asset",
+      "source": "03_Repository_and_Engineering/13_ROCmFPX_Feature_Kernel_Format_and_Patch_Inventory/section.yaml"
+    },
+    {
+      "destination": "S13-ROCmFPX-Feature-Kernel-Format-and-Patch-Inventory--sources.md",
+      "kind": "page",
+      "source": "03_Repository_and_Engineering/13_ROCmFPX_Feature_Kernel_Format_and_Patch_Inventory/sources.md"
+    },
+    {
+      "destination": "S14-llama-ai-and-CachyLLama-Feature-and-Patch-Inventory.md",
+      "kind": "page",
+      "source": "03_Repository_and_Engineering/14_llama_ai_and_CachyLLama_Feature_and_Patch_Inventory/README.md"
+    },
+    {
+      "destination": "S14-llama-ai-and-CachyLLama-Feature-and-Patch-Inventory--design-implications.md",
+      "kind": "page",
+      "source": "03_Repository_and_Engineering/14_llama_ai_and_CachyLLama_Feature_and_Patch_Inventory/design_implications.md"
+    },
+    {
+      "destination": "S14-llama-ai-and-CachyLLama-Feature-and-Patch-Inventory--facts-and-constraints.md",
+      "kind": "page",
+      "source": "03_Repository_and_Engineering/14_llama_ai_and_CachyLLama_Feature_and_Patch_Inventory/facts_and_constraints.md"
+    },
+    {
+      "destination": "S14-llama-ai-and-CachyLLama-Feature-and-Patch-Inventory--open-questions.md",
+      "kind": "page",
+      "source": "03_Repository_and_Engineering/14_llama_ai_and_CachyLLama_Feature_and_Patch_Inventory/open_questions.md"
+    },
+    {
+      "destination": "S14-llama-ai-and-CachyLLama-Feature-and-Patch-Inventory--procedures-and-checks.md",
+      "kind": "page",
+      "source": "03_Repository_and_Engineering/14_llama_ai_and_CachyLLama_Feature_and_Patch_Inventory/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/03_Repository_and_Engineering/14_llama_ai_and_CachyLLama_Feature_and_Patch_Inventory/section.yaml",
+      "kind": "asset",
+      "source": "03_Repository_and_Engineering/14_llama_ai_and_CachyLLama_Feature_and_Patch_Inventory/section.yaml"
+    },
+    {
+      "destination": "S14-llama-ai-and-CachyLLama-Feature-and-Patch-Inventory--sources.md",
+      "kind": "page",
+      "source": "03_Repository_and_Engineering/14_llama_ai_and_CachyLLama_Feature_and_Patch_Inventory/sources.md"
+    },
+    {
+      "destination": "S15-Integration-Patch-Stack-and-Upstream-Synchronization-Strategy.md",
+      "kind": "page",
+      "source": "03_Repository_and_Engineering/15_Integration_Patch_Stack_and_Upstream_Synchronization_Strategy/README.md"
+    },
+    {
+      "destination": "S15-Integration-Patch-Stack-and-Upstream-Synchronization-Strategy--design-implications.md",
+      "kind": "page",
+      "source": "03_Repository_and_Engineering/15_Integration_Patch_Stack_and_Upstream_Synchronization_Strategy/design_implications.md"
+    },
+    {
+      "destination": "S15-Integration-Patch-Stack-and-Upstream-Synchronization-Strategy--facts-and-constraints.md",
+      "kind": "page",
+      "source": "03_Repository_and_Engineering/15_Integration_Patch_Stack_and_Upstream_Synchronization_Strategy/facts_and_constraints.md"
+    },
+    {
+      "destination": "S15-Integration-Patch-Stack-and-Upstream-Synchronization-Strategy--open-questions.md",
+      "kind": "page",
+      "source": "03_Repository_and_Engineering/15_Integration_Patch_Stack_and_Upstream_Synchronization_Strategy/open_questions.md"
+    },
+    {
+      "destination": "S15-Integration-Patch-Stack-and-Upstream-Synchronization-Strategy--procedures-and-checks.md",
+      "kind": "page",
+      "source": "03_Repository_and_Engineering/15_Integration_Patch_Stack_and_Upstream_Synchronization_Strategy/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/03_Repository_and_Engineering/15_Integration_Patch_Stack_and_Upstream_Synchronization_Strategy/section.yaml",
+      "kind": "asset",
+      "source": "03_Repository_and_Engineering/15_Integration_Patch_Stack_and_Upstream_Synchronization_Strategy/section.yaml"
+    },
+    {
+      "destination": "S15-Integration-Patch-Stack-and-Upstream-Synchronization-Strategy--sources.md",
+      "kind": "page",
+      "source": "03_Repository_and_Engineering/15_Integration_Patch_Stack_and_Upstream_Synchronization_Strategy/sources.md"
+    },
+    {
+      "destination": "S16-Build-Dependencies-Licensing-CI-and-AI-Agent-Workflow.md",
+      "kind": "page",
+      "source": "03_Repository_and_Engineering/16_Build_Dependencies_Licensing_CI_and_AI_Agent_Workflow/README.md"
+    },
+    {
+      "destination": "S16-Build-Dependencies-Licensing-CI-and-AI-Agent-Workflow--design-implications.md",
+      "kind": "page",
+      "source": "03_Repository_and_Engineering/16_Build_Dependencies_Licensing_CI_and_AI_Agent_Workflow/design_implications.md"
+    },
+    {
+      "destination": "S16-Build-Dependencies-Licensing-CI-and-AI-Agent-Workflow--facts-and-constraints.md",
+      "kind": "page",
+      "source": "03_Repository_and_Engineering/16_Build_Dependencies_Licensing_CI_and_AI_Agent_Workflow/facts_and_constraints.md"
+    },
+    {
+      "destination": "S16-Build-Dependencies-Licensing-CI-and-AI-Agent-Workflow--open-questions.md",
+      "kind": "page",
+      "source": "03_Repository_and_Engineering/16_Build_Dependencies_Licensing_CI_and_AI_Agent_Workflow/open_questions.md"
+    },
+    {
+      "destination": "S16-Build-Dependencies-Licensing-CI-and-AI-Agent-Workflow--procedures-and-checks.md",
+      "kind": "page",
+      "source": "03_Repository_and_Engineering/16_Build_Dependencies_Licensing_CI_and_AI_Agent_Workflow/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/03_Repository_and_Engineering/16_Build_Dependencies_Licensing_CI_and_AI_Agent_Workflow/section.yaml",
+      "kind": "asset",
+      "source": "03_Repository_and_Engineering/16_Build_Dependencies_Licensing_CI_and_AI_Agent_Workflow/section.yaml"
+    },
+    {
+      "destination": "S16-Build-Dependencies-Licensing-CI-and-AI-Agent-Workflow--sources.md",
+      "kind": "page",
+      "source": "03_Repository_and_Engineering/16_Build_Dependencies_Licensing_CI_and_AI_Agent_Workflow/sources.md"
+    },
+    {
+      "destination": "C03-Repository-and-Engineering.md",
+      "kind": "page",
+      "source": "03_Repository_and_Engineering/README.md"
+    },
+    {
+      "destination": "S17-AMD-Strix-Halo-SoC-and-gfx1151-Architecture.md",
+      "kind": "page",
+      "source": "04_Hardware_and_OS_Platform/17_AMD_Strix_Halo_SoC_and_gfx1151_Architecture/README.md"
+    },
+    {
+      "destination": "S17-AMD-Strix-Halo-SoC-and-gfx1151-Architecture--design-implications.md",
+      "kind": "page",
+      "source": "04_Hardware_and_OS_Platform/17_AMD_Strix_Halo_SoC_and_gfx1151_Architecture/design_implications.md"
+    },
+    {
+      "destination": "S17-AMD-Strix-Halo-SoC-and-gfx1151-Architecture--facts-and-constraints.md",
+      "kind": "page",
+      "source": "04_Hardware_and_OS_Platform/17_AMD_Strix_Halo_SoC_and_gfx1151_Architecture/facts_and_constraints.md"
+    },
+    {
+      "destination": "S17-AMD-Strix-Halo-SoC-and-gfx1151-Architecture--open-questions.md",
+      "kind": "page",
+      "source": "04_Hardware_and_OS_Platform/17_AMD_Strix_Halo_SoC_and_gfx1151_Architecture/open_questions.md"
+    },
+    {
+      "destination": "S17-AMD-Strix-Halo-SoC-and-gfx1151-Architecture--procedures-and-checks.md",
+      "kind": "page",
+      "source": "04_Hardware_and_OS_Platform/17_AMD_Strix_Halo_SoC_and_gfx1151_Architecture/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/04_Hardware_and_OS_Platform/17_AMD_Strix_Halo_SoC_and_gfx1151_Architecture/section.yaml",
+      "kind": "asset",
+      "source": "04_Hardware_and_OS_Platform/17_AMD_Strix_Halo_SoC_and_gfx1151_Architecture/section.yaml"
+    },
+    {
+      "destination": "S17-AMD-Strix-Halo-SoC-and-gfx1151-Architecture--sources.md",
+      "kind": "page",
+      "source": "04_Hardware_and_OS_Platform/17_AMD_Strix_Halo_SoC_and_gfx1151_Architecture/sources.md"
+    },
+    {
+      "destination": "S18-Exact-Machine-BOM-BIOS-Firmware-Cabling-and-Revisions.md",
+      "kind": "page",
+      "source": "04_Hardware_and_OS_Platform/18_Exact_Machine_BOM_BIOS_Firmware_Cabling_and_Revisions/README.md"
+    },
+    {
+      "destination": "S18-Exact-Machine-BOM-BIOS-Firmware-Cabling-and-Revisions--design-implications.md",
+      "kind": "page",
+      "source": "04_Hardware_and_OS_Platform/18_Exact_Machine_BOM_BIOS_Firmware_Cabling_and_Revisions/design_implications.md"
+    },
+    {
+      "destination": "S18-Exact-Machine-BOM-BIOS-Firmware-Cabling-and-Revisions--facts-and-constraints.md",
+      "kind": "page",
+      "source": "04_Hardware_and_OS_Platform/18_Exact_Machine_BOM_BIOS_Firmware_Cabling_and_Revisions/facts_and_constraints.md"
+    },
+    {
+      "destination": "S18-Exact-Machine-BOM-BIOS-Firmware-Cabling-and-Revisions--open-questions.md",
+      "kind": "page",
+      "source": "04_Hardware_and_OS_Platform/18_Exact_Machine_BOM_BIOS_Firmware_Cabling_and_Revisions/open_questions.md"
+    },
+    {
+      "destination": "S18-Exact-Machine-BOM-BIOS-Firmware-Cabling-and-Revisions--procedures-and-checks.md",
+      "kind": "page",
+      "source": "04_Hardware_and_OS_Platform/18_Exact_Machine_BOM_BIOS_Firmware_Cabling_and_Revisions/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/04_Hardware_and_OS_Platform/18_Exact_Machine_BOM_BIOS_Firmware_Cabling_and_Revisions/section.yaml",
+      "kind": "asset",
+      "source": "04_Hardware_and_OS_Platform/18_Exact_Machine_BOM_BIOS_Firmware_Cabling_and_Revisions/section.yaml"
+    },
+    {
+      "destination": "S18-Exact-Machine-BOM-BIOS-Firmware-Cabling-and-Revisions--sources.md",
+      "kind": "page",
+      "source": "04_Hardware_and_OS_Platform/18_Exact_Machine_BOM_BIOS_Firmware_Cabling_and_Revisions/sources.md"
+    },
+    {
+      "destination": "S19-Unified-Memory-GTT-GPUVM-IOMMU-and-Allocation-Limits.md",
+      "kind": "page",
+      "source": "04_Hardware_and_OS_Platform/19_Unified_Memory_GTT_GPUVM_IOMMU_and_Allocation_Limits/README.md"
+    },
+    {
+      "destination": "S19-Unified-Memory-GTT-GPUVM-IOMMU-and-Allocation-Limits--design-implications.md",
+      "kind": "page",
+      "source": "04_Hardware_and_OS_Platform/19_Unified_Memory_GTT_GPUVM_IOMMU_and_Allocation_Limits/design_implications.md"
+    },
+    {
+      "destination": "S19-Unified-Memory-GTT-GPUVM-IOMMU-and-Allocation-Limits--facts-and-constraints.md",
+      "kind": "page",
+      "source": "04_Hardware_and_OS_Platform/19_Unified_Memory_GTT_GPUVM_IOMMU_and_Allocation_Limits/facts_and_constraints.md"
+    },
+    {
+      "destination": "S19-Unified-Memory-GTT-GPUVM-IOMMU-and-Allocation-Limits--open-questions.md",
+      "kind": "page",
+      "source": "04_Hardware_and_OS_Platform/19_Unified_Memory_GTT_GPUVM_IOMMU_and_Allocation_Limits/open_questions.md"
+    },
+    {
+      "destination": "S19-Unified-Memory-GTT-GPUVM-IOMMU-and-Allocation-Limits--procedures-and-checks.md",
+      "kind": "page",
+      "source": "04_Hardware_and_OS_Platform/19_Unified_Memory_GTT_GPUVM_IOMMU_and_Allocation_Limits/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/04_Hardware_and_OS_Platform/19_Unified_Memory_GTT_GPUVM_IOMMU_and_Allocation_Limits/section.yaml",
+      "kind": "asset",
+      "source": "04_Hardware_and_OS_Platform/19_Unified_Memory_GTT_GPUVM_IOMMU_and_Allocation_Limits/section.yaml"
+    },
+    {
+      "destination": "S19-Unified-Memory-GTT-GPUVM-IOMMU-and-Allocation-Limits--sources.md",
+      "kind": "page",
+      "source": "04_Hardware_and_OS_Platform/19_Unified_Memory_GTT_GPUVM_IOMMU_and_Allocation_Limits/sources.md"
+    },
+    {
+      "destination": "S20-USB4-Physical-Topology-and-Dual-Port-Independence.md",
+      "kind": "page",
+      "source": "04_Hardware_and_OS_Platform/20_USB4_Physical_Topology_and_Dual_Port_Independence/README.md"
+    },
+    {
+      "destination": "S20-USB4-Physical-Topology-and-Dual-Port-Independence--design-implications.md",
+      "kind": "page",
+      "source": "04_Hardware_and_OS_Platform/20_USB4_Physical_Topology_and_Dual_Port_Independence/design_implications.md"
+    },
+    {
+      "destination": "S20-USB4-Physical-Topology-and-Dual-Port-Independence--facts-and-constraints.md",
+      "kind": "page",
+      "source": "04_Hardware_and_OS_Platform/20_USB4_Physical_Topology_and_Dual_Port_Independence/facts_and_constraints.md"
+    },
+    {
+      "destination": "S20-USB4-Physical-Topology-and-Dual-Port-Independence--open-questions.md",
+      "kind": "page",
+      "source": "04_Hardware_and_OS_Platform/20_USB4_Physical_Topology_and_Dual_Port_Independence/open_questions.md"
+    },
+    {
+      "destination": "S20-USB4-Physical-Topology-and-Dual-Port-Independence--procedures-and-checks.md",
+      "kind": "page",
+      "source": "04_Hardware_and_OS_Platform/20_USB4_Physical_Topology_and_Dual_Port_Independence/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/04_Hardware_and_OS_Platform/20_USB4_Physical_Topology_and_Dual_Port_Independence/section.yaml",
+      "kind": "asset",
+      "source": "04_Hardware_and_OS_Platform/20_USB4_Physical_Topology_and_Dual_Port_Independence/section.yaml"
+    },
+    {
+      "destination": "S20-USB4-Physical-Topology-and-Dual-Port-Independence--sources.md",
+      "kind": "page",
+      "source": "04_Hardware_and_OS_Platform/20_USB4_Physical_Topology_and_Dual_Port_Independence/sources.md"
+    },
+    {
+      "destination": "S21-NVMe-and-Storage-Topology-Performance-and-Endurance.md",
+      "kind": "page",
+      "source": "04_Hardware_and_OS_Platform/21_NVMe_and_Storage_Topology_Performance_and_Endurance/README.md"
+    },
+    {
+      "destination": "S21-NVMe-and-Storage-Topology-Performance-and-Endurance--design-implications.md",
+      "kind": "page",
+      "source": "04_Hardware_and_OS_Platform/21_NVMe_and_Storage_Topology_Performance_and_Endurance/design_implications.md"
+    },
+    {
+      "destination": "S21-NVMe-and-Storage-Topology-Performance-and-Endurance--facts-and-constraints.md",
+      "kind": "page",
+      "source": "04_Hardware_and_OS_Platform/21_NVMe_and_Storage_Topology_Performance_and_Endurance/facts_and_constraints.md"
+    },
+    {
+      "destination": "S21-NVMe-and-Storage-Topology-Performance-and-Endurance--open-questions.md",
+      "kind": "page",
+      "source": "04_Hardware_and_OS_Platform/21_NVMe_and_Storage_Topology_Performance_and_Endurance/open_questions.md"
+    },
+    {
+      "destination": "S21-NVMe-and-Storage-Topology-Performance-and-Endurance--procedures-and-checks.md",
+      "kind": "page",
+      "source": "04_Hardware_and_OS_Platform/21_NVMe_and_Storage_Topology_Performance_and_Endurance/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/04_Hardware_and_OS_Platform/21_NVMe_and_Storage_Topology_Performance_and_Endurance/section.yaml",
+      "kind": "asset",
+      "source": "04_Hardware_and_OS_Platform/21_NVMe_and_Storage_Topology_Performance_and_Endurance/section.yaml"
+    },
+    {
+      "destination": "S21-NVMe-and-Storage-Topology-Performance-and-Endurance--sources.md",
+      "kind": "page",
+      "source": "04_Hardware_and_OS_Platform/21_NVMe_and_Storage_Topology_Performance_and_Endurance/sources.md"
+    },
+    {
+      "destination": "S22-Power-Thermals-Cooling-and-Sustained-Clocks.md",
+      "kind": "page",
+      "source": "04_Hardware_and_OS_Platform/22_Power_Thermals_Cooling_and_Sustained_Clocks/README.md"
+    },
+    {
+      "destination": "S22-Power-Thermals-Cooling-and-Sustained-Clocks--design-implications.md",
+      "kind": "page",
+      "source": "04_Hardware_and_OS_Platform/22_Power_Thermals_Cooling_and_Sustained_Clocks/design_implications.md"
+    },
+    {
+      "destination": "S22-Power-Thermals-Cooling-and-Sustained-Clocks--facts-and-constraints.md",
+      "kind": "page",
+      "source": "04_Hardware_and_OS_Platform/22_Power_Thermals_Cooling_and_Sustained_Clocks/facts_and_constraints.md"
+    },
+    {
+      "destination": "S22-Power-Thermals-Cooling-and-Sustained-Clocks--open-questions.md",
+      "kind": "page",
+      "source": "04_Hardware_and_OS_Platform/22_Power_Thermals_Cooling_and_Sustained_Clocks/open_questions.md"
+    },
+    {
+      "destination": "S22-Power-Thermals-Cooling-and-Sustained-Clocks--procedures-and-checks.md",
+      "kind": "page",
+      "source": "04_Hardware_and_OS_Platform/22_Power_Thermals_Cooling_and_Sustained_Clocks/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/04_Hardware_and_OS_Platform/22_Power_Thermals_Cooling_and_Sustained_Clocks/section.yaml",
+      "kind": "asset",
+      "source": "04_Hardware_and_OS_Platform/22_Power_Thermals_Cooling_and_Sustained_Clocks/section.yaml"
+    },
+    {
+      "destination": "S22-Power-Thermals-Cooling-and-Sustained-Clocks--sources.md",
+      "kind": "page",
+      "source": "04_Hardware_and_OS_Platform/22_Power_Thermals_Cooling_and_Sustained_Clocks/sources.md"
+    },
+    {
+      "destination": "S23-Linux-Kernel-amdgpu-Firmware-ROCm-and-Mesa-Compatibility-Matrix.md",
+      "kind": "page",
+      "source": "04_Hardware_and_OS_Platform/23_Linux_Kernel_amdgpu_Firmware_ROCm_and_Mesa_Compatibility_Matrix/README.md"
+    },
+    {
+      "destination": "S23-Linux-Kernel-amdgpu-Firmware-ROCm-and-Mesa-Compatibility-Matrix--design-implications.md",
+      "kind": "page",
+      "source": "04_Hardware_and_OS_Platform/23_Linux_Kernel_amdgpu_Firmware_ROCm_and_Mesa_Compatibility_Matrix/design_implications.md"
+    },
+    {
+      "destination": "S23-Linux-Kernel-amdgpu-Firmware-ROCm-and-Mesa-Compatibility-Matrix--facts-and-constraints.md",
+      "kind": "page",
+      "source": "04_Hardware_and_OS_Platform/23_Linux_Kernel_amdgpu_Firmware_ROCm_and_Mesa_Compatibility_Matrix/facts_and_constraints.md"
+    },
+    {
+      "destination": "S23-Linux-Kernel-amdgpu-Firmware-ROCm-and-Mesa-Compatibility-Matrix--open-questions.md",
+      "kind": "page",
+      "source": "04_Hardware_and_OS_Platform/23_Linux_Kernel_amdgpu_Firmware_ROCm_and_Mesa_Compatibility_Matrix/open_questions.md"
+    },
+    {
+      "destination": "S23-Linux-Kernel-amdgpu-Firmware-ROCm-and-Mesa-Compatibility-Matrix--procedures-and-checks.md",
+      "kind": "page",
+      "source": "04_Hardware_and_OS_Platform/23_Linux_Kernel_amdgpu_Firmware_ROCm_and_Mesa_Compatibility_Matrix/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/04_Hardware_and_OS_Platform/23_Linux_Kernel_amdgpu_Firmware_ROCm_and_Mesa_Compatibility_Matrix/section.yaml",
+      "kind": "asset",
+      "source": "04_Hardware_and_OS_Platform/23_Linux_Kernel_amdgpu_Firmware_ROCm_and_Mesa_Compatibility_Matrix/section.yaml"
+    },
+    {
+      "destination": "S23-Linux-Kernel-amdgpu-Firmware-ROCm-and-Mesa-Compatibility-Matrix--sources.md",
+      "kind": "page",
+      "source": "04_Hardware_and_OS_Platform/23_Linux_Kernel_amdgpu_Firmware_ROCm_and_Mesa_Compatibility_Matrix/sources.md"
+    },
+    {
+      "destination": "C04-Hardware-and-OS-Platform.md",
+      "kind": "page",
+      "source": "04_Hardware_and_OS_Platform/README.md"
+    },
+    {
+      "destination": "S24-HIP-HSA-RCCL-Memory-Coherence-and-Synchronization.md",
+      "kind": "page",
+      "source": "05_Performance_Software_and_Tools/24_HIP_HSA_RCCL_Memory_Coherence_and_Synchronization/README.md"
+    },
+    {
+      "destination": "S24-HIP-HSA-RCCL-Memory-Coherence-and-Synchronization--design-implications.md",
+      "kind": "page",
+      "source": "05_Performance_Software_and_Tools/24_HIP_HSA_RCCL_Memory_Coherence_and_Synchronization/design_implications.md"
+    },
+    {
+      "destination": "S24-HIP-HSA-RCCL-Memory-Coherence-and-Synchronization--facts-and-constraints.md",
+      "kind": "page",
+      "source": "05_Performance_Software_and_Tools/24_HIP_HSA_RCCL_Memory_Coherence_and_Synchronization/facts_and_constraints.md"
+    },
+    {
+      "destination": "S24-HIP-HSA-RCCL-Memory-Coherence-and-Synchronization--open-questions.md",
+      "kind": "page",
+      "source": "05_Performance_Software_and_Tools/24_HIP_HSA_RCCL_Memory_Coherence_and_Synchronization/open_questions.md"
+    },
+    {
+      "destination": "S24-HIP-HSA-RCCL-Memory-Coherence-and-Synchronization--procedures-and-checks.md",
+      "kind": "page",
+      "source": "05_Performance_Software_and_Tools/24_HIP_HSA_RCCL_Memory_Coherence_and_Synchronization/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/05_Performance_Software_and_Tools/24_HIP_HSA_RCCL_Memory_Coherence_and_Synchronization/section.yaml",
+      "kind": "asset",
+      "source": "05_Performance_Software_and_Tools/24_HIP_HSA_RCCL_Memory_Coherence_and_Synchronization/section.yaml"
+    },
+    {
+      "destination": "S24-HIP-HSA-RCCL-Memory-Coherence-and-Synchronization--sources.md",
+      "kind": "page",
+      "source": "05_Performance_Software_and_Tools/24_HIP_HSA_RCCL_Memory_Coherence_and_Synchronization/sources.md"
+    },
+    {
+      "destination": "S25-Vulkan-RADV-Host-Visible-Memory-and-Synchronization.md",
+      "kind": "page",
+      "source": "05_Performance_Software_and_Tools/25_Vulkan_RADV_Host_Visible_Memory_and_Synchronization/README.md"
+    },
+    {
+      "destination": "S25-Vulkan-RADV-Host-Visible-Memory-and-Synchronization--design-implications.md",
+      "kind": "page",
+      "source": "05_Performance_Software_and_Tools/25_Vulkan_RADV_Host_Visible_Memory_and_Synchronization/design_implications.md"
+    },
+    {
+      "destination": "S25-Vulkan-RADV-Host-Visible-Memory-and-Synchronization--facts-and-constraints.md",
+      "kind": "page",
+      "source": "05_Performance_Software_and_Tools/25_Vulkan_RADV_Host_Visible_Memory_and_Synchronization/facts_and_constraints.md"
+    },
+    {
+      "destination": "S25-Vulkan-RADV-Host-Visible-Memory-and-Synchronization--open-questions.md",
+      "kind": "page",
+      "source": "05_Performance_Software_and_Tools/25_Vulkan_RADV_Host_Visible_Memory_and_Synchronization/open_questions.md"
+    },
+    {
+      "destination": "S25-Vulkan-RADV-Host-Visible-Memory-and-Synchronization--procedures-and-checks.md",
+      "kind": "page",
+      "source": "05_Performance_Software_and_Tools/25_Vulkan_RADV_Host_Visible_Memory_and_Synchronization/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/05_Performance_Software_and_Tools/25_Vulkan_RADV_Host_Visible_Memory_and_Synchronization/section.yaml",
+      "kind": "asset",
+      "source": "05_Performance_Software_and_Tools/25_Vulkan_RADV_Host_Visible_Memory_and_Synchronization/section.yaml"
+    },
+    {
+      "destination": "S25-Vulkan-RADV-Host-Visible-Memory-and-Synchronization--sources.md",
+      "kind": "page",
+      "source": "05_Performance_Software_and_Tools/25_Vulkan_RADV_Host_Visible_Memory_and_Synchronization/sources.md"
+    },
+    {
+      "destination": "S26-Compiler-CMake-Linker-and-Reproducible-Toolchain.md",
+      "kind": "page",
+      "source": "05_Performance_Software_and_Tools/26_Compiler_CMake_Linker_and_Reproducible_Toolchain/README.md"
+    },
+    {
+      "destination": "S26-Compiler-CMake-Linker-and-Reproducible-Toolchain--design-implications.md",
+      "kind": "page",
+      "source": "05_Performance_Software_and_Tools/26_Compiler_CMake_Linker_and_Reproducible_Toolchain/design_implications.md"
+    },
+    {
+      "destination": "S26-Compiler-CMake-Linker-and-Reproducible-Toolchain--facts-and-constraints.md",
+      "kind": "page",
+      "source": "05_Performance_Software_and_Tools/26_Compiler_CMake_Linker_and_Reproducible_Toolchain/facts_and_constraints.md"
+    },
+    {
+      "destination": "S26-Compiler-CMake-Linker-and-Reproducible-Toolchain--open-questions.md",
+      "kind": "page",
+      "source": "05_Performance_Software_and_Tools/26_Compiler_CMake_Linker_and_Reproducible_Toolchain/open_questions.md"
+    },
+    {
+      "destination": "S26-Compiler-CMake-Linker-and-Reproducible-Toolchain--procedures-and-checks.md",
+      "kind": "page",
+      "source": "05_Performance_Software_and_Tools/26_Compiler_CMake_Linker_and_Reproducible_Toolchain/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/05_Performance_Software_and_Tools/26_Compiler_CMake_Linker_and_Reproducible_Toolchain/section.yaml",
+      "kind": "asset",
+      "source": "05_Performance_Software_and_Tools/26_Compiler_CMake_Linker_and_Reproducible_Toolchain/section.yaml"
+    },
+    {
+      "destination": "S26-Compiler-CMake-Linker-and-Reproducible-Toolchain--sources.md",
+      "kind": "page",
+      "source": "05_Performance_Software_and_Tools/26_Compiler_CMake_Linker_and_Reproducible_Toolchain/sources.md"
+    },
+    {
+      "destination": "S27-Profiling-Tracing-Debugging-and-Hardware-Counter-Collection.md",
+      "kind": "page",
+      "source": "05_Performance_Software_and_Tools/27_Profiling_Tracing_Debugging_and_Hardware_Counter_Collection/README.md"
+    },
+    {
+      "destination": "S27-Profiling-Tracing-Debugging-and-Hardware-Counter-Collection--design-implications.md",
+      "kind": "page",
+      "source": "05_Performance_Software_and_Tools/27_Profiling_Tracing_Debugging_and_Hardware_Counter_Collection/design_implications.md"
+    },
+    {
+      "destination": "S27-Profiling-Tracing-Debugging-and-Hardware-Counter-Collection--facts-and-constraints.md",
+      "kind": "page",
+      "source": "05_Performance_Software_and_Tools/27_Profiling_Tracing_Debugging_and_Hardware_Counter_Collection/facts_and_constraints.md"
+    },
+    {
+      "destination": "S27-Profiling-Tracing-Debugging-and-Hardware-Counter-Collection--open-questions.md",
+      "kind": "page",
+      "source": "05_Performance_Software_and_Tools/27_Profiling_Tracing_Debugging_and_Hardware_Counter_Collection/open_questions.md"
+    },
+    {
+      "destination": "S27-Profiling-Tracing-Debugging-and-Hardware-Counter-Collection--procedures-and-checks.md",
+      "kind": "page",
+      "source": "05_Performance_Software_and_Tools/27_Profiling_Tracing_Debugging_and_Hardware_Counter_Collection/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/05_Performance_Software_and_Tools/27_Profiling_Tracing_Debugging_and_Hardware_Counter_Collection/section.yaml",
+      "kind": "asset",
+      "source": "05_Performance_Software_and_Tools/27_Profiling_Tracing_Debugging_and_Hardware_Counter_Collection/section.yaml"
+    },
+    {
+      "destination": "S27-Profiling-Tracing-Debugging-and-Hardware-Counter-Collection--sources.md",
+      "kind": "page",
+      "source": "05_Performance_Software_and_Tools/27_Profiling_Tracing_Debugging_and_Hardware_Counter_Collection/sources.md"
+    },
+    {
+      "destination": "S28-Host-System-Tuning-CPU-IRQ-Scheduler-Cgroups-and-Filesystems.md",
+      "kind": "page",
+      "source": "05_Performance_Software_and_Tools/28_Host_System_Tuning_CPU_IRQ_Scheduler_Cgroups_and_Filesystems/README.md"
+    },
+    {
+      "destination": "S28-Host-System-Tuning-CPU-IRQ-Scheduler-Cgroups-and-Filesystems--design-implications.md",
+      "kind": "page",
+      "source": "05_Performance_Software_and_Tools/28_Host_System_Tuning_CPU_IRQ_Scheduler_Cgroups_and_Filesystems/design_implications.md"
+    },
+    {
+      "destination": "S28-Host-System-Tuning-CPU-IRQ-Scheduler-Cgroups-and-Filesystems--facts-and-constraints.md",
+      "kind": "page",
+      "source": "05_Performance_Software_and_Tools/28_Host_System_Tuning_CPU_IRQ_Scheduler_Cgroups_and_Filesystems/facts_and_constraints.md"
+    },
+    {
+      "destination": "S28-Host-System-Tuning-CPU-IRQ-Scheduler-Cgroups-and-Filesystems--open-questions.md",
+      "kind": "page",
+      "source": "05_Performance_Software_and_Tools/28_Host_System_Tuning_CPU_IRQ_Scheduler_Cgroups_and_Filesystems/open_questions.md"
+    },
+    {
+      "destination": "S28-Host-System-Tuning-CPU-IRQ-Scheduler-Cgroups-and-Filesystems--procedures-and-checks.md",
+      "kind": "page",
+      "source": "05_Performance_Software_and_Tools/28_Host_System_Tuning_CPU_IRQ_Scheduler_Cgroups_and_Filesystems/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/05_Performance_Software_and_Tools/28_Host_System_Tuning_CPU_IRQ_Scheduler_Cgroups_and_Filesystems/section.yaml",
+      "kind": "asset",
+      "source": "05_Performance_Software_and_Tools/28_Host_System_Tuning_CPU_IRQ_Scheduler_Cgroups_and_Filesystems/section.yaml"
+    },
+    {
+      "destination": "S28-Host-System-Tuning-CPU-IRQ-Scheduler-Cgroups-and-Filesystems--sources.md",
+      "kind": "page",
+      "source": "05_Performance_Software_and_Tools/28_Host_System_Tuning_CPU_IRQ_Scheduler_Cgroups_and_Filesystems/sources.md"
+    },
+    {
+      "destination": "C05-Performance-Software-and-Tools.md",
+      "kind": "page",
+      "source": "05_Performance_Software_and_Tools/README.md"
+    },
+    {
+      "destination": "S29-Target-Model-Catalog-and-Architecture-Support-Matrix.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/29_Target_Model_Catalog_and_Architecture_Support_Matrix/README.md"
+    },
+    {
+      "destination": "S29-Target-Model-Catalog-and-Architecture-Support-Matrix--design-implications.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/29_Target_Model_Catalog_and_Architecture_Support_Matrix/design_implications.md"
+    },
+    {
+      "destination": "S29-Target-Model-Catalog-and-Architecture-Support-Matrix--facts-and-constraints.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/29_Target_Model_Catalog_and_Architecture_Support_Matrix/facts_and_constraints.md"
+    },
+    {
+      "destination": "S29-Target-Model-Catalog-and-Architecture-Support-Matrix--open-questions.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/29_Target_Model_Catalog_and_Architecture_Support_Matrix/open_questions.md"
+    },
+    {
+      "destination": "S29-Target-Model-Catalog-and-Architecture-Support-Matrix--procedures-and-checks.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/29_Target_Model_Catalog_and_Architecture_Support_Matrix/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/06_Models_Quantization_and_Inference/29_Target_Model_Catalog_and_Architecture_Support_Matrix/section.yaml",
+      "kind": "asset",
+      "source": "06_Models_Quantization_and_Inference/29_Target_Model_Catalog_and_Architecture_Support_Matrix/section.yaml"
+    },
+    {
+      "destination": "S29-Target-Model-Catalog-and-Architecture-Support-Matrix--sources.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/29_Target_Model_Catalog_and_Architecture_Support_Matrix/sources.md"
+    },
+    {
+      "destination": "S30-ROCmFPX-Weight-Formats-and-Quantization-Recipes.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/30_ROCmFPX_Weight_Formats_and_Quantization_Recipes/README.md"
+    },
+    {
+      "destination": "S30-ROCmFPX-Weight-Formats-and-Quantization-Recipes--design-implications.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/30_ROCmFPX_Weight_Formats_and_Quantization_Recipes/design_implications.md"
+    },
+    {
+      "destination": "S30-ROCmFPX-Weight-Formats-and-Quantization-Recipes--facts-and-constraints.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/30_ROCmFPX_Weight_Formats_and_Quantization_Recipes/facts_and_constraints.md"
+    },
+    {
+      "destination": "S30-ROCmFPX-Weight-Formats-and-Quantization-Recipes--open-questions.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/30_ROCmFPX_Weight_Formats_and_Quantization_Recipes/open_questions.md"
+    },
+    {
+      "destination": "S30-ROCmFPX-Weight-Formats-and-Quantization-Recipes--procedures-and-checks.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/30_ROCmFPX_Weight_Formats_and_Quantization_Recipes/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/06_Models_Quantization_and_Inference/30_ROCmFPX_Weight_Formats_and_Quantization_Recipes/section.yaml",
+      "kind": "asset",
+      "source": "06_Models_Quantization_and_Inference/30_ROCmFPX_Weight_Formats_and_Quantization_Recipes/section.yaml"
+    },
+    {
+      "destination": "S30-ROCmFPX-Weight-Formats-and-Quantization-Recipes--sources.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/30_ROCmFPX_Weight_Formats_and_Quantization_Recipes/sources.md"
+    },
+    {
+      "destination": "S31-Conversion-Imatrix-Calibration-and-Quality-Validation.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/31_Conversion_Imatrix_Calibration_and_Quality_Validation/README.md"
+    },
+    {
+      "destination": "S31-Conversion-Imatrix-Calibration-and-Quality-Validation--design-implications.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/31_Conversion_Imatrix_Calibration_and_Quality_Validation/design_implications.md"
+    },
+    {
+      "destination": "S31-Conversion-Imatrix-Calibration-and-Quality-Validation--facts-and-constraints.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/31_Conversion_Imatrix_Calibration_and_Quality_Validation/facts_and_constraints.md"
+    },
+    {
+      "destination": "S31-Conversion-Imatrix-Calibration-and-Quality-Validation--open-questions.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/31_Conversion_Imatrix_Calibration_and_Quality_Validation/open_questions.md"
+    },
+    {
+      "destination": "S31-Conversion-Imatrix-Calibration-and-Quality-Validation--procedures-and-checks.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/31_Conversion_Imatrix_Calibration_and_Quality_Validation/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/06_Models_Quantization_and_Inference/31_Conversion_Imatrix_Calibration_and_Quality_Validation/section.yaml",
+      "kind": "asset",
+      "source": "06_Models_Quantization_and_Inference/31_Conversion_Imatrix_Calibration_and_Quality_Validation/section.yaml"
+    },
+    {
+      "destination": "S31-Conversion-Imatrix-Calibration-and-Quality-Validation--sources.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/31_Conversion_Imatrix_Calibration_and_Quality_Validation/sources.md"
+    },
+    {
+      "destination": "S32-llama-cpp-Model-Loading-Graph-Construction-and-Backend-Lifecycle.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/32_llama_cpp_Model_Loading_Graph_Construction_and_Backend_Lifecycle/README.md"
+    },
+    {
+      "destination": "S32-llama-cpp-Model-Loading-Graph-Construction-and-Backend-Lifecycle--design-implications.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/32_llama_cpp_Model_Loading_Graph_Construction_and_Backend_Lifecycle/design_implications.md"
+    },
+    {
+      "destination": "S32-llama-cpp-Model-Loading-Graph-Construction-and-Backend-Lifecycle--facts-and-constraints.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/32_llama_cpp_Model_Loading_Graph_Construction_and_Backend_Lifecycle/facts_and_constraints.md"
+    },
+    {
+      "destination": "S32-llama-cpp-Model-Loading-Graph-Construction-and-Backend-Lifecycle--open-questions.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/32_llama_cpp_Model_Loading_Graph_Construction_and_Backend_Lifecycle/open_questions.md"
+    },
+    {
+      "destination": "S32-llama-cpp-Model-Loading-Graph-Construction-and-Backend-Lifecycle--procedures-and-checks.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/32_llama_cpp_Model_Loading_Graph_Construction_and_Backend_Lifecycle/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/06_Models_Quantization_and_Inference/32_llama_cpp_Model_Loading_Graph_Construction_and_Backend_Lifecycle/section.yaml",
+      "kind": "asset",
+      "source": "06_Models_Quantization_and_Inference/32_llama_cpp_Model_Loading_Graph_Construction_and_Backend_Lifecycle/section.yaml"
+    },
+    {
+      "destination": "S32-llama-cpp-Model-Loading-Graph-Construction-and-Backend-Lifecycle--sources.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/32_llama_cpp_Model_Loading_Graph_Construction_and_Backend_Lifecycle/sources.md"
+    },
+    {
+      "destination": "S33-Attention-Variants-KV-Layouts-FlashAttention-and-TurboQuant.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/33_Attention_Variants_KV_Layouts_FlashAttention_and_TurboQuant/README.md"
+    },
+    {
+      "destination": "S33-Attention-Variants-KV-Layouts-FlashAttention-and-TurboQuant--design-implications.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/33_Attention_Variants_KV_Layouts_FlashAttention_and_TurboQuant/design_implications.md"
+    },
+    {
+      "destination": "S33-Attention-Variants-KV-Layouts-FlashAttention-and-TurboQuant--facts-and-constraints.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/33_Attention_Variants_KV_Layouts_FlashAttention_and_TurboQuant/facts_and_constraints.md"
+    },
+    {
+      "destination": "S33-Attention-Variants-KV-Layouts-FlashAttention-and-TurboQuant--open-questions.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/33_Attention_Variants_KV_Layouts_FlashAttention_and_TurboQuant/open_questions.md"
+    },
+    {
+      "destination": "S33-Attention-Variants-KV-Layouts-FlashAttention-and-TurboQuant--procedures-and-checks.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/33_Attention_Variants_KV_Layouts_FlashAttention_and_TurboQuant/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/06_Models_Quantization_and_Inference/33_Attention_Variants_KV_Layouts_FlashAttention_and_TurboQuant/section.yaml",
+      "kind": "asset",
+      "source": "06_Models_Quantization_and_Inference/33_Attention_Variants_KV_Layouts_FlashAttention_and_TurboQuant/section.yaml"
+    },
+    {
+      "destination": "S33-Attention-Variants-KV-Layouts-FlashAttention-and-TurboQuant--sources.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/33_Attention_Variants_KV_Layouts_FlashAttention_and_TurboQuant/sources.md"
+    },
+    {
+      "destination": "S34-MoE-Routing-Expert-Telemetry-and-Expert-Placement-Inputs.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/34_MoE_Routing_Expert_Telemetry_and_Expert_Placement_Inputs/README.md"
+    },
+    {
+      "destination": "S34-MoE-Routing-Expert-Telemetry-and-Expert-Placement-Inputs--design-implications.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/34_MoE_Routing_Expert_Telemetry_and_Expert_Placement_Inputs/design_implications.md"
+    },
+    {
+      "destination": "S34-MoE-Routing-Expert-Telemetry-and-Expert-Placement-Inputs--facts-and-constraints.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/34_MoE_Routing_Expert_Telemetry_and_Expert_Placement_Inputs/facts_and_constraints.md"
+    },
+    {
+      "destination": "S34-MoE-Routing-Expert-Telemetry-and-Expert-Placement-Inputs--open-questions.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/34_MoE_Routing_Expert_Telemetry_and_Expert_Placement_Inputs/open_questions.md"
+    },
+    {
+      "destination": "S34-MoE-Routing-Expert-Telemetry-and-Expert-Placement-Inputs--procedures-and-checks.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/34_MoE_Routing_Expert_Telemetry_and_Expert_Placement_Inputs/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/06_Models_Quantization_and_Inference/34_MoE_Routing_Expert_Telemetry_and_Expert_Placement_Inputs/section.yaml",
+      "kind": "asset",
+      "source": "06_Models_Quantization_and_Inference/34_MoE_Routing_Expert_Telemetry_and_Expert_Placement_Inputs/section.yaml"
+    },
+    {
+      "destination": "S34-MoE-Routing-Expert-Telemetry-and-Expert-Placement-Inputs--sources.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/34_MoE_Routing_Expert_Telemetry_and_Expert_Placement_Inputs/sources.md"
+    },
+    {
+      "destination": "S35-Recurrent-Mamba-SSM-Hybrid-and-State-Shift-Semantics.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/35_Recurrent_Mamba_SSM_Hybrid_and_State_Shift_Semantics/README.md"
+    },
+    {
+      "destination": "S35-Recurrent-Mamba-SSM-Hybrid-and-State-Shift-Semantics--design-implications.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/35_Recurrent_Mamba_SSM_Hybrid_and_State_Shift_Semantics/design_implications.md"
+    },
+    {
+      "destination": "S35-Recurrent-Mamba-SSM-Hybrid-and-State-Shift-Semantics--facts-and-constraints.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/35_Recurrent_Mamba_SSM_Hybrid_and_State_Shift_Semantics/facts_and_constraints.md"
+    },
+    {
+      "destination": "S35-Recurrent-Mamba-SSM-Hybrid-and-State-Shift-Semantics--open-questions.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/35_Recurrent_Mamba_SSM_Hybrid_and_State_Shift_Semantics/open_questions.md"
+    },
+    {
+      "destination": "S35-Recurrent-Mamba-SSM-Hybrid-and-State-Shift-Semantics--procedures-and-checks.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/35_Recurrent_Mamba_SSM_Hybrid_and_State_Shift_Semantics/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/06_Models_Quantization_and_Inference/35_Recurrent_Mamba_SSM_Hybrid_and_State_Shift_Semantics/section.yaml",
+      "kind": "asset",
+      "source": "06_Models_Quantization_and_Inference/35_Recurrent_Mamba_SSM_Hybrid_and_State_Shift_Semantics/section.yaml"
+    },
+    {
+      "destination": "S35-Recurrent-Mamba-SSM-Hybrid-and-State-Shift-Semantics--sources.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/35_Recurrent_Mamba_SSM_Hybrid_and_State_Shift_Semantics/sources.md"
+    },
+    {
+      "destination": "S36-Native-MTP-External-Draft-Models-and-Speculative-Decoding.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/36_Native_MTP_External_Draft_Models_and_Speculative_Decoding/README.md"
+    },
+    {
+      "destination": "S36-Native-MTP-External-Draft-Models-and-Speculative-Decoding--design-implications.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/36_Native_MTP_External_Draft_Models_and_Speculative_Decoding/design_implications.md"
+    },
+    {
+      "destination": "S36-Native-MTP-External-Draft-Models-and-Speculative-Decoding--facts-and-constraints.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/36_Native_MTP_External_Draft_Models_and_Speculative_Decoding/facts_and_constraints.md"
+    },
+    {
+      "destination": "S36-Native-MTP-External-Draft-Models-and-Speculative-Decoding--open-questions.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/36_Native_MTP_External_Draft_Models_and_Speculative_Decoding/open_questions.md"
+    },
+    {
+      "destination": "S36-Native-MTP-External-Draft-Models-and-Speculative-Decoding--procedures-and-checks.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/36_Native_MTP_External_Draft_Models_and_Speculative_Decoding/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/06_Models_Quantization_and_Inference/36_Native_MTP_External_Draft_Models_and_Speculative_Decoding/section.yaml",
+      "kind": "asset",
+      "source": "06_Models_Quantization_and_Inference/36_Native_MTP_External_Draft_Models_and_Speculative_Decoding/section.yaml"
+    },
+    {
+      "destination": "S36-Native-MTP-External-Draft-Models-and-Speculative-Decoding--sources.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/36_Native_MTP_External_Draft_Models_and_Speculative_Decoding/sources.md"
+    },
+    {
+      "destination": "S37-gfx1151-HIP-and-Vulkan-Kernel-Optimization-Opportunities.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/37_gfx1151_HIP_and_Vulkan_Kernel_Optimization_Opportunities/README.md"
+    },
+    {
+      "destination": "S37-gfx1151-HIP-and-Vulkan-Kernel-Optimization-Opportunities--design-implications.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/37_gfx1151_HIP_and_Vulkan_Kernel_Optimization_Opportunities/design_implications.md"
+    },
+    {
+      "destination": "S37-gfx1151-HIP-and-Vulkan-Kernel-Optimization-Opportunities--facts-and-constraints.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/37_gfx1151_HIP_and_Vulkan_Kernel_Optimization_Opportunities/facts_and_constraints.md"
+    },
+    {
+      "destination": "S37-gfx1151-HIP-and-Vulkan-Kernel-Optimization-Opportunities--open-questions.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/37_gfx1151_HIP_and_Vulkan_Kernel_Optimization_Opportunities/open_questions.md"
+    },
+    {
+      "destination": "S37-gfx1151-HIP-and-Vulkan-Kernel-Optimization-Opportunities--procedures-and-checks.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/37_gfx1151_HIP_and_Vulkan_Kernel_Optimization_Opportunities/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/06_Models_Quantization_and_Inference/37_gfx1151_HIP_and_Vulkan_Kernel_Optimization_Opportunities/section.yaml",
+      "kind": "asset",
+      "source": "06_Models_Quantization_and_Inference/37_gfx1151_HIP_and_Vulkan_Kernel_Optimization_Opportunities/section.yaml"
+    },
+    {
+      "destination": "S37-gfx1151-HIP-and-Vulkan-Kernel-Optimization-Opportunities--sources.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/37_gfx1151_HIP_and_Vulkan_Kernel_Optimization_Opportunities/sources.md"
+    },
+    {
+      "destination": "C06-Models-Quantization-and-Inference.md",
+      "kind": "page",
+      "source": "06_Models_Quantization_and_Inference/README.md"
+    },
+    {
+      "destination": "S38-Distributed-Runtime-Goals-Cost-Model-and-Mode-Selection.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/38_Distributed_Runtime_Goals_Cost_Model_and_Mode_Selection/README.md"
+    },
+    {
+      "destination": "S38-Distributed-Runtime-Goals-Cost-Model-and-Mode-Selection--design-implications.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/38_Distributed_Runtime_Goals_Cost_Model_and_Mode_Selection/design_implications.md"
+    },
+    {
+      "destination": "S38-Distributed-Runtime-Goals-Cost-Model-and-Mode-Selection--facts-and-constraints.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/38_Distributed_Runtime_Goals_Cost_Model_and_Mode_Selection/facts_and_constraints.md"
+    },
+    {
+      "destination": "S38-Distributed-Runtime-Goals-Cost-Model-and-Mode-Selection--open-questions.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/38_Distributed_Runtime_Goals_Cost_Model_and_Mode_Selection/open_questions.md"
+    },
+    {
+      "destination": "S38-Distributed-Runtime-Goals-Cost-Model-and-Mode-Selection--procedures-and-checks.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/38_Distributed_Runtime_Goals_Cost_Model_and_Mode_Selection/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/07_Distributed_Runtime/38_Distributed_Runtime_Goals_Cost_Model_and_Mode_Selection/section.yaml",
+      "kind": "asset",
+      "source": "07_Distributed_Runtime/38_Distributed_Runtime_Goals_Cost_Model_and_Mode_Selection/section.yaml"
+    },
+    {
+      "destination": "S38-Distributed-Runtime-Goals-Cost-Model-and-Mode-Selection--sources.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/38_Distributed_Runtime_Goals_Cost_Model_and_Mode_Selection/sources.md"
+    },
+    {
+      "destination": "S39-Coordinator-Rank-Worker-Session-and-Persistent-Graph-Architecture.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/39_Coordinator_Rank_Worker_Session_and_Persistent_Graph_Architecture/README.md"
+    },
+    {
+      "destination": "S39-Coordinator-Rank-Worker-Session-and-Persistent-Graph-Architecture--design-implications.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/39_Coordinator_Rank_Worker_Session_and_Persistent_Graph_Architecture/design_implications.md"
+    },
+    {
+      "destination": "S39-Coordinator-Rank-Worker-Session-and-Persistent-Graph-Architecture--facts-and-constraints.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/39_Coordinator_Rank_Worker_Session_and_Persistent_Graph_Architecture/facts_and_constraints.md"
+    },
+    {
+      "destination": "S39-Coordinator-Rank-Worker-Session-and-Persistent-Graph-Architecture--open-questions.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/39_Coordinator_Rank_Worker_Session_and_Persistent_Graph_Architecture/open_questions.md"
+    },
+    {
+      "destination": "S39-Coordinator-Rank-Worker-Session-and-Persistent-Graph-Architecture--procedures-and-checks.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/39_Coordinator_Rank_Worker_Session_and_Persistent_Graph_Architecture/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/07_Distributed_Runtime/39_Coordinator_Rank_Worker_Session_and_Persistent_Graph_Architecture/section.yaml",
+      "kind": "asset",
+      "source": "07_Distributed_Runtime/39_Coordinator_Rank_Worker_Session_and_Persistent_Graph_Architecture/section.yaml"
+    },
+    {
+      "destination": "S39-Coordinator-Rank-Worker-Session-and-Persistent-Graph-Architecture--sources.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/39_Coordinator_Rank_Worker_Session_and_Persistent_Graph_Architecture/sources.md"
+    },
+    {
+      "destination": "S40-Full-Replication-Request-Routing-and-Session-Affinity.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/40_Full_Replication_Request_Routing_and_Session_Affinity/README.md"
+    },
+    {
+      "destination": "S40-Full-Replication-Request-Routing-and-Session-Affinity--design-implications.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/40_Full_Replication_Request_Routing_and_Session_Affinity/design_implications.md"
+    },
+    {
+      "destination": "S40-Full-Replication-Request-Routing-and-Session-Affinity--facts-and-constraints.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/40_Full_Replication_Request_Routing_and_Session_Affinity/facts_and_constraints.md"
+    },
+    {
+      "destination": "S40-Full-Replication-Request-Routing-and-Session-Affinity--open-questions.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/40_Full_Replication_Request_Routing_and_Session_Affinity/open_questions.md"
+    },
+    {
+      "destination": "S40-Full-Replication-Request-Routing-and-Session-Affinity--procedures-and-checks.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/40_Full_Replication_Request_Routing_and_Session_Affinity/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/07_Distributed_Runtime/40_Full_Replication_Request_Routing_and_Session_Affinity/section.yaml",
+      "kind": "asset",
+      "source": "07_Distributed_Runtime/40_Full_Replication_Request_Routing_and_Session_Affinity/section.yaml"
+    },
+    {
+      "destination": "S40-Full-Replication-Request-Routing-and-Session-Affinity--sources.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/40_Full_Replication_Request_Routing_and_Session_Affinity/sources.md"
+    },
+    {
+      "destination": "S41-Remote-Draft-Node-Speculation.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/41_Remote_Draft_Node_Speculation/README.md"
+    },
+    {
+      "destination": "S41-Remote-Draft-Node-Speculation--design-implications.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/41_Remote_Draft_Node_Speculation/design_implications.md"
+    },
+    {
+      "destination": "S41-Remote-Draft-Node-Speculation--facts-and-constraints.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/41_Remote_Draft_Node_Speculation/facts_and_constraints.md"
+    },
+    {
+      "destination": "S41-Remote-Draft-Node-Speculation--open-questions.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/41_Remote_Draft_Node_Speculation/open_questions.md"
+    },
+    {
+      "destination": "S41-Remote-Draft-Node-Speculation--procedures-and-checks.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/41_Remote_Draft_Node_Speculation/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/07_Distributed_Runtime/41_Remote_Draft_Node_Speculation/section.yaml",
+      "kind": "asset",
+      "source": "07_Distributed_Runtime/41_Remote_Draft_Node_Speculation/section.yaml"
+    },
+    {
+      "destination": "S41-Remote-Draft-Node-Speculation--sources.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/41_Remote_Draft_Node_Speculation/sources.md"
+    },
+    {
+      "destination": "S42-Two-Way-Tensor-Parallelism-and-Collective-Placement.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/42_Two_Way_Tensor_Parallelism_and_Collective_Placement/README.md"
+    },
+    {
+      "destination": "S42-Two-Way-Tensor-Parallelism-and-Collective-Placement--design-implications.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/42_Two_Way_Tensor_Parallelism_and_Collective_Placement/design_implications.md"
+    },
+    {
+      "destination": "S42-Two-Way-Tensor-Parallelism-and-Collective-Placement--facts-and-constraints.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/42_Two_Way_Tensor_Parallelism_and_Collective_Placement/facts_and_constraints.md"
+    },
+    {
+      "destination": "S42-Two-Way-Tensor-Parallelism-and-Collective-Placement--open-questions.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/42_Two_Way_Tensor_Parallelism_and_Collective_Placement/open_questions.md"
+    },
+    {
+      "destination": "S42-Two-Way-Tensor-Parallelism-and-Collective-Placement--procedures-and-checks.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/42_Two_Way_Tensor_Parallelism_and_Collective_Placement/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/07_Distributed_Runtime/42_Two_Way_Tensor_Parallelism_and_Collective_Placement/section.yaml",
+      "kind": "asset",
+      "source": "07_Distributed_Runtime/42_Two_Way_Tensor_Parallelism_and_Collective_Placement/section.yaml"
+    },
+    {
+      "destination": "S42-Two-Way-Tensor-Parallelism-and-Collective-Placement--sources.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/42_Two_Way_Tensor_Parallelism_and_Collective_Placement/sources.md"
+    },
+    {
+      "destination": "S43-Contiguous-Layer-Pipeline-Parallelism-and-Microbatching.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/43_Contiguous_Layer_Pipeline_Parallelism_and_Microbatching/README.md"
+    },
+    {
+      "destination": "S43-Contiguous-Layer-Pipeline-Parallelism-and-Microbatching--design-implications.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/43_Contiguous_Layer_Pipeline_Parallelism_and_Microbatching/design_implications.md"
+    },
+    {
+      "destination": "S43-Contiguous-Layer-Pipeline-Parallelism-and-Microbatching--facts-and-constraints.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/43_Contiguous_Layer_Pipeline_Parallelism_and_Microbatching/facts_and_constraints.md"
+    },
+    {
+      "destination": "S43-Contiguous-Layer-Pipeline-Parallelism-and-Microbatching--open-questions.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/43_Contiguous_Layer_Pipeline_Parallelism_and_Microbatching/open_questions.md"
+    },
+    {
+      "destination": "S43-Contiguous-Layer-Pipeline-Parallelism-and-Microbatching--procedures-and-checks.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/43_Contiguous_Layer_Pipeline_Parallelism_and_Microbatching/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/07_Distributed_Runtime/43_Contiguous_Layer_Pipeline_Parallelism_and_Microbatching/section.yaml",
+      "kind": "asset",
+      "source": "07_Distributed_Runtime/43_Contiguous_Layer_Pipeline_Parallelism_and_Microbatching/section.yaml"
+    },
+    {
+      "destination": "S43-Contiguous-Layer-Pipeline-Parallelism-and-Microbatching--sources.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/43_Contiguous_Layer_Pipeline_Parallelism_and_Microbatching/sources.md"
+    },
+    {
+      "destination": "S44-MoE-Aware-Hybrid-Distribution-and-Hot-Expert-Replication.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/44_MoE_Aware_Hybrid_Distribution_and_Hot_Expert_Replication/README.md"
+    },
+    {
+      "destination": "S44-MoE-Aware-Hybrid-Distribution-and-Hot-Expert-Replication--design-implications.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/44_MoE_Aware_Hybrid_Distribution_and_Hot_Expert_Replication/design_implications.md"
+    },
+    {
+      "destination": "S44-MoE-Aware-Hybrid-Distribution-and-Hot-Expert-Replication--facts-and-constraints.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/44_MoE_Aware_Hybrid_Distribution_and_Hot_Expert_Replication/facts_and_constraints.md"
+    },
+    {
+      "destination": "S44-MoE-Aware-Hybrid-Distribution-and-Hot-Expert-Replication--open-questions.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/44_MoE_Aware_Hybrid_Distribution_and_Hot_Expert_Replication/open_questions.md"
+    },
+    {
+      "destination": "S44-MoE-Aware-Hybrid-Distribution-and-Hot-Expert-Replication--procedures-and-checks.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/44_MoE_Aware_Hybrid_Distribution_and_Hot_Expert_Replication/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/07_Distributed_Runtime/44_MoE_Aware_Hybrid_Distribution_and_Hot_Expert_Replication/section.yaml",
+      "kind": "asset",
+      "source": "07_Distributed_Runtime/44_MoE_Aware_Hybrid_Distribution_and_Hot_Expert_Replication/section.yaml"
+    },
+    {
+      "destination": "S44-MoE-Aware-Hybrid-Distribution-and-Hot-Expert-Replication--sources.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/44_MoE_Aware_Hybrid_Distribution_and_Hot_Expert_Replication/sources.md"
+    },
+    {
+      "destination": "S45-Persistent-Rank-Protocol-Command-Rings-and-Graph-Reuse.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/45_Persistent_Rank_Protocol_Command_Rings_and_Graph_Reuse/README.md"
+    },
+    {
+      "destination": "S45-Persistent-Rank-Protocol-Command-Rings-and-Graph-Reuse--design-implications.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/45_Persistent_Rank_Protocol_Command_Rings_and_Graph_Reuse/design_implications.md"
+    },
+    {
+      "destination": "S45-Persistent-Rank-Protocol-Command-Rings-and-Graph-Reuse--facts-and-constraints.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/45_Persistent_Rank_Protocol_Command_Rings_and_Graph_Reuse/facts_and_constraints.md"
+    },
+    {
+      "destination": "S45-Persistent-Rank-Protocol-Command-Rings-and-Graph-Reuse--open-questions.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/45_Persistent_Rank_Protocol_Command_Rings_and_Graph_Reuse/open_questions.md"
+    },
+    {
+      "destination": "S45-Persistent-Rank-Protocol-Command-Rings-and-Graph-Reuse--procedures-and-checks.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/45_Persistent_Rank_Protocol_Command_Rings_and_Graph_Reuse/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/07_Distributed_Runtime/45_Persistent_Rank_Protocol_Command_Rings_and_Graph_Reuse/section.yaml",
+      "kind": "asset",
+      "source": "07_Distributed_Runtime/45_Persistent_Rank_Protocol_Command_Rings_and_Graph_Reuse/section.yaml"
+    },
+    {
+      "destination": "S45-Persistent-Rank-Protocol-Command-Rings-and-Graph-Reuse--sources.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/45_Persistent_Rank_Protocol_Command_Rings_and_Graph_Reuse/sources.md"
+    },
+    {
+      "destination": "S46-Scheduler-Continuous-Batching-Backpressure-and-Concurrency.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/46_Scheduler_Continuous_Batching_Backpressure_and_Concurrency/README.md"
+    },
+    {
+      "destination": "S46-Scheduler-Continuous-Batching-Backpressure-and-Concurrency--design-implications.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/46_Scheduler_Continuous_Batching_Backpressure_and_Concurrency/design_implications.md"
+    },
+    {
+      "destination": "S46-Scheduler-Continuous-Batching-Backpressure-and-Concurrency--facts-and-constraints.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/46_Scheduler_Continuous_Batching_Backpressure_and_Concurrency/facts_and_constraints.md"
+    },
+    {
+      "destination": "S46-Scheduler-Continuous-Batching-Backpressure-and-Concurrency--open-questions.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/46_Scheduler_Continuous_Batching_Backpressure_and_Concurrency/open_questions.md"
+    },
+    {
+      "destination": "S46-Scheduler-Continuous-Batching-Backpressure-and-Concurrency--procedures-and-checks.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/46_Scheduler_Continuous_Batching_Backpressure_and_Concurrency/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/07_Distributed_Runtime/46_Scheduler_Continuous_Batching_Backpressure_and_Concurrency/section.yaml",
+      "kind": "asset",
+      "source": "07_Distributed_Runtime/46_Scheduler_Continuous_Batching_Backpressure_and_Concurrency/section.yaml"
+    },
+    {
+      "destination": "S46-Scheduler-Continuous-Batching-Backpressure-and-Concurrency--sources.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/46_Scheduler_Continuous_Batching_Backpressure_and_Concurrency/sources.md"
+    },
+    {
+      "destination": "S47-Topology-Planner-Autotuner-and-HIP-versus-Vulkan-Selection.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/47_Topology_Planner_Autotuner_and_HIP_versus_Vulkan_Selection/README.md"
+    },
+    {
+      "destination": "S47-Topology-Planner-Autotuner-and-HIP-versus-Vulkan-Selection--design-implications.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/47_Topology_Planner_Autotuner_and_HIP_versus_Vulkan_Selection/design_implications.md"
+    },
+    {
+      "destination": "S47-Topology-Planner-Autotuner-and-HIP-versus-Vulkan-Selection--facts-and-constraints.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/47_Topology_Planner_Autotuner_and_HIP_versus_Vulkan_Selection/facts_and_constraints.md"
+    },
+    {
+      "destination": "S47-Topology-Planner-Autotuner-and-HIP-versus-Vulkan-Selection--open-questions.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/47_Topology_Planner_Autotuner_and_HIP_versus_Vulkan_Selection/open_questions.md"
+    },
+    {
+      "destination": "S47-Topology-Planner-Autotuner-and-HIP-versus-Vulkan-Selection--procedures-and-checks.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/47_Topology_Planner_Autotuner_and_HIP_versus_Vulkan_Selection/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/07_Distributed_Runtime/47_Topology_Planner_Autotuner_and_HIP_versus_Vulkan_Selection/section.yaml",
+      "kind": "asset",
+      "source": "07_Distributed_Runtime/47_Topology_Planner_Autotuner_and_HIP_versus_Vulkan_Selection/section.yaml"
+    },
+    {
+      "destination": "S47-Topology-Planner-Autotuner-and-HIP-versus-Vulkan-Selection--sources.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/47_Topology_Planner_Autotuner_and_HIP_versus_Vulkan_Selection/sources.md"
+    },
+    {
+      "destination": "S48-Distributed-Correctness-Determinism-Fault-Recovery-and-Degraded-Mode.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/48_Distributed_Correctness_Determinism_Fault_Recovery_and_Degraded_Mode/README.md"
+    },
+    {
+      "destination": "S48-Distributed-Correctness-Determinism-Fault-Recovery-and-Degraded-Mode--design-implications.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/48_Distributed_Correctness_Determinism_Fault_Recovery_and_Degraded_Mode/design_implications.md"
+    },
+    {
+      "destination": "S48-Distributed-Correctness-Determinism-Fault-Recovery-and-Degraded-Mode--facts-and-constraints.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/48_Distributed_Correctness_Determinism_Fault_Recovery_and_Degraded_Mode/facts_and_constraints.md"
+    },
+    {
+      "destination": "S48-Distributed-Correctness-Determinism-Fault-Recovery-and-Degraded-Mode--open-questions.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/48_Distributed_Correctness_Determinism_Fault_Recovery_and_Degraded_Mode/open_questions.md"
+    },
+    {
+      "destination": "S48-Distributed-Correctness-Determinism-Fault-Recovery-and-Degraded-Mode--procedures-and-checks.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/48_Distributed_Correctness_Determinism_Fault_Recovery_and_Degraded_Mode/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/07_Distributed_Runtime/48_Distributed_Correctness_Determinism_Fault_Recovery_and_Degraded_Mode/section.yaml",
+      "kind": "asset",
+      "source": "07_Distributed_Runtime/48_Distributed_Correctness_Determinism_Fault_Recovery_and_Degraded_Mode/section.yaml"
+    },
+    {
+      "destination": "S48-Distributed-Correctness-Determinism-Fault-Recovery-and-Degraded-Mode--sources.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/48_Distributed_Correctness_Determinism_Fault_Recovery_and_Degraded_Mode/sources.md"
+    },
+    {
+      "destination": "C07-Distributed-Runtime.md",
+      "kind": "page",
+      "source": "07_Distributed_Runtime/README.md"
+    },
+    {
+      "destination": "S49-Fabric-Requirements-and-Transport-Abstraction.md",
+      "kind": "page",
+      "source": "08_Fabric_and_Transport/49_Fabric_Requirements_and_Transport_Abstraction/README.md"
+    },
+    {
+      "destination": "S49-Fabric-Requirements-and-Transport-Abstraction--design-implications.md",
+      "kind": "page",
+      "source": "08_Fabric_and_Transport/49_Fabric_Requirements_and_Transport_Abstraction/design_implications.md"
+    },
+    {
+      "destination": "S49-Fabric-Requirements-and-Transport-Abstraction--facts-and-constraints.md",
+      "kind": "page",
+      "source": "08_Fabric_and_Transport/49_Fabric_Requirements_and_Transport_Abstraction/facts_and_constraints.md"
+    },
+    {
+      "destination": "S49-Fabric-Requirements-and-Transport-Abstraction--open-questions.md",
+      "kind": "page",
+      "source": "08_Fabric_and_Transport/49_Fabric_Requirements_and_Transport_Abstraction/open_questions.md"
+    },
+    {
+      "destination": "S49-Fabric-Requirements-and-Transport-Abstraction--procedures-and-checks.md",
+      "kind": "page",
+      "source": "08_Fabric_and_Transport/49_Fabric_Requirements_and_Transport_Abstraction/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/08_Fabric_and_Transport/49_Fabric_Requirements_and_Transport_Abstraction/section.yaml",
+      "kind": "asset",
+      "source": "08_Fabric_and_Transport/49_Fabric_Requirements_and_Transport_Abstraction/section.yaml"
+    },
+    {
+      "destination": "S49-Fabric-Requirements-and-Transport-Abstraction--sources.md",
+      "kind": "page",
+      "source": "08_Fabric_and_Transport/49_Fabric_Requirements_and_Transport_Abstraction/sources.md"
+    },
+    {
+      "destination": "S50-USB4STREAM-and-thunderbolt-net-Implementation-Options.md",
+      "kind": "page",
+      "source": "08_Fabric_and_Transport/50_USB4STREAM_and_thunderbolt_net_Implementation_Options/README.md"
+    },
+    {
+      "destination": "S50-USB4STREAM-and-thunderbolt-net-Implementation-Options--design-implications.md",
+      "kind": "page",
+      "source": "08_Fabric_and_Transport/50_USB4STREAM_and_thunderbolt_net_Implementation_Options/design_implications.md"
+    },
+    {
+      "destination": "S50-USB4STREAM-and-thunderbolt-net-Implementation-Options--facts-and-constraints.md",
+      "kind": "page",
+      "source": "08_Fabric_and_Transport/50_USB4STREAM_and_thunderbolt_net_Implementation_Options/facts_and_constraints.md"
+    },
+    {
+      "destination": "S50-USB4STREAM-and-thunderbolt-net-Implementation-Options--open-questions.md",
+      "kind": "page",
+      "source": "08_Fabric_and_Transport/50_USB4STREAM_and_thunderbolt_net_Implementation_Options/open_questions.md"
+    },
+    {
+      "destination": "S50-USB4STREAM-and-thunderbolt-net-Implementation-Options--procedures-and-checks.md",
+      "kind": "page",
+      "source": "08_Fabric_and_Transport/50_USB4STREAM_and_thunderbolt_net_Implementation_Options/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/08_Fabric_and_Transport/50_USB4STREAM_and_thunderbolt_net_Implementation_Options/section.yaml",
+      "kind": "asset",
+      "source": "08_Fabric_and_Transport/50_USB4STREAM_and_thunderbolt_net_Implementation_Options/section.yaml"
+    },
+    {
+      "destination": "S50-USB4STREAM-and-thunderbolt-net-Implementation-Options--sources.md",
+      "kind": "page",
+      "source": "08_Fabric_and_Transport/50_USB4STREAM_and_thunderbolt_net_Implementation_Options/sources.md"
+    },
+    {
+      "destination": "S51-Existing-ggml-RPC-and-ROCmFPX-RDMA-Transport-Audit.md",
+      "kind": "page",
+      "source": "08_Fabric_and_Transport/51_Existing_ggml_RPC_and_ROCmFPX_RDMA_Transport_Audit/README.md"
+    },
+    {
+      "destination": "S51-Existing-ggml-RPC-and-ROCmFPX-RDMA-Transport-Audit--design-implications.md",
+      "kind": "page",
+      "source": "08_Fabric_and_Transport/51_Existing_ggml_RPC_and_ROCmFPX_RDMA_Transport_Audit/design_implications.md"
+    },
+    {
+      "destination": "S51-Existing-ggml-RPC-and-ROCmFPX-RDMA-Transport-Audit--facts-and-constraints.md",
+      "kind": "page",
+      "source": "08_Fabric_and_Transport/51_Existing_ggml_RPC_and_ROCmFPX_RDMA_Transport_Audit/facts_and_constraints.md"
+    },
+    {
+      "destination": "S51-Existing-ggml-RPC-and-ROCmFPX-RDMA-Transport-Audit--open-questions.md",
+      "kind": "page",
+      "source": "08_Fabric_and_Transport/51_Existing_ggml_RPC_and_ROCmFPX_RDMA_Transport_Audit/open_questions.md"
+    },
+    {
+      "destination": "S51-Existing-ggml-RPC-and-ROCmFPX-RDMA-Transport-Audit--procedures-and-checks.md",
+      "kind": "page",
+      "source": "08_Fabric_and_Transport/51_Existing_ggml_RPC_and_ROCmFPX_RDMA_Transport_Audit/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/08_Fabric_and_Transport/51_Existing_ggml_RPC_and_ROCmFPX_RDMA_Transport_Audit/section.yaml",
+      "kind": "asset",
+      "source": "08_Fabric_and_Transport/51_Existing_ggml_RPC_and_ROCmFPX_RDMA_Transport_Audit/section.yaml"
+    },
+    {
+      "destination": "S51-Existing-ggml-RPC-and-ROCmFPX-RDMA-Transport-Audit--sources.md",
+      "kind": "page",
+      "source": "08_Fabric_and_Transport/51_Existing_ggml_RPC_and_ROCmFPX_RDMA_Transport_Audit/sources.md"
+    },
+    {
+      "destination": "S52-Dual-Link-Multipath-Striping-Alternation-Hedging-and-Failover.md",
+      "kind": "page",
+      "source": "08_Fabric_and_Transport/52_Dual_Link_Multipath_Striping_Alternation_Hedging_and_Failover/README.md"
+    },
+    {
+      "destination": "S52-Dual-Link-Multipath-Striping-Alternation-Hedging-and-Failover--design-implications.md",
+      "kind": "page",
+      "source": "08_Fabric_and_Transport/52_Dual_Link_Multipath_Striping_Alternation_Hedging_and_Failover/design_implications.md"
+    },
+    {
+      "destination": "S52-Dual-Link-Multipath-Striping-Alternation-Hedging-and-Failover--facts-and-constraints.md",
+      "kind": "page",
+      "source": "08_Fabric_and_Transport/52_Dual_Link_Multipath_Striping_Alternation_Hedging_and_Failover/facts_and_constraints.md"
+    },
+    {
+      "destination": "S52-Dual-Link-Multipath-Striping-Alternation-Hedging-and-Failover--open-questions.md",
+      "kind": "page",
+      "source": "08_Fabric_and_Transport/52_Dual_Link_Multipath_Striping_Alternation_Hedging_and_Failover/open_questions.md"
+    },
+    {
+      "destination": "S52-Dual-Link-Multipath-Striping-Alternation-Hedging-and-Failover--procedures-and-checks.md",
+      "kind": "page",
+      "source": "08_Fabric_and_Transport/52_Dual_Link_Multipath_Striping_Alternation_Hedging_and_Failover/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/08_Fabric_and_Transport/52_Dual_Link_Multipath_Striping_Alternation_Hedging_and_Failover/section.yaml",
+      "kind": "asset",
+      "source": "08_Fabric_and_Transport/52_Dual_Link_Multipath_Striping_Alternation_Hedging_and_Failover/section.yaml"
+    },
+    {
+      "destination": "S52-Dual-Link-Multipath-Striping-Alternation-Hedging-and-Failover--sources.md",
+      "kind": "page",
+      "source": "08_Fabric_and_Transport/52_Dual_Link_Multipath_Striping_Alternation_Hedging_and_Failover/sources.md"
+    },
+    {
+      "destination": "S53-Message-Framing-Credits-Flow-Control-Integrity-and-Security.md",
+      "kind": "page",
+      "source": "08_Fabric_and_Transport/53_Message_Framing_Credits_Flow_Control_Integrity_and_Security/README.md"
+    },
+    {
+      "destination": "S53-Message-Framing-Credits-Flow-Control-Integrity-and-Security--design-implications.md",
+      "kind": "page",
+      "source": "08_Fabric_and_Transport/53_Message_Framing_Credits_Flow_Control_Integrity_and_Security/design_implications.md"
+    },
+    {
+      "destination": "S53-Message-Framing-Credits-Flow-Control-Integrity-and-Security--facts-and-constraints.md",
+      "kind": "page",
+      "source": "08_Fabric_and_Transport/53_Message_Framing_Credits_Flow_Control_Integrity_and_Security/facts_and_constraints.md"
+    },
+    {
+      "destination": "S53-Message-Framing-Credits-Flow-Control-Integrity-and-Security--open-questions.md",
+      "kind": "page",
+      "source": "08_Fabric_and_Transport/53_Message_Framing_Credits_Flow_Control_Integrity_and_Security/open_questions.md"
+    },
+    {
+      "destination": "S53-Message-Framing-Credits-Flow-Control-Integrity-and-Security--procedures-and-checks.md",
+      "kind": "page",
+      "source": "08_Fabric_and_Transport/53_Message_Framing_Credits_Flow_Control_Integrity_and_Security/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/08_Fabric_and_Transport/53_Message_Framing_Credits_Flow_Control_Integrity_and_Security/section.yaml",
+      "kind": "asset",
+      "source": "08_Fabric_and_Transport/53_Message_Framing_Credits_Flow_Control_Integrity_and_Security/section.yaml"
+    },
+    {
+      "destination": "S53-Message-Framing-Credits-Flow-Control-Integrity-and-Security--sources.md",
+      "kind": "page",
+      "source": "08_Fabric_and_Transport/53_Message_Framing_Credits_Flow_Control_Integrity_and_Security/sources.md"
+    },
+    {
+      "destination": "S54-GPU-Visible-Buffers-Coherence-Copies-and-Zero-Copy-Options.md",
+      "kind": "page",
+      "source": "08_Fabric_and_Transport/54_GPU_Visible_Buffers_Coherence_Copies_and_Zero_Copy_Options/README.md"
+    },
+    {
+      "destination": "S54-GPU-Visible-Buffers-Coherence-Copies-and-Zero-Copy-Options--design-implications.md",
+      "kind": "page",
+      "source": "08_Fabric_and_Transport/54_GPU_Visible_Buffers_Coherence_Copies_and_Zero_Copy_Options/design_implications.md"
+    },
+    {
+      "destination": "S54-GPU-Visible-Buffers-Coherence-Copies-and-Zero-Copy-Options--facts-and-constraints.md",
+      "kind": "page",
+      "source": "08_Fabric_and_Transport/54_GPU_Visible_Buffers_Coherence_Copies_and_Zero_Copy_Options/facts_and_constraints.md"
+    },
+    {
+      "destination": "S54-GPU-Visible-Buffers-Coherence-Copies-and-Zero-Copy-Options--open-questions.md",
+      "kind": "page",
+      "source": "08_Fabric_and_Transport/54_GPU_Visible_Buffers_Coherence_Copies_and_Zero_Copy_Options/open_questions.md"
+    },
+    {
+      "destination": "S54-GPU-Visible-Buffers-Coherence-Copies-and-Zero-Copy-Options--procedures-and-checks.md",
+      "kind": "page",
+      "source": "08_Fabric_and_Transport/54_GPU_Visible_Buffers_Coherence_Copies_and_Zero_Copy_Options/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/08_Fabric_and_Transport/54_GPU_Visible_Buffers_Coherence_Copies_and_Zero_Copy_Options/section.yaml",
+      "kind": "asset",
+      "source": "08_Fabric_and_Transport/54_GPU_Visible_Buffers_Coherence_Copies_and_Zero_Copy_Options/section.yaml"
+    },
+    {
+      "destination": "S54-GPU-Visible-Buffers-Coherence-Copies-and-Zero-Copy-Options--sources.md",
+      "kind": "page",
+      "source": "08_Fabric_and_Transport/54_GPU_Visible_Buffers_Coherence_Copies_and_Zero_Copy_Options/sources.md"
+    },
+    {
+      "destination": "S55-Fabric-Microbenchmark-Plan-and-USB4-Kernel-Patch-Decision.md",
+      "kind": "page",
+      "source": "08_Fabric_and_Transport/55_Fabric_Microbenchmark_Plan_and_USB4_Kernel_Patch_Decision/README.md"
+    },
+    {
+      "destination": "S55-Fabric-Microbenchmark-Plan-and-USB4-Kernel-Patch-Decision--design-implications.md",
+      "kind": "page",
+      "source": "08_Fabric_and_Transport/55_Fabric_Microbenchmark_Plan_and_USB4_Kernel_Patch_Decision/design_implications.md"
+    },
+    {
+      "destination": "S55-Fabric-Microbenchmark-Plan-and-USB4-Kernel-Patch-Decision--facts-and-constraints.md",
+      "kind": "page",
+      "source": "08_Fabric_and_Transport/55_Fabric_Microbenchmark_Plan_and_USB4_Kernel_Patch_Decision/facts_and_constraints.md"
+    },
+    {
+      "destination": "S55-Fabric-Microbenchmark-Plan-and-USB4-Kernel-Patch-Decision--open-questions.md",
+      "kind": "page",
+      "source": "08_Fabric_and_Transport/55_Fabric_Microbenchmark_Plan_and_USB4_Kernel_Patch_Decision/open_questions.md"
+    },
+    {
+      "destination": "S55-Fabric-Microbenchmark-Plan-and-USB4-Kernel-Patch-Decision--procedures-and-checks.md",
+      "kind": "page",
+      "source": "08_Fabric_and_Transport/55_Fabric_Microbenchmark_Plan_and_USB4_Kernel_Patch_Decision/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/08_Fabric_and_Transport/55_Fabric_Microbenchmark_Plan_and_USB4_Kernel_Patch_Decision/section.yaml",
+      "kind": "asset",
+      "source": "08_Fabric_and_Transport/55_Fabric_Microbenchmark_Plan_and_USB4_Kernel_Patch_Decision/section.yaml"
+    },
+    {
+      "destination": "S55-Fabric-Microbenchmark-Plan-and-USB4-Kernel-Patch-Decision--sources.md",
+      "kind": "page",
+      "source": "08_Fabric_and_Transport/55_Fabric_Microbenchmark_Plan_and_USB4_Kernel_Patch_Decision/sources.md"
+    },
+    {
+      "destination": "C08-Fabric-and-Transport.md",
+      "kind": "page",
+      "source": "08_Fabric_and_Transport/README.md"
+    },
+    {
+      "destination": "S56-CachyLLama-Cache-Semantics-and-Porting-Map.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/56_CachyLLama_Cache_Semantics_and_Porting_Map/README.md"
+    },
+    {
+      "destination": "S56-CachyLLama-Cache-Semantics-and-Porting-Map--design-implications.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/56_CachyLLama_Cache_Semantics_and_Porting_Map/design_implications.md"
+    },
+    {
+      "destination": "S56-CachyLLama-Cache-Semantics-and-Porting-Map--facts-and-constraints.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/56_CachyLLama_Cache_Semantics_and_Porting_Map/facts_and_constraints.md"
+    },
+    {
+      "destination": "S56-CachyLLama-Cache-Semantics-and-Porting-Map--open-questions.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/56_CachyLLama_Cache_Semantics_and_Porting_Map/open_questions.md"
+    },
+    {
+      "destination": "S56-CachyLLama-Cache-Semantics-and-Porting-Map--procedures-and-checks.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/56_CachyLLama_Cache_Semantics_and_Porting_Map/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/09_HaloKV_Persistent_Cache/56_CachyLLama_Cache_Semantics_and_Porting_Map/section.yaml",
+      "kind": "asset",
+      "source": "09_HaloKV_Persistent_Cache/56_CachyLLama_Cache_Semantics_and_Porting_Map/section.yaml"
+    },
+    {
+      "destination": "S56-CachyLLama-Cache-Semantics-and-Porting-Map--sources.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/56_CachyLLama_Cache_Semantics_and_Porting_Map/sources.md"
+    },
+    {
+      "destination": "S57-Compatibility-Fingerprints-Versioning-and-Topology-Identity.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/57_Compatibility_Fingerprints_Versioning_and_Topology_Identity/README.md"
+    },
+    {
+      "destination": "S57-Compatibility-Fingerprints-Versioning-and-Topology-Identity--design-implications.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/57_Compatibility_Fingerprints_Versioning_and_Topology_Identity/design_implications.md"
+    },
+    {
+      "destination": "S57-Compatibility-Fingerprints-Versioning-and-Topology-Identity--facts-and-constraints.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/57_Compatibility_Fingerprints_Versioning_and_Topology_Identity/facts_and_constraints.md"
+    },
+    {
+      "destination": "S57-Compatibility-Fingerprints-Versioning-and-Topology-Identity--open-questions.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/57_Compatibility_Fingerprints_Versioning_and_Topology_Identity/open_questions.md"
+    },
+    {
+      "destination": "S57-Compatibility-Fingerprints-Versioning-and-Topology-Identity--procedures-and-checks.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/57_Compatibility_Fingerprints_Versioning_and_Topology_Identity/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/09_HaloKV_Persistent_Cache/57_Compatibility_Fingerprints_Versioning_and_Topology_Identity/section.yaml",
+      "kind": "asset",
+      "source": "09_HaloKV_Persistent_Cache/57_Compatibility_Fingerprints_Versioning_and_Topology_Identity/section.yaml"
+    },
+    {
+      "destination": "S57-Compatibility-Fingerprints-Versioning-and-Topology-Identity--sources.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/57_Compatibility_Fingerprints_Versioning_and_Topology_Identity/sources.md"
+    },
+    {
+      "destination": "S58-Rank-Local-Ownership-and-Distributed-Restore-Coordination.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/58_Rank_Local_Ownership_and_Distributed_Restore_Coordination/README.md"
+    },
+    {
+      "destination": "S58-Rank-Local-Ownership-and-Distributed-Restore-Coordination--design-implications.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/58_Rank_Local_Ownership_and_Distributed_Restore_Coordination/design_implications.md"
+    },
+    {
+      "destination": "S58-Rank-Local-Ownership-and-Distributed-Restore-Coordination--facts-and-constraints.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/58_Rank_Local_Ownership_and_Distributed_Restore_Coordination/facts_and_constraints.md"
+    },
+    {
+      "destination": "S58-Rank-Local-Ownership-and-Distributed-Restore-Coordination--open-questions.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/58_Rank_Local_Ownership_and_Distributed_Restore_Coordination/open_questions.md"
+    },
+    {
+      "destination": "S58-Rank-Local-Ownership-and-Distributed-Restore-Coordination--procedures-and-checks.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/58_Rank_Local_Ownership_and_Distributed_Restore_Coordination/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/09_HaloKV_Persistent_Cache/58_Rank_Local_Ownership_and_Distributed_Restore_Coordination/section.yaml",
+      "kind": "asset",
+      "source": "09_HaloKV_Persistent_Cache/58_Rank_Local_Ownership_and_Distributed_Restore_Coordination/section.yaml"
+    },
+    {
+      "destination": "S58-Rank-Local-Ownership-and-Distributed-Restore-Coordination--sources.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/58_Rank_Local_Ownership_and_Distributed_Restore_Coordination/sources.md"
+    },
+    {
+      "destination": "S59-Immutable-Pages-Segment-Files-Indexes-and-Prefix-DAG.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/59_Immutable_Pages_Segment_Files_Indexes_and_Prefix_DAG/README.md"
+    },
+    {
+      "destination": "S59-Immutable-Pages-Segment-Files-Indexes-and-Prefix-DAG--design-implications.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/59_Immutable_Pages_Segment_Files_Indexes_and_Prefix_DAG/design_implications.md"
+    },
+    {
+      "destination": "S59-Immutable-Pages-Segment-Files-Indexes-and-Prefix-DAG--facts-and-constraints.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/59_Immutable_Pages_Segment_Files_Indexes_and_Prefix_DAG/facts_and_constraints.md"
+    },
+    {
+      "destination": "S59-Immutable-Pages-Segment-Files-Indexes-and-Prefix-DAG--open-questions.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/59_Immutable_Pages_Segment_Files_Indexes_and_Prefix_DAG/open_questions.md"
+    },
+    {
+      "destination": "S59-Immutable-Pages-Segment-Files-Indexes-and-Prefix-DAG--procedures-and-checks.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/59_Immutable_Pages_Segment_Files_Indexes_and_Prefix_DAG/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/09_HaloKV_Persistent_Cache/59_Immutable_Pages_Segment_Files_Indexes_and_Prefix_DAG/section.yaml",
+      "kind": "asset",
+      "source": "09_HaloKV_Persistent_Cache/59_Immutable_Pages_Segment_Files_Indexes_and_Prefix_DAG/section.yaml"
+    },
+    {
+      "destination": "S59-Immutable-Pages-Segment-Files-Indexes-and-Prefix-DAG--sources.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/59_Immutable_Pages_Segment_Files_Indexes_and_Prefix_DAG/sources.md"
+    },
+    {
+      "destination": "S60-System-Prompt-Sharing-Deduplication-Copy-on-Write-and-Continuations.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/60_System_Prompt_Sharing_Deduplication_Copy_on_Write_and_Continuations/README.md"
+    },
+    {
+      "destination": "S60-System-Prompt-Sharing-Deduplication-Copy-on-Write-and-Continuations--design-implications.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/60_System_Prompt_Sharing_Deduplication_Copy_on_Write_and_Continuations/design_implications.md"
+    },
+    {
+      "destination": "S60-System-Prompt-Sharing-Deduplication-Copy-on-Write-and-Continuations--facts-and-constraints.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/60_System_Prompt_Sharing_Deduplication_Copy_on_Write_and_Continuations/facts_and_constraints.md"
+    },
+    {
+      "destination": "S60-System-Prompt-Sharing-Deduplication-Copy-on-Write-and-Continuations--open-questions.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/60_System_Prompt_Sharing_Deduplication_Copy_on_Write_and_Continuations/open_questions.md"
+    },
+    {
+      "destination": "S60-System-Prompt-Sharing-Deduplication-Copy-on-Write-and-Continuations--procedures-and-checks.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/60_System_Prompt_Sharing_Deduplication_Copy_on_Write_and_Continuations/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/09_HaloKV_Persistent_Cache/60_System_Prompt_Sharing_Deduplication_Copy_on_Write_and_Continuations/section.yaml",
+      "kind": "asset",
+      "source": "09_HaloKV_Persistent_Cache/60_System_Prompt_Sharing_Deduplication_Copy_on_Write_and_Continuations/section.yaml"
+    },
+    {
+      "destination": "S60-System-Prompt-Sharing-Deduplication-Copy-on-Write-and-Continuations--sources.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/60_System_Prompt_Sharing_Deduplication_Copy_on_Write_and_Continuations/sources.md"
+    },
+    {
+      "destination": "S61-Attention-KV-Recurrent-MTP-Speculative-Sampling-and-RNG-State.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/61_Attention_KV_Recurrent_MTP_Speculative_Sampling_and_RNG_State/README.md"
+    },
+    {
+      "destination": "S61-Attention-KV-Recurrent-MTP-Speculative-Sampling-and-RNG-State--design-implications.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/61_Attention_KV_Recurrent_MTP_Speculative_Sampling_and_RNG_State/design_implications.md"
+    },
+    {
+      "destination": "S61-Attention-KV-Recurrent-MTP-Speculative-Sampling-and-RNG-State--facts-and-constraints.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/61_Attention_KV_Recurrent_MTP_Speculative_Sampling_and_RNG_State/facts_and_constraints.md"
+    },
+    {
+      "destination": "S61-Attention-KV-Recurrent-MTP-Speculative-Sampling-and-RNG-State--open-questions.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/61_Attention_KV_Recurrent_MTP_Speculative_Sampling_and_RNG_State/open_questions.md"
+    },
+    {
+      "destination": "S61-Attention-KV-Recurrent-MTP-Speculative-Sampling-and-RNG-State--procedures-and-checks.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/61_Attention_KV_Recurrent_MTP_Speculative_Sampling_and_RNG_State/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/09_HaloKV_Persistent_Cache/61_Attention_KV_Recurrent_MTP_Speculative_Sampling_and_RNG_State/section.yaml",
+      "kind": "asset",
+      "source": "09_HaloKV_Persistent_Cache/61_Attention_KV_Recurrent_MTP_Speculative_Sampling_and_RNG_State/section.yaml"
+    },
+    {
+      "destination": "S61-Attention-KV-Recurrent-MTP-Speculative-Sampling-and-RNG-State--sources.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/61_Attention_KV_Recurrent_MTP_Speculative_Sampling_and_RNG_State/sources.md"
+    },
+    {
+      "destination": "S62-Async-I-O-io-uring-Prefetch-DRAM-Tiers-and-GPU-Mapping.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/62_Async_I_O_io_uring_Prefetch_DRAM_Tiers_and_GPU_Mapping/README.md"
+    },
+    {
+      "destination": "S62-Async-I-O-io-uring-Prefetch-DRAM-Tiers-and-GPU-Mapping--design-implications.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/62_Async_I_O_io_uring_Prefetch_DRAM_Tiers_and_GPU_Mapping/design_implications.md"
+    },
+    {
+      "destination": "S62-Async-I-O-io-uring-Prefetch-DRAM-Tiers-and-GPU-Mapping--facts-and-constraints.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/62_Async_I_O_io_uring_Prefetch_DRAM_Tiers_and_GPU_Mapping/facts_and_constraints.md"
+    },
+    {
+      "destination": "S62-Async-I-O-io-uring-Prefetch-DRAM-Tiers-and-GPU-Mapping--open-questions.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/62_Async_I_O_io_uring_Prefetch_DRAM_Tiers_and_GPU_Mapping/open_questions.md"
+    },
+    {
+      "destination": "S62-Async-I-O-io-uring-Prefetch-DRAM-Tiers-and-GPU-Mapping--procedures-and-checks.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/62_Async_I_O_io_uring_Prefetch_DRAM_Tiers_and_GPU_Mapping/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/09_HaloKV_Persistent_Cache/62_Async_I_O_io_uring_Prefetch_DRAM_Tiers_and_GPU_Mapping/section.yaml",
+      "kind": "asset",
+      "source": "09_HaloKV_Persistent_Cache/62_Async_I_O_io_uring_Prefetch_DRAM_Tiers_and_GPU_Mapping/section.yaml"
+    },
+    {
+      "destination": "S62-Async-I-O-io-uring-Prefetch-DRAM-Tiers-and-GPU-Mapping--sources.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/62_Async_I_O_io_uring_Prefetch_DRAM_Tiers_and_GPU_Mapping/sources.md"
+    },
+    {
+      "destination": "S63-Durability-Modes-Atomic-Commit-Crash-Recovery-and-Corruption-Handling.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/63_Durability_Modes_Atomic_Commit_Crash_Recovery_and_Corruption_Handling/README.md"
+    },
+    {
+      "destination": "S63-Durability-Modes-Atomic-Commit-Crash-Recovery-and-Corruption-Handling--design-implications.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/63_Durability_Modes_Atomic_Commit_Crash_Recovery_and_Corruption_Handling/design_implications.md"
+    },
+    {
+      "destination": "S63-Durability-Modes-Atomic-Commit-Crash-Recovery-and-Corruption-Handling--facts-and-constraints.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/63_Durability_Modes_Atomic_Commit_Crash_Recovery_and_Corruption_Handling/facts_and_constraints.md"
+    },
+    {
+      "destination": "S63-Durability-Modes-Atomic-Commit-Crash-Recovery-and-Corruption-Handling--open-questions.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/63_Durability_Modes_Atomic_Commit_Crash_Recovery_and_Corruption_Handling/open_questions.md"
+    },
+    {
+      "destination": "S63-Durability-Modes-Atomic-Commit-Crash-Recovery-and-Corruption-Handling--procedures-and-checks.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/63_Durability_Modes_Atomic_Commit_Crash_Recovery_and_Corruption_Handling/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/09_HaloKV_Persistent_Cache/63_Durability_Modes_Atomic_Commit_Crash_Recovery_and_Corruption_Handling/section.yaml",
+      "kind": "asset",
+      "source": "09_HaloKV_Persistent_Cache/63_Durability_Modes_Atomic_Commit_Crash_Recovery_and_Corruption_Handling/section.yaml"
+    },
+    {
+      "destination": "S63-Durability-Modes-Atomic-Commit-Crash-Recovery-and-Corruption-Handling--sources.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/63_Durability_Modes_Atomic_Commit_Crash_Recovery_and_Corruption_Handling/sources.md"
+    },
+    {
+      "destination": "S64-Eviction-Garbage-Collection-Quotas-User-Isolation-and-Privacy.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/64_Eviction_Garbage_Collection_Quotas_User_Isolation_and_Privacy/README.md"
+    },
+    {
+      "destination": "S64-Eviction-Garbage-Collection-Quotas-User-Isolation-and-Privacy--design-implications.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/64_Eviction_Garbage_Collection_Quotas_User_Isolation_and_Privacy/design_implications.md"
+    },
+    {
+      "destination": "S64-Eviction-Garbage-Collection-Quotas-User-Isolation-and-Privacy--facts-and-constraints.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/64_Eviction_Garbage_Collection_Quotas_User_Isolation_and_Privacy/facts_and_constraints.md"
+    },
+    {
+      "destination": "S64-Eviction-Garbage-Collection-Quotas-User-Isolation-and-Privacy--open-questions.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/64_Eviction_Garbage_Collection_Quotas_User_Isolation_and_Privacy/open_questions.md"
+    },
+    {
+      "destination": "S64-Eviction-Garbage-Collection-Quotas-User-Isolation-and-Privacy--procedures-and-checks.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/64_Eviction_Garbage_Collection_Quotas_User_Isolation_and_Privacy/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/09_HaloKV_Persistent_Cache/64_Eviction_Garbage_Collection_Quotas_User_Isolation_and_Privacy/section.yaml",
+      "kind": "asset",
+      "source": "09_HaloKV_Persistent_Cache/64_Eviction_Garbage_Collection_Quotas_User_Isolation_and_Privacy/section.yaml"
+    },
+    {
+      "destination": "S64-Eviction-Garbage-Collection-Quotas-User-Isolation-and-Privacy--sources.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/64_Eviction_Garbage_Collection_Quotas_User_Isolation_and_Privacy/sources.md"
+    },
+    {
+      "destination": "S65-Cache-Inspection-Migration-Benchmarking-Write-Amplification-and-SSD-Endurance.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/65_Cache_Inspection_Migration_Benchmarking_Write_Amplification_and_SSD_Endurance/README.md"
+    },
+    {
+      "destination": "S65-Cache-Inspection-Migration-Benchmarking-Write-Amplification-and-SSD-Endurance--design-implications.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/65_Cache_Inspection_Migration_Benchmarking_Write_Amplification_and_SSD_Endurance/design_implications.md"
+    },
+    {
+      "destination": "S65-Cache-Inspection-Migration-Benchmarking-Write-Amplification-and-SSD-Endurance--facts-and-constraints.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/65_Cache_Inspection_Migration_Benchmarking_Write_Amplification_and_SSD_Endurance/facts_and_constraints.md"
+    },
+    {
+      "destination": "S65-Cache-Inspection-Migration-Benchmarking-Write-Amplification-and-SSD-Endurance--open-questions.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/65_Cache_Inspection_Migration_Benchmarking_Write_Amplification_and_SSD_Endurance/open_questions.md"
+    },
+    {
+      "destination": "S65-Cache-Inspection-Migration-Benchmarking-Write-Amplification-and-SSD-Endurance--procedures-and-checks.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/65_Cache_Inspection_Migration_Benchmarking_Write_Amplification_and_SSD_Endurance/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/09_HaloKV_Persistent_Cache/65_Cache_Inspection_Migration_Benchmarking_Write_Amplification_and_SSD_Endurance/section.yaml",
+      "kind": "asset",
+      "source": "09_HaloKV_Persistent_Cache/65_Cache_Inspection_Migration_Benchmarking_Write_Amplification_and_SSD_Endurance/section.yaml"
+    },
+    {
+      "destination": "S65-Cache-Inspection-Migration-Benchmarking-Write-Amplification-and-SSD-Endurance--sources.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/65_Cache_Inspection_Migration_Benchmarking_Write_Amplification_and_SSD_Endurance/sources.md"
+    },
+    {
+      "destination": "C09-HaloKV-Persistent-Cache.md",
+      "kind": "page",
+      "source": "09_HaloKV_Persistent_Cache/README.md"
+    },
+    {
+      "destination": "S66-OpenAI-Compatible-API-Server-Semantics-and-Error-Model.md",
+      "kind": "page",
+      "source": "10_Product_Server_and_Operations/66_OpenAI_Compatible_API_Server_Semantics_and_Error_Model/README.md"
+    },
+    {
+      "destination": "S66-OpenAI-Compatible-API-Server-Semantics-and-Error-Model--design-implications.md",
+      "kind": "page",
+      "source": "10_Product_Server_and_Operations/66_OpenAI_Compatible_API_Server_Semantics_and_Error_Model/design_implications.md"
+    },
+    {
+      "destination": "S66-OpenAI-Compatible-API-Server-Semantics-and-Error-Model--facts-and-constraints.md",
+      "kind": "page",
+      "source": "10_Product_Server_and_Operations/66_OpenAI_Compatible_API_Server_Semantics_and_Error_Model/facts_and_constraints.md"
+    },
+    {
+      "destination": "S66-OpenAI-Compatible-API-Server-Semantics-and-Error-Model--open-questions.md",
+      "kind": "page",
+      "source": "10_Product_Server_and_Operations/66_OpenAI_Compatible_API_Server_Semantics_and_Error_Model/open_questions.md"
+    },
+    {
+      "destination": "S66-OpenAI-Compatible-API-Server-Semantics-and-Error-Model--procedures-and-checks.md",
+      "kind": "page",
+      "source": "10_Product_Server_and_Operations/66_OpenAI_Compatible_API_Server_Semantics_and_Error_Model/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/10_Product_Server_and_Operations/66_OpenAI_Compatible_API_Server_Semantics_and_Error_Model/section.yaml",
+      "kind": "asset",
+      "source": "10_Product_Server_and_Operations/66_OpenAI_Compatible_API_Server_Semantics_and_Error_Model/section.yaml"
+    },
+    {
+      "destination": "S66-OpenAI-Compatible-API-Server-Semantics-and-Error-Model--sources.md",
+      "kind": "page",
+      "source": "10_Product_Server_and_Operations/66_OpenAI_Compatible_API_Server_Semantics_and_Error_Model/sources.md"
+    },
+    {
+      "destination": "S67-Configuration-Hardware-Profiles-Model-Manifests-and-Plan-Manifests.md",
+      "kind": "page",
+      "source": "10_Product_Server_and_Operations/67_Configuration_Hardware_Profiles_Model_Manifests_and_Plan_Manifests/README.md"
+    },
+    {
+      "destination": "S67-Configuration-Hardware-Profiles-Model-Manifests-and-Plan-Manifests--design-implications.md",
+      "kind": "page",
+      "source": "10_Product_Server_and_Operations/67_Configuration_Hardware_Profiles_Model_Manifests_and_Plan_Manifests/design_implications.md"
+    },
+    {
+      "destination": "S67-Configuration-Hardware-Profiles-Model-Manifests-and-Plan-Manifests--facts-and-constraints.md",
+      "kind": "page",
+      "source": "10_Product_Server_and_Operations/67_Configuration_Hardware_Profiles_Model_Manifests_and_Plan_Manifests/facts_and_constraints.md"
+    },
+    {
+      "destination": "S67-Configuration-Hardware-Profiles-Model-Manifests-and-Plan-Manifests--open-questions.md",
+      "kind": "page",
+      "source": "10_Product_Server_and_Operations/67_Configuration_Hardware_Profiles_Model_Manifests_and_Plan_Manifests/open_questions.md"
+    },
+    {
+      "destination": "S67-Configuration-Hardware-Profiles-Model-Manifests-and-Plan-Manifests--procedures-and-checks.md",
+      "kind": "page",
+      "source": "10_Product_Server_and_Operations/67_Configuration_Hardware_Profiles_Model_Manifests_and_Plan_Manifests/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/10_Product_Server_and_Operations/67_Configuration_Hardware_Profiles_Model_Manifests_and_Plan_Manifests/section.yaml",
+      "kind": "asset",
+      "source": "10_Product_Server_and_Operations/67_Configuration_Hardware_Profiles_Model_Manifests_and_Plan_Manifests/section.yaml"
+    },
+    {
+      "destination": "S67-Configuration-Hardware-Profiles-Model-Manifests-and-Plan-Manifests--sources.md",
+      "kind": "page",
+      "source": "10_Product_Server_and_Operations/67_Configuration_Hardware_Profiles_Model_Manifests_and_Plan_Manifests/sources.md"
+    },
+    {
+      "destination": "S68-Model-Lifecycle-Session-Lifecycle-Admission-Control-and-Routing.md",
+      "kind": "page",
+      "source": "10_Product_Server_and_Operations/68_Model_Lifecycle_Session_Lifecycle_Admission_Control_and_Routing/README.md"
+    },
+    {
+      "destination": "S68-Model-Lifecycle-Session-Lifecycle-Admission-Control-and-Routing--design-implications.md",
+      "kind": "page",
+      "source": "10_Product_Server_and_Operations/68_Model_Lifecycle_Session_Lifecycle_Admission_Control_and_Routing/design_implications.md"
+    },
+    {
+      "destination": "S68-Model-Lifecycle-Session-Lifecycle-Admission-Control-and-Routing--facts-and-constraints.md",
+      "kind": "page",
+      "source": "10_Product_Server_and_Operations/68_Model_Lifecycle_Session_Lifecycle_Admission_Control_and_Routing/facts_and_constraints.md"
+    },
+    {
+      "destination": "S68-Model-Lifecycle-Session-Lifecycle-Admission-Control-and-Routing--open-questions.md",
+      "kind": "page",
+      "source": "10_Product_Server_and_Operations/68_Model_Lifecycle_Session_Lifecycle_Admission_Control_and_Routing/open_questions.md"
+    },
+    {
+      "destination": "S68-Model-Lifecycle-Session-Lifecycle-Admission-Control-and-Routing--procedures-and-checks.md",
+      "kind": "page",
+      "source": "10_Product_Server_and_Operations/68_Model_Lifecycle_Session_Lifecycle_Admission_Control_and_Routing/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/10_Product_Server_and_Operations/68_Model_Lifecycle_Session_Lifecycle_Admission_Control_and_Routing/section.yaml",
+      "kind": "asset",
+      "source": "10_Product_Server_and_Operations/68_Model_Lifecycle_Session_Lifecycle_Admission_Control_and_Routing/section.yaml"
+    },
+    {
+      "destination": "S68-Model-Lifecycle-Session-Lifecycle-Admission-Control-and-Routing--sources.md",
+      "kind": "page",
+      "source": "10_Product_Server_and_Operations/68_Model_Lifecycle_Session_Lifecycle_Admission_Control_and_Routing/sources.md"
+    },
+    {
+      "destination": "S69-CLI-Admin-API-Diagnostics-Health-Metrics-Logs-and-Traces.md",
+      "kind": "page",
+      "source": "10_Product_Server_and_Operations/69_CLI_Admin_API_Diagnostics_Health_Metrics_Logs_and_Traces/README.md"
+    },
+    {
+      "destination": "S69-CLI-Admin-API-Diagnostics-Health-Metrics-Logs-and-Traces--design-implications.md",
+      "kind": "page",
+      "source": "10_Product_Server_and_Operations/69_CLI_Admin_API_Diagnostics_Health_Metrics_Logs_and_Traces/design_implications.md"
+    },
+    {
+      "destination": "S69-CLI-Admin-API-Diagnostics-Health-Metrics-Logs-and-Traces--facts-and-constraints.md",
+      "kind": "page",
+      "source": "10_Product_Server_and_Operations/69_CLI_Admin_API_Diagnostics_Health_Metrics_Logs_and_Traces/facts_and_constraints.md"
+    },
+    {
+      "destination": "S69-CLI-Admin-API-Diagnostics-Health-Metrics-Logs-and-Traces--open-questions.md",
+      "kind": "page",
+      "source": "10_Product_Server_and_Operations/69_CLI_Admin_API_Diagnostics_Health_Metrics_Logs_and_Traces/open_questions.md"
+    },
+    {
+      "destination": "S69-CLI-Admin-API-Diagnostics-Health-Metrics-Logs-and-Traces--procedures-and-checks.md",
+      "kind": "page",
+      "source": "10_Product_Server_and_Operations/69_CLI_Admin_API_Diagnostics_Health_Metrics_Logs_and_Traces/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/10_Product_Server_and_Operations/69_CLI_Admin_API_Diagnostics_Health_Metrics_Logs_and_Traces/section.yaml",
+      "kind": "asset",
+      "source": "10_Product_Server_and_Operations/69_CLI_Admin_API_Diagnostics_Health_Metrics_Logs_and_Traces/section.yaml"
+    },
+    {
+      "destination": "S69-CLI-Admin-API-Diagnostics-Health-Metrics-Logs-and-Traces--sources.md",
+      "kind": "page",
+      "source": "10_Product_Server_and_Operations/69_CLI_Admin_API_Diagnostics_Health_Metrics_Logs_and_Traces/sources.md"
+    },
+    {
+      "destination": "S70-Packaging-systemd-Containers-Deployment-and-Cold-Boot-Procedure.md",
+      "kind": "page",
+      "source": "10_Product_Server_and_Operations/70_Packaging_systemd_Containers_Deployment_and_Cold_Boot_Procedure/README.md"
+    },
+    {
+      "destination": "S70-Packaging-systemd-Containers-Deployment-and-Cold-Boot-Procedure--design-implications.md",
+      "kind": "page",
+      "source": "10_Product_Server_and_Operations/70_Packaging_systemd_Containers_Deployment_and_Cold_Boot_Procedure/design_implications.md"
+    },
+    {
+      "destination": "S70-Packaging-systemd-Containers-Deployment-and-Cold-Boot-Procedure--facts-and-constraints.md",
+      "kind": "page",
+      "source": "10_Product_Server_and_Operations/70_Packaging_systemd_Containers_Deployment_and_Cold_Boot_Procedure/facts_and_constraints.md"
+    },
+    {
+      "destination": "S70-Packaging-systemd-Containers-Deployment-and-Cold-Boot-Procedure--open-questions.md",
+      "kind": "page",
+      "source": "10_Product_Server_and_Operations/70_Packaging_systemd_Containers_Deployment_and_Cold_Boot_Procedure/open_questions.md"
+    },
+    {
+      "destination": "S70-Packaging-systemd-Containers-Deployment-and-Cold-Boot-Procedure--procedures-and-checks.md",
+      "kind": "page",
+      "source": "10_Product_Server_and_Operations/70_Packaging_systemd_Containers_Deployment_and_Cold_Boot_Procedure/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/10_Product_Server_and_Operations/70_Packaging_systemd_Containers_Deployment_and_Cold_Boot_Procedure/section.yaml",
+      "kind": "asset",
+      "source": "10_Product_Server_and_Operations/70_Packaging_systemd_Containers_Deployment_and_Cold_Boot_Procedure/section.yaml"
+    },
+    {
+      "destination": "S70-Packaging-systemd-Containers-Deployment-and-Cold-Boot-Procedure--sources.md",
+      "kind": "page",
+      "source": "10_Product_Server_and_Operations/70_Packaging_systemd_Containers_Deployment_and_Cold_Boot_Procedure/sources.md"
+    },
+    {
+      "destination": "S71-Security-Trust-Boundaries-Permissions-Local-Network-and-Secrets.md",
+      "kind": "page",
+      "source": "10_Product_Server_and_Operations/71_Security_Trust_Boundaries_Permissions_Local_Network_and_Secrets/README.md"
+    },
+    {
+      "destination": "S71-Security-Trust-Boundaries-Permissions-Local-Network-and-Secrets--design-implications.md",
+      "kind": "page",
+      "source": "10_Product_Server_and_Operations/71_Security_Trust_Boundaries_Permissions_Local_Network_and_Secrets/design_implications.md"
+    },
+    {
+      "destination": "S71-Security-Trust-Boundaries-Permissions-Local-Network-and-Secrets--facts-and-constraints.md",
+      "kind": "page",
+      "source": "10_Product_Server_and_Operations/71_Security_Trust_Boundaries_Permissions_Local_Network_and_Secrets/facts_and_constraints.md"
+    },
+    {
+      "destination": "S71-Security-Trust-Boundaries-Permissions-Local-Network-and-Secrets--open-questions.md",
+      "kind": "page",
+      "source": "10_Product_Server_and_Operations/71_Security_Trust_Boundaries_Permissions_Local_Network_and_Secrets/open_questions.md"
+    },
+    {
+      "destination": "S71-Security-Trust-Boundaries-Permissions-Local-Network-and-Secrets--procedures-and-checks.md",
+      "kind": "page",
+      "source": "10_Product_Server_and_Operations/71_Security_Trust_Boundaries_Permissions_Local_Network_and_Secrets/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/10_Product_Server_and_Operations/71_Security_Trust_Boundaries_Permissions_Local_Network_and_Secrets/section.yaml",
+      "kind": "asset",
+      "source": "10_Product_Server_and_Operations/71_Security_Trust_Boundaries_Permissions_Local_Network_and_Secrets/section.yaml"
+    },
+    {
+      "destination": "S71-Security-Trust-Boundaries-Permissions-Local-Network-and-Secrets--sources.md",
+      "kind": "page",
+      "source": "10_Product_Server_and_Operations/71_Security_Trust_Boundaries_Permissions_Local_Network_and_Secrets/sources.md"
+    },
+    {
+      "destination": "S72-Upgrades-Rollbacks-Protocol-and-Cache-Migration-Backup-and-Runbooks.md",
+      "kind": "page",
+      "source": "10_Product_Server_and_Operations/72_Upgrades_Rollbacks_Protocol_and_Cache_Migration_Backup_and_Runbooks/README.md"
+    },
+    {
+      "destination": "S72-Upgrades-Rollbacks-Protocol-and-Cache-Migration-Backup-and-Runbooks--design-implications.md",
+      "kind": "page",
+      "source": "10_Product_Server_and_Operations/72_Upgrades_Rollbacks_Protocol_and_Cache_Migration_Backup_and_Runbooks/design_implications.md"
+    },
+    {
+      "destination": "S72-Upgrades-Rollbacks-Protocol-and-Cache-Migration-Backup-and-Runbooks--facts-and-constraints.md",
+      "kind": "page",
+      "source": "10_Product_Server_and_Operations/72_Upgrades_Rollbacks_Protocol_and_Cache_Migration_Backup_and_Runbooks/facts_and_constraints.md"
+    },
+    {
+      "destination": "S72-Upgrades-Rollbacks-Protocol-and-Cache-Migration-Backup-and-Runbooks--open-questions.md",
+      "kind": "page",
+      "source": "10_Product_Server_and_Operations/72_Upgrades_Rollbacks_Protocol_and_Cache_Migration_Backup_and_Runbooks/open_questions.md"
+    },
+    {
+      "destination": "S72-Upgrades-Rollbacks-Protocol-and-Cache-Migration-Backup-and-Runbooks--procedures-and-checks.md",
+      "kind": "page",
+      "source": "10_Product_Server_and_Operations/72_Upgrades_Rollbacks_Protocol_and_Cache_Migration_Backup_and_Runbooks/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/10_Product_Server_and_Operations/72_Upgrades_Rollbacks_Protocol_and_Cache_Migration_Backup_and_Runbooks/section.yaml",
+      "kind": "asset",
+      "source": "10_Product_Server_and_Operations/72_Upgrades_Rollbacks_Protocol_and_Cache_Migration_Backup_and_Runbooks/section.yaml"
+    },
+    {
+      "destination": "S72-Upgrades-Rollbacks-Protocol-and-Cache-Migration-Backup-and-Runbooks--sources.md",
+      "kind": "page",
+      "source": "10_Product_Server_and_Operations/72_Upgrades_Rollbacks_Protocol_and_Cache_Migration_Backup_and_Runbooks/sources.md"
+    },
+    {
+      "destination": "C10-Product-Server-and-Operations.md",
+      "kind": "page",
+      "source": "10_Product_Server_and_Operations/README.md"
+    },
+    {
+      "destination": "S73-Benchmark-Methodology-Terminology-Experimental-Controls-and-Data-Schema.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/73_Benchmark_Methodology_Terminology_Experimental_Controls_and_Data_Schema/README.md"
+    },
+    {
+      "destination": "assets/11_Verification_and_Performance/73_Benchmark_Methodology_Terminology_Experimental_Controls_and_Data_Schema/data/benchmark_record.schema.json",
+      "kind": "asset",
+      "source": "11_Verification_and_Performance/73_Benchmark_Methodology_Terminology_Experimental_Controls_and_Data_Schema/data/benchmark_record.schema.json"
+    },
+    {
+      "destination": "assets/11_Verification_and_Performance/73_Benchmark_Methodology_Terminology_Experimental_Controls_and_Data_Schema/data/fixtures/invalid-request.json",
+      "kind": "asset",
+      "source": "11_Verification_and_Performance/73_Benchmark_Methodology_Terminology_Experimental_Controls_and_Data_Schema/data/fixtures/invalid-request.json"
+    },
+    {
+      "destination": "assets/11_Verification_and_Performance/73_Benchmark_Methodology_Terminology_Experimental_Controls_and_Data_Schema/data/fixtures/valid-request.json",
+      "kind": "asset",
+      "source": "11_Verification_and_Performance/73_Benchmark_Methodology_Terminology_Experimental_Controls_and_Data_Schema/data/fixtures/valid-request.json"
+    },
+    {
+      "destination": "S73-Benchmark-Methodology-Terminology-Experimental-Controls-and-Data-Schema--design-implications.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/73_Benchmark_Methodology_Terminology_Experimental_Controls_and_Data_Schema/design_implications.md"
+    },
+    {
+      "destination": "assets/11_Verification_and_Performance/73_Benchmark_Methodology_Terminology_Experimental_Controls_and_Data_Schema/evidence/schema-validation-result.json",
+      "kind": "asset",
+      "source": "11_Verification_and_Performance/73_Benchmark_Methodology_Terminology_Experimental_Controls_and_Data_Schema/evidence/schema-validation-result.json"
+    },
+    {
+      "destination": "S73-Benchmark-Methodology-Terminology-Experimental-Controls-and-Data-Schema--facts-and-constraints.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/73_Benchmark_Methodology_Terminology_Experimental_Controls_and_Data_Schema/facts_and_constraints.md"
+    },
+    {
+      "destination": "S73-Benchmark-Methodology-Terminology-Experimental-Controls-and-Data-Schema--open-questions.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/73_Benchmark_Methodology_Terminology_Experimental_Controls_and_Data_Schema/open_questions.md"
+    },
+    {
+      "destination": "S73-Benchmark-Methodology-Terminology-Experimental-Controls-and-Data-Schema--procedures-and-checks.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/73_Benchmark_Methodology_Terminology_Experimental_Controls_and_Data_Schema/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/11_Verification_and_Performance/73_Benchmark_Methodology_Terminology_Experimental_Controls_and_Data_Schema/scripts/validate_benchmark_records.py",
+      "kind": "asset",
+      "source": "11_Verification_and_Performance/73_Benchmark_Methodology_Terminology_Experimental_Controls_and_Data_Schema/scripts/validate_benchmark_records.py"
+    },
+    {
+      "destination": "assets/11_Verification_and_Performance/73_Benchmark_Methodology_Terminology_Experimental_Controls_and_Data_Schema/section.yaml",
+      "kind": "asset",
+      "source": "11_Verification_and_Performance/73_Benchmark_Methodology_Terminology_Experimental_Controls_and_Data_Schema/section.yaml"
+    },
+    {
+      "destination": "S73-Benchmark-Methodology-Terminology-Experimental-Controls-and-Data-Schema--sources.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/73_Benchmark_Methodology_Terminology_Experimental_Controls_and_Data_Schema/sources.md"
+    },
+    {
+      "destination": "S74-Single-Node-HIP-and-Vulkan-Baseline-Matrix.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/74_Single_Node_HIP_and_Vulkan_Baseline_Matrix/README.md"
+    },
+    {
+      "destination": "S74-Single-Node-HIP-and-Vulkan-Baseline-Matrix--design-implications.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/74_Single_Node_HIP_and_Vulkan_Baseline_Matrix/design_implications.md"
+    },
+    {
+      "destination": "S74-Single-Node-HIP-and-Vulkan-Baseline-Matrix--facts-and-constraints.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/74_Single_Node_HIP_and_Vulkan_Baseline_Matrix/facts_and_constraints.md"
+    },
+    {
+      "destination": "S74-Single-Node-HIP-and-Vulkan-Baseline-Matrix--open-questions.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/74_Single_Node_HIP_and_Vulkan_Baseline_Matrix/open_questions.md"
+    },
+    {
+      "destination": "S74-Single-Node-HIP-and-Vulkan-Baseline-Matrix--procedures-and-checks.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/74_Single_Node_HIP_and_Vulkan_Baseline_Matrix/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/11_Verification_and_Performance/74_Single_Node_HIP_and_Vulkan_Baseline_Matrix/section.yaml",
+      "kind": "asset",
+      "source": "11_Verification_and_Performance/74_Single_Node_HIP_and_Vulkan_Baseline_Matrix/section.yaml"
+    },
+    {
+      "destination": "S74-Single-Node-HIP-and-Vulkan-Baseline-Matrix--sources.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/74_Single_Node_HIP_and_Vulkan_Baseline_Matrix/sources.md"
+    },
+    {
+      "destination": "S75-Fabric-Microbenchmarks-and-GPU-to-Peer-GPU-End-to-End-Tests.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/75_Fabric_Microbenchmarks_and_GPU_to_Peer_GPU_End_to_End_Tests/README.md"
+    },
+    {
+      "destination": "S75-Fabric-Microbenchmarks-and-GPU-to-Peer-GPU-End-to-End-Tests--design-implications.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/75_Fabric_Microbenchmarks_and_GPU_to_Peer_GPU_End_to_End_Tests/design_implications.md"
+    },
+    {
+      "destination": "S75-Fabric-Microbenchmarks-and-GPU-to-Peer-GPU-End-to-End-Tests--facts-and-constraints.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/75_Fabric_Microbenchmarks_and_GPU_to_Peer_GPU_End_to_End_Tests/facts_and_constraints.md"
+    },
+    {
+      "destination": "S75-Fabric-Microbenchmarks-and-GPU-to-Peer-GPU-End-to-End-Tests--open-questions.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/75_Fabric_Microbenchmarks_and_GPU_to_Peer_GPU_End_to_End_Tests/open_questions.md"
+    },
+    {
+      "destination": "S75-Fabric-Microbenchmarks-and-GPU-to-Peer-GPU-End-to-End-Tests--procedures-and-checks.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/75_Fabric_Microbenchmarks_and_GPU_to_Peer_GPU_End_to_End_Tests/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/11_Verification_and_Performance/75_Fabric_Microbenchmarks_and_GPU_to_Peer_GPU_End_to_End_Tests/section.yaml",
+      "kind": "asset",
+      "source": "11_Verification_and_Performance/75_Fabric_Microbenchmarks_and_GPU_to_Peer_GPU_End_to_End_Tests/section.yaml"
+    },
+    {
+      "destination": "S75-Fabric-Microbenchmarks-and-GPU-to-Peer-GPU-End-to-End-Tests--sources.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/75_Fabric_Microbenchmarks_and_GPU_to_Peer_GPU_End_to_End_Tests/sources.md"
+    },
+    {
+      "destination": "S76-Distributed-Mode-Benchmark-Matrix-and-Break-Even-Analysis.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/76_Distributed_Mode_Benchmark_Matrix_and_Break_Even_Analysis/README.md"
+    },
+    {
+      "destination": "S76-Distributed-Mode-Benchmark-Matrix-and-Break-Even-Analysis--design-implications.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/76_Distributed_Mode_Benchmark_Matrix_and_Break_Even_Analysis/design_implications.md"
+    },
+    {
+      "destination": "S76-Distributed-Mode-Benchmark-Matrix-and-Break-Even-Analysis--facts-and-constraints.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/76_Distributed_Mode_Benchmark_Matrix_and_Break_Even_Analysis/facts_and_constraints.md"
+    },
+    {
+      "destination": "S76-Distributed-Mode-Benchmark-Matrix-and-Break-Even-Analysis--open-questions.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/76_Distributed_Mode_Benchmark_Matrix_and_Break_Even_Analysis/open_questions.md"
+    },
+    {
+      "destination": "S76-Distributed-Mode-Benchmark-Matrix-and-Break-Even-Analysis--procedures-and-checks.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/76_Distributed_Mode_Benchmark_Matrix_and_Break_Even_Analysis/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/11_Verification_and_Performance/76_Distributed_Mode_Benchmark_Matrix_and_Break_Even_Analysis/section.yaml",
+      "kind": "asset",
+      "source": "11_Verification_and_Performance/76_Distributed_Mode_Benchmark_Matrix_and_Break_Even_Analysis/section.yaml"
+    },
+    {
+      "destination": "S76-Distributed-Mode-Benchmark-Matrix-and-Break-Even-Analysis--sources.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/76_Distributed_Mode_Benchmark_Matrix_and_Break_Even_Analysis/sources.md"
+    },
+    {
+      "destination": "S77-HaloKV-Restore-Writeback-Hit-Rate-and-Endurance-Benchmarks.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/77_HaloKV_Restore_Writeback_Hit_Rate_and_Endurance_Benchmarks/README.md"
+    },
+    {
+      "destination": "S77-HaloKV-Restore-Writeback-Hit-Rate-and-Endurance-Benchmarks--design-implications.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/77_HaloKV_Restore_Writeback_Hit_Rate_and_Endurance_Benchmarks/design_implications.md"
+    },
+    {
+      "destination": "S77-HaloKV-Restore-Writeback-Hit-Rate-and-Endurance-Benchmarks--facts-and-constraints.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/77_HaloKV_Restore_Writeback_Hit_Rate_and_Endurance_Benchmarks/facts_and_constraints.md"
+    },
+    {
+      "destination": "S77-HaloKV-Restore-Writeback-Hit-Rate-and-Endurance-Benchmarks--open-questions.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/77_HaloKV_Restore_Writeback_Hit_Rate_and_Endurance_Benchmarks/open_questions.md"
+    },
+    {
+      "destination": "S77-HaloKV-Restore-Writeback-Hit-Rate-and-Endurance-Benchmarks--procedures-and-checks.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/77_HaloKV_Restore_Writeback_Hit_Rate_and_Endurance_Benchmarks/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/11_Verification_and_Performance/77_HaloKV_Restore_Writeback_Hit_Rate_and_Endurance_Benchmarks/section.yaml",
+      "kind": "asset",
+      "source": "11_Verification_and_Performance/77_HaloKV_Restore_Writeback_Hit_Rate_and_Endurance_Benchmarks/section.yaml"
+    },
+    {
+      "destination": "S77-HaloKV-Restore-Writeback-Hit-Rate-and-Endurance-Benchmarks--sources.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/77_HaloKV_Restore_Writeback_Hit_Rate_and_Endurance_Benchmarks/sources.md"
+    },
+    {
+      "destination": "S78-Correctness-Regression-Determinism-and-Model-Quality-Evaluation.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/78_Correctness_Regression_Determinism_and_Model_Quality_Evaluation/README.md"
+    },
+    {
+      "destination": "S78-Correctness-Regression-Determinism-and-Model-Quality-Evaluation--design-implications.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/78_Correctness_Regression_Determinism_and_Model_Quality_Evaluation/design_implications.md"
+    },
+    {
+      "destination": "S78-Correctness-Regression-Determinism-and-Model-Quality-Evaluation--facts-and-constraints.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/78_Correctness_Regression_Determinism_and_Model_Quality_Evaluation/facts_and_constraints.md"
+    },
+    {
+      "destination": "S78-Correctness-Regression-Determinism-and-Model-Quality-Evaluation--open-questions.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/78_Correctness_Regression_Determinism_and_Model_Quality_Evaluation/open_questions.md"
+    },
+    {
+      "destination": "S78-Correctness-Regression-Determinism-and-Model-Quality-Evaluation--procedures-and-checks.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/78_Correctness_Regression_Determinism_and_Model_Quality_Evaluation/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/11_Verification_and_Performance/78_Correctness_Regression_Determinism_and_Model_Quality_Evaluation/section.yaml",
+      "kind": "asset",
+      "source": "11_Verification_and_Performance/78_Correctness_Regression_Determinism_and_Model_Quality_Evaluation/section.yaml"
+    },
+    {
+      "destination": "S78-Correctness-Regression-Determinism-and-Model-Quality-Evaluation--sources.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/78_Correctness_Regression_Determinism_and_Model_Quality_Evaluation/sources.md"
+    },
+    {
+      "destination": "S79-Stress-Soak-Long-Context-Multi-Session-Power-and-Thermal-Testing.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/79_Stress_Soak_Long_Context_Multi_Session_Power_and_Thermal_Testing/README.md"
+    },
+    {
+      "destination": "S79-Stress-Soak-Long-Context-Multi-Session-Power-and-Thermal-Testing--design-implications.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/79_Stress_Soak_Long_Context_Multi_Session_Power_and_Thermal_Testing/design_implications.md"
+    },
+    {
+      "destination": "S79-Stress-Soak-Long-Context-Multi-Session-Power-and-Thermal-Testing--facts-and-constraints.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/79_Stress_Soak_Long_Context_Multi_Session_Power_and_Thermal_Testing/facts_and_constraints.md"
+    },
+    {
+      "destination": "S79-Stress-Soak-Long-Context-Multi-Session-Power-and-Thermal-Testing--open-questions.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/79_Stress_Soak_Long_Context_Multi_Session_Power_and_Thermal_Testing/open_questions.md"
+    },
+    {
+      "destination": "S79-Stress-Soak-Long-Context-Multi-Session-Power-and-Thermal-Testing--procedures-and-checks.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/79_Stress_Soak_Long_Context_Multi_Session_Power_and_Thermal_Testing/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/11_Verification_and_Performance/79_Stress_Soak_Long_Context_Multi_Session_Power_and_Thermal_Testing/section.yaml",
+      "kind": "asset",
+      "source": "11_Verification_and_Performance/79_Stress_Soak_Long_Context_Multi_Session_Power_and_Thermal_Testing/section.yaml"
+    },
+    {
+      "destination": "S79-Stress-Soak-Long-Context-Multi-Session-Power-and-Thermal-Testing--sources.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/79_Stress_Soak_Long_Context_Multi_Session_Power_and_Thermal_Testing/sources.md"
+    },
+    {
+      "destination": "S80-Fault-Injection-Cable-Pulls-Restarts-OOM-Disk-Full-and-Corruption.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/80_Fault_Injection_Cable_Pulls_Restarts_OOM_Disk_Full_and_Corruption/README.md"
+    },
+    {
+      "destination": "S80-Fault-Injection-Cable-Pulls-Restarts-OOM-Disk-Full-and-Corruption--design-implications.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/80_Fault_Injection_Cable_Pulls_Restarts_OOM_Disk_Full_and_Corruption/design_implications.md"
+    },
+    {
+      "destination": "S80-Fault-Injection-Cable-Pulls-Restarts-OOM-Disk-Full-and-Corruption--facts-and-constraints.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/80_Fault_Injection_Cable_Pulls_Restarts_OOM_Disk_Full_and_Corruption/facts_and_constraints.md"
+    },
+    {
+      "destination": "S80-Fault-Injection-Cable-Pulls-Restarts-OOM-Disk-Full-and-Corruption--open-questions.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/80_Fault_Injection_Cable_Pulls_Restarts_OOM_Disk_Full_and_Corruption/open_questions.md"
+    },
+    {
+      "destination": "S80-Fault-Injection-Cable-Pulls-Restarts-OOM-Disk-Full-and-Corruption--procedures-and-checks.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/80_Fault_Injection_Cable_Pulls_Restarts_OOM_Disk_Full_and_Corruption/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/11_Verification_and_Performance/80_Fault_Injection_Cable_Pulls_Restarts_OOM_Disk_Full_and_Corruption/section.yaml",
+      "kind": "asset",
+      "source": "11_Verification_and_Performance/80_Fault_Injection_Cable_Pulls_Restarts_OOM_Disk_Full_and_Corruption/section.yaml"
+    },
+    {
+      "destination": "S80-Fault-Injection-Cable-Pulls-Restarts-OOM-Disk-Full-and-Corruption--sources.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/80_Fault_Injection_Cable_Pulls_Restarts_OOM_Disk_Full_and_Corruption/sources.md"
+    },
+    {
+      "destination": "S81-CI-Matrix-Release-Gates-Reproducibility-and-Performance-Regression-Policy.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/81_CI_Matrix_Release_Gates_Reproducibility_and_Performance_Regression_Policy/README.md"
+    },
+    {
+      "destination": "S81-CI-Matrix-Release-Gates-Reproducibility-and-Performance-Regression-Policy--design-implications.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/81_CI_Matrix_Release_Gates_Reproducibility_and_Performance_Regression_Policy/design_implications.md"
+    },
+    {
+      "destination": "S81-CI-Matrix-Release-Gates-Reproducibility-and-Performance-Regression-Policy--facts-and-constraints.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/81_CI_Matrix_Release_Gates_Reproducibility_and_Performance_Regression_Policy/facts_and_constraints.md"
+    },
+    {
+      "destination": "S81-CI-Matrix-Release-Gates-Reproducibility-and-Performance-Regression-Policy--open-questions.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/81_CI_Matrix_Release_Gates_Reproducibility_and_Performance_Regression_Policy/open_questions.md"
+    },
+    {
+      "destination": "S81-CI-Matrix-Release-Gates-Reproducibility-and-Performance-Regression-Policy--procedures-and-checks.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/81_CI_Matrix_Release_Gates_Reproducibility_and_Performance_Regression_Policy/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/11_Verification_and_Performance/81_CI_Matrix_Release_Gates_Reproducibility_and_Performance_Regression_Policy/section.yaml",
+      "kind": "asset",
+      "source": "11_Verification_and_Performance/81_CI_Matrix_Release_Gates_Reproducibility_and_Performance_Regression_Policy/section.yaml"
+    },
+    {
+      "destination": "S81-CI-Matrix-Release-Gates-Reproducibility-and-Performance-Regression-Policy--sources.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/81_CI_Matrix_Release_Gates_Reproducibility_and_Performance_Regression_Policy/sources.md"
+    },
+    {
+      "destination": "C11-Verification-and-Performance.md",
+      "kind": "page",
+      "source": "11_Verification_and_Performance/README.md"
+    },
+    {
+      "destination": "S82-Implementation-Roadmap-Epics-Dependencies-and-Exit-Criteria.md",
+      "kind": "page",
+      "source": "12_Project_Execution_and_Governance/82_Implementation_Roadmap_Epics_Dependencies_and_Exit_Criteria/README.md"
+    },
+    {
+      "destination": "S82-Implementation-Roadmap-Epics-Dependencies-and-Exit-Criteria--design-implications.md",
+      "kind": "page",
+      "source": "12_Project_Execution_and_Governance/82_Implementation_Roadmap_Epics_Dependencies_and_Exit_Criteria/design_implications.md"
+    },
+    {
+      "destination": "S82-Implementation-Roadmap-Epics-Dependencies-and-Exit-Criteria--facts-and-constraints.md",
+      "kind": "page",
+      "source": "12_Project_Execution_and_Governance/82_Implementation_Roadmap_Epics_Dependencies_and_Exit_Criteria/facts_and_constraints.md"
+    },
+    {
+      "destination": "S82-Implementation-Roadmap-Epics-Dependencies-and-Exit-Criteria--open-questions.md",
+      "kind": "page",
+      "source": "12_Project_Execution_and_Governance/82_Implementation_Roadmap_Epics_Dependencies_and_Exit_Criteria/open_questions.md"
+    },
+    {
+      "destination": "S82-Implementation-Roadmap-Epics-Dependencies-and-Exit-Criteria--procedures-and-checks.md",
+      "kind": "page",
+      "source": "12_Project_Execution_and_Governance/82_Implementation_Roadmap_Epics_Dependencies_and_Exit_Criteria/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/12_Project_Execution_and_Governance/82_Implementation_Roadmap_Epics_Dependencies_and_Exit_Criteria/section.yaml",
+      "kind": "asset",
+      "source": "12_Project_Execution_and_Governance/82_Implementation_Roadmap_Epics_Dependencies_and_Exit_Criteria/section.yaml"
+    },
+    {
+      "destination": "S82-Implementation-Roadmap-Epics-Dependencies-and-Exit-Criteria--sources.md",
+      "kind": "page",
+      "source": "12_Project_Execution_and_Governance/82_Implementation_Roadmap_Epics_Dependencies_and_Exit_Criteria/sources.md"
+    },
+    {
+      "destination": "S83-Risk-Register-Failure-Modes-Mitigations-and-Contingencies.md",
+      "kind": "page",
+      "source": "12_Project_Execution_and_Governance/83_Risk_Register_Failure_Modes_Mitigations_and_Contingencies/README.md"
+    },
+    {
+      "destination": "S83-Risk-Register-Failure-Modes-Mitigations-and-Contingencies--design-implications.md",
+      "kind": "page",
+      "source": "12_Project_Execution_and_Governance/83_Risk_Register_Failure_Modes_Mitigations_and_Contingencies/design_implications.md"
+    },
+    {
+      "destination": "S83-Risk-Register-Failure-Modes-Mitigations-and-Contingencies--facts-and-constraints.md",
+      "kind": "page",
+      "source": "12_Project_Execution_and_Governance/83_Risk_Register_Failure_Modes_Mitigations_and_Contingencies/facts_and_constraints.md"
+    },
+    {
+      "destination": "S83-Risk-Register-Failure-Modes-Mitigations-and-Contingencies--open-questions.md",
+      "kind": "page",
+      "source": "12_Project_Execution_and_Governance/83_Risk_Register_Failure_Modes_Mitigations_and_Contingencies/open_questions.md"
+    },
+    {
+      "destination": "S83-Risk-Register-Failure-Modes-Mitigations-and-Contingencies--procedures-and-checks.md",
+      "kind": "page",
+      "source": "12_Project_Execution_and_Governance/83_Risk_Register_Failure_Modes_Mitigations_and_Contingencies/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/12_Project_Execution_and_Governance/83_Risk_Register_Failure_Modes_Mitigations_and_Contingencies/section.yaml",
+      "kind": "asset",
+      "source": "12_Project_Execution_and_Governance/83_Risk_Register_Failure_Modes_Mitigations_and_Contingencies/section.yaml"
+    },
+    {
+      "destination": "S83-Risk-Register-Failure-Modes-Mitigations-and-Contingencies--sources.md",
+      "kind": "page",
+      "source": "12_Project_Execution_and_Governance/83_Risk_Register_Failure_Modes_Mitigations_and_Contingencies/sources.md"
+    },
+    {
+      "destination": "S84-On-Machine-Research-Plan-Experiment-Cards-and-Lab-Notebook.md",
+      "kind": "page",
+      "source": "12_Project_Execution_and_Governance/84_On_Machine_Research_Plan_Experiment_Cards_and_Lab_Notebook/README.md"
+    },
+    {
+      "destination": "assets/12_Project_Execution_and_Governance/84_On_Machine_Research_Plan_Experiment_Cards_and_Lab_Notebook/cards/HLX-EXP-20260717-841.yaml",
+      "kind": "asset",
+      "source": "12_Project_Execution_and_Governance/84_On_Machine_Research_Plan_Experiment_Cards_and_Lab_Notebook/cards/HLX-EXP-20260717-841.yaml"
+    },
+    {
+      "destination": "assets/12_Project_Execution_and_Governance/84_On_Machine_Research_Plan_Experiment_Cards_and_Lab_Notebook/cards/HLX-EXP-20260717-842.yaml",
+      "kind": "asset",
+      "source": "12_Project_Execution_and_Governance/84_On_Machine_Research_Plan_Experiment_Cards_and_Lab_Notebook/cards/HLX-EXP-20260717-842.yaml"
+    },
+    {
+      "destination": "assets/12_Project_Execution_and_Governance/84_On_Machine_Research_Plan_Experiment_Cards_and_Lab_Notebook/cards/HLX-EXP-20260717-843.yaml",
+      "kind": "asset",
+      "source": "12_Project_Execution_and_Governance/84_On_Machine_Research_Plan_Experiment_Cards_and_Lab_Notebook/cards/HLX-EXP-20260717-843.yaml"
+    },
+    {
+      "destination": "assets/12_Project_Execution_and_Governance/84_On_Machine_Research_Plan_Experiment_Cards_and_Lab_Notebook/cards/HLX-EXP-20260717-844.yaml",
+      "kind": "asset",
+      "source": "12_Project_Execution_and_Governance/84_On_Machine_Research_Plan_Experiment_Cards_and_Lab_Notebook/cards/HLX-EXP-20260717-844.yaml"
+    },
+    {
+      "destination": "assets/12_Project_Execution_and_Governance/84_On_Machine_Research_Plan_Experiment_Cards_and_Lab_Notebook/cards/HLX-EXP-20260717-845.yaml",
+      "kind": "asset",
+      "source": "12_Project_Execution_and_Governance/84_On_Machine_Research_Plan_Experiment_Cards_and_Lab_Notebook/cards/HLX-EXP-20260717-845.yaml"
+    },
+    {
+      "destination": "assets/12_Project_Execution_and_Governance/84_On_Machine_Research_Plan_Experiment_Cards_and_Lab_Notebook/cards/HLX-EXP-20260717-846.yaml",
+      "kind": "asset",
+      "source": "12_Project_Execution_and_Governance/84_On_Machine_Research_Plan_Experiment_Cards_and_Lab_Notebook/cards/HLX-EXP-20260717-846.yaml"
+    },
+    {
+      "destination": "assets/12_Project_Execution_and_Governance/84_On_Machine_Research_Plan_Experiment_Cards_and_Lab_Notebook/cards/HLX-EXP-20260717-847.yaml",
+      "kind": "asset",
+      "source": "12_Project_Execution_and_Governance/84_On_Machine_Research_Plan_Experiment_Cards_and_Lab_Notebook/cards/HLX-EXP-20260717-847.yaml"
+    },
+    {
+      "destination": "assets/12_Project_Execution_and_Governance/84_On_Machine_Research_Plan_Experiment_Cards_and_Lab_Notebook/cards/HLX-EXP-20260717-848.yaml",
+      "kind": "asset",
+      "source": "12_Project_Execution_and_Governance/84_On_Machine_Research_Plan_Experiment_Cards_and_Lab_Notebook/cards/HLX-EXP-20260717-848.yaml"
+    },
+    {
+      "destination": "assets/12_Project_Execution_and_Governance/84_On_Machine_Research_Plan_Experiment_Cards_and_Lab_Notebook/cards/HLX-EXP-20260717-849.yaml",
+      "kind": "asset",
+      "source": "12_Project_Execution_and_Governance/84_On_Machine_Research_Plan_Experiment_Cards_and_Lab_Notebook/cards/HLX-EXP-20260717-849.yaml"
+    },
+    {
+      "destination": "assets/12_Project_Execution_and_Governance/84_On_Machine_Research_Plan_Experiment_Cards_and_Lab_Notebook/cards/HLX-EXP-20260717-850.yaml",
+      "kind": "asset",
+      "source": "12_Project_Execution_and_Governance/84_On_Machine_Research_Plan_Experiment_Cards_and_Lab_Notebook/cards/HLX-EXP-20260717-850.yaml"
+    },
+    {
+      "destination": "S84-On-Machine-Research-Plan-Experiment-Cards-and-Lab-Notebook--design-implications.md",
+      "kind": "page",
+      "source": "12_Project_Execution_and_Governance/84_On_Machine_Research_Plan_Experiment_Cards_and_Lab_Notebook/design_implications.md"
+    },
+    {
+      "destination": "assets/12_Project_Execution_and_Governance/84_On_Machine_Research_Plan_Experiment_Cards_and_Lab_Notebook/experiment-aliases.yaml",
+      "kind": "asset",
+      "source": "12_Project_Execution_and_Governance/84_On_Machine_Research_Plan_Experiment_Cards_and_Lab_Notebook/experiment-aliases.yaml"
+    },
+    {
+      "destination": "assets/12_Project_Execution_and_Governance/84_On_Machine_Research_Plan_Experiment_Cards_and_Lab_Notebook/experiment-card.schema.json",
+      "kind": "asset",
+      "source": "12_Project_Execution_and_Governance/84_On_Machine_Research_Plan_Experiment_Cards_and_Lab_Notebook/experiment-card.schema.json"
+    },
+    {
+      "destination": "assets/12_Project_Execution_and_Governance/84_On_Machine_Research_Plan_Experiment_Cards_and_Lab_Notebook/experiment-card.template.yaml",
+      "kind": "asset",
+      "source": "12_Project_Execution_and_Governance/84_On_Machine_Research_Plan_Experiment_Cards_and_Lab_Notebook/experiment-card.template.yaml"
+    },
+    {
+      "destination": "S84-On-Machine-Research-Plan-Experiment-Cards-and-Lab-Notebook--facts-and-constraints.md",
+      "kind": "page",
+      "source": "12_Project_Execution_and_Governance/84_On_Machine_Research_Plan_Experiment_Cards_and_Lab_Notebook/facts_and_constraints.md"
+    },
+    {
+      "destination": "S84-On-Machine-Research-Plan-Experiment-Cards-and-Lab-Notebook--open-questions.md",
+      "kind": "page",
+      "source": "12_Project_Execution_and_Governance/84_On_Machine_Research_Plan_Experiment_Cards_and_Lab_Notebook/open_questions.md"
+    },
+    {
+      "destination": "S84-On-Machine-Research-Plan-Experiment-Cards-and-Lab-Notebook--procedures-and-checks.md",
+      "kind": "page",
+      "source": "12_Project_Execution_and_Governance/84_On_Machine_Research_Plan_Experiment_Cards_and_Lab_Notebook/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/12_Project_Execution_and_Governance/84_On_Machine_Research_Plan_Experiment_Cards_and_Lab_Notebook/section.yaml",
+      "kind": "asset",
+      "source": "12_Project_Execution_and_Governance/84_On_Machine_Research_Plan_Experiment_Cards_and_Lab_Notebook/section.yaml"
+    },
+    {
+      "destination": "S84-On-Machine-Research-Plan-Experiment-Cards-and-Lab-Notebook--sources.md",
+      "kind": "page",
+      "source": "12_Project_Execution_and_Governance/84_On_Machine_Research_Plan_Experiment_Cards_and_Lab_Notebook/sources.md"
+    },
+    {
+      "destination": "assets/12_Project_Execution_and_Governance/84_On_Machine_Research_Plan_Experiment_Cards_and_Lab_Notebook/validate_experiment_cards.py",
+      "kind": "asset",
+      "source": "12_Project_Execution_and_Governance/84_On_Machine_Research_Plan_Experiment_Cards_and_Lab_Notebook/validate_experiment_cards.py"
+    },
+    {
+      "destination": "S85-Internet-Research-Backlog-Upstream-Watch-and-Knowledge-Freshness.md",
+      "kind": "page",
+      "source": "12_Project_Execution_and_Governance/85_Internet_Research_Backlog_Upstream_Watch_and_Knowledge_Freshness/README.md"
+    },
+    {
+      "destination": "S85-Internet-Research-Backlog-Upstream-Watch-and-Knowledge-Freshness--design-implications.md",
+      "kind": "page",
+      "source": "12_Project_Execution_and_Governance/85_Internet_Research_Backlog_Upstream_Watch_and_Knowledge_Freshness/design_implications.md"
+    },
+    {
+      "destination": "S85-Internet-Research-Backlog-Upstream-Watch-and-Knowledge-Freshness--facts-and-constraints.md",
+      "kind": "page",
+      "source": "12_Project_Execution_and_Governance/85_Internet_Research_Backlog_Upstream_Watch_and_Knowledge_Freshness/facts_and_constraints.md"
+    },
+    {
+      "destination": "S85-Internet-Research-Backlog-Upstream-Watch-and-Knowledge-Freshness--open-questions.md",
+      "kind": "page",
+      "source": "12_Project_Execution_and_Governance/85_Internet_Research_Backlog_Upstream_Watch_and_Knowledge_Freshness/open_questions.md"
+    },
+    {
+      "destination": "S85-Internet-Research-Backlog-Upstream-Watch-and-Knowledge-Freshness--procedures-and-checks.md",
+      "kind": "page",
+      "source": "12_Project_Execution_and_Governance/85_Internet_Research_Backlog_Upstream_Watch_and_Knowledge_Freshness/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/12_Project_Execution_and_Governance/85_Internet_Research_Backlog_Upstream_Watch_and_Knowledge_Freshness/section.yaml",
+      "kind": "asset",
+      "source": "12_Project_Execution_and_Governance/85_Internet_Research_Backlog_Upstream_Watch_and_Knowledge_Freshness/section.yaml"
+    },
+    {
+      "destination": "S85-Internet-Research-Backlog-Upstream-Watch-and-Knowledge-Freshness--sources.md",
+      "kind": "page",
+      "source": "12_Project_Execution_and_Governance/85_Internet_Research_Backlog_Upstream_Watch_and_Knowledge_Freshness/sources.md"
+    },
+    {
+      "destination": "S86-Issues-Labels-Milestones-ADRs-Code-Review-and-Contribution-Process.md",
+      "kind": "page",
+      "source": "12_Project_Execution_and_Governance/86_Issues_Labels_Milestones_ADRs_Code_Review_and_Contribution_Process/README.md"
+    },
+    {
+      "destination": "S86-Issues-Labels-Milestones-ADRs-Code-Review-and-Contribution-Process--design-implications.md",
+      "kind": "page",
+      "source": "12_Project_Execution_and_Governance/86_Issues_Labels_Milestones_ADRs_Code_Review_and_Contribution_Process/design_implications.md"
+    },
+    {
+      "destination": "S86-Issues-Labels-Milestones-ADRs-Code-Review-and-Contribution-Process--facts-and-constraints.md",
+      "kind": "page",
+      "source": "12_Project_Execution_and_Governance/86_Issues_Labels_Milestones_ADRs_Code_Review_and_Contribution_Process/facts_and_constraints.md"
+    },
+    {
+      "destination": "S86-Issues-Labels-Milestones-ADRs-Code-Review-and-Contribution-Process--open-questions.md",
+      "kind": "page",
+      "source": "12_Project_Execution_and_Governance/86_Issues_Labels_Milestones_ADRs_Code_Review_and_Contribution_Process/open_questions.md"
+    },
+    {
+      "destination": "S86-Issues-Labels-Milestones-ADRs-Code-Review-and-Contribution-Process--procedures-and-checks.md",
+      "kind": "page",
+      "source": "12_Project_Execution_and_Governance/86_Issues_Labels_Milestones_ADRs_Code_Review_and_Contribution_Process/procedures_and_checks.md"
+    },
+    {
+      "destination": "assets/12_Project_Execution_and_Governance/86_Issues_Labels_Milestones_ADRs_Code_Review_and_Contribution_Process/section.yaml",
+      "kind": "asset",
+      "source": "12_Project_Execution_and_Governance/86_Issues_Labels_Milestones_ADRs_Code_Review_and_Contribution_Process/section.yaml"
+    },
+    {
+      "destination": "S86-Issues-Labels-Milestones-ADRs-Code-Review-and-Contribution-Process--sources.md",
+      "kind": "page",
+      "source": "12_Project_Execution_and_Governance/86_Issues_Labels_Milestones_ADRs_Code_Review_and_Contribution_Process/sources.md"
+    },
+    {
+      "destination": "C12-Project-Execution-and-Governance.md",
+      "kind": "page",
+      "source": "12_Project_Execution_and_Governance/README.md"
+    },
+    {
+      "destination": "Home.md",
+      "kind": "page",
+      "source": "README.md"
+    },
+    {
+      "destination": "R-architecture-overview.md",
+      "kind": "page",
+      "source": "architecture-overview.md"
+    },
+    {
+      "destination": "R-archive-index.md",
+      "kind": "page",
+      "source": "archive-index.md"
+    },
+    {
+      "destination": "R-decision-map.md",
+      "kind": "page",
+      "source": "decision-map.md"
+    },
+    {
+      "destination": "R-evidence-map.md",
+      "kind": "page",
+      "source": "evidence-map.md"
+    },
+    {
+      "destination": "R-glossary.md",
+      "kind": "page",
+      "source": "glossary.md"
+    },
+    {
+      "destination": "assets/manifest.schema.json",
+      "kind": "asset",
+      "source": "manifest.schema.json"
+    },
+    {
+      "destination": "assets/manifest.yaml",
+      "kind": "asset",
+      "source": "manifest.yaml"
+    },
+    {
+      "destination": "assets/wiki.yaml",
+      "kind": "asset",
+      "source": "wiki.yaml"
+    }
+  ],
+  "expected_asset_count": 108,
+  "expected_markdown_page_count": 534,
+  "expected_source_file_count": 642,
+  "policy": "Frozen source-path to destination mapping. Preserve existing destinations across title or source-path changes.",
+  "schema": "halofpx.github-wiki-page-map.v1"
+}
