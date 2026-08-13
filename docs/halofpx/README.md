@@ -26,6 +26,7 @@ Wiki, and imported target-machine evidence are under [`project/`](../../project/
 - [ADR-0057 independent review](reviews/2026-08-12__adr-0057-offline-strix-maintenance-controller__review__v01.md)
 - [Issue #26 test-only two-rank cache coordinator contract](two-rank-cache-coordinator-contract.md)
 - [Issue #28 default-off sampling-output synchronization canary](issue-28-sampling-output-sync-canary.md)
+- [Issue #19 ngram-simple host qualification](evidence/issue-19-ngram-simple-host-qualification/README.md)
 - [Portable Qwen3-0.6B ROCmFPX fixture recipe](fixtures/qwen3-0.6b-rocmfpx/README.md)
 - [Portable fixture off-target evidence](evidence/2026-08-12-qwen3-0.6b-rocmfpx-fixture/README.md)
 - [Issue #33 standalone live-derived cache authority](cache-live-authority-v1.md)
