@@ -16,6 +16,7 @@ filename resembles a historical file.
 | Large raw source/formal/evidence payloads | [VERIFIED] published in immutable private release `evidence-2026-08-12`; remote size and SHA-256 matched | Restore only from a complete asset set and verify every part plus the reconstructed payload. |
 | Generated build trees and caches | [RECOMMENDATION] rebuild, not canonical | Do not treat local build output as a transferable source of truth. |
 | Primary model | [OPEN] absent | Obtain exact bytes independently; verify size and SHA-256 before use. |
+| Small Qwen3-0.6B ROCmFPX fixture | [VERIFIED] registry/recipe/exact identities included; [MEASURED] off-target conversion/load evidence; GGUF bytes not published | Reconstruct outside the clone from the immutable source and producer pins; verify every recorded size/hash before use. |
 | Credentials and live service state | intentionally excluded | Re-provision through the current operator authority; never restore from project artifacts. |
 
 The machine-readable companions are the publication
@@ -279,6 +280,28 @@ sha256=96506ada918e60ca9a9cfde8a5437790e4453401a6a3e236e3f55e7bac3aaea6
 The name of a model, quantization label, repository branch, or download URL is
 not sufficient identity. A successor must verify both fields before using a
 candidate as the primary-model input.
+
+## Small portable ROCmFPX fixture
+
+The repository now contains a separate, non-primary Qwen3-0.6B fixture lane for
+ordinary dense-GQA Q3/Q6/Q8 ROCmFPX iteration. Its
+[`registry and reconstruction recipe`](docs/halofpx/fixtures/qwen3-0.6b-rocmfpx/README.md)
+and [off-target evidence](docs/halofpx/evidence/2026-08-12-qwen3-0.6b-rocmfpx-fixture/README.md)
+record the immutable BF16 source, Apache-2.0 declaration and retained license
+text, compatible producer pin, pinned-b77 smoke consumer, exact output bytes,
+and tensor census.
+
+No fixture GGUF is in Git or a GitHub release. The BF16 source is `1198182848`
+bytes; derived Q3, Q6, and Q8 files are `266957248`, `490451392`, and
+`620822976` bytes. Ordinary Git cannot accept these files because each exceeds
+GitHub's 100 MiB block threshold. Each is individually below the current 2 GiB
+release-asset limit, but permissions, host limits, license/provenance packaging,
+and an immutable upload manifest must be rechecked at publication time. A clone
+is already sufficient to reconstruct and validate the bytes independently.
+
+The WSL2 CPU smoke is not target or quality evidence. HIP, Vulkan, single-node
+Strix Halo, dual-node distribution, and matched performance remain open under
+[issue #43](https://github.com/JCFrags/HaloFPX/issues/43).
 
 ## Deliberate exclusions and boundaries
 

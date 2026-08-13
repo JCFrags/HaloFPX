@@ -14,6 +14,8 @@ Wiki, and imported target-machine evidence are under [`project/`](../../project/
 - [2026-08-12 Strix Halo health-only recheck](evidence/2026-08-12-strix-halo-health-recheck/README.md)
 - [Issue #26 test-only two-rank cache coordinator contract](two-rank-cache-coordinator-contract.md)
 - [Issue #28 default-off sampling-output synchronization canary](issue-28-sampling-output-sync-canary.md)
+- [Portable Qwen3-0.6B ROCmFPX fixture recipe](fixtures/qwen3-0.6b-rocmfpx/README.md)
+- [Portable fixture off-target evidence](evidence/2026-08-12-qwen3-0.6b-rocmfpx-fixture/README.md)
 
 - [Clean baseline manifest](baseline-manifest.json)
 - [Feature-off baseline](feature-off-baseline.md)

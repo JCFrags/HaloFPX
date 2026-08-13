@@ -4,7 +4,7 @@ title: "ROCmFPX Weight Formats and Quantization Recipes"
 category: "06_Models_Quantization_and_Inference"
 status: "needs-machine-validation"
 last_verified: "2026-08-12"
-source_count: 7
+source_count: 8
 open_question_count: 7
 required_machine_experiments:
   - "reference and backend-op gates on HIP and Vulkan"
@@ -13,5 +13,5 @@ required_machine_experiments:
 related_sections: ["29", "31", "33", "37", "57"]
 applicability:
   repositories: ["charlie12345/ROCmFPX", "JCFrags/HaloFPX"]
-  software_versions: ["a5605a72768c6562241b248e268e33dc92787394", "4a156395db62604cf37e27e6459e3ee0e3949c48"]
+  software_versions: ["a5605a72768c6562241b248e268e33dc92787394", "4a156395db62604cf37e27e6459e3ee0e3949c48", "6c88472bf5f567a1064f27f4d8a90fc8e2b47a02", "b77f2bce6e7875ab065e09894f45915585c9f156"]
   hardware_revisions: ["gfx1151 validation pending"]

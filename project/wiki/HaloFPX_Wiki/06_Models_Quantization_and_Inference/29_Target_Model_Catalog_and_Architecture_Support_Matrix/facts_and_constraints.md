@@ -2,10 +2,10 @@
 section_id: "29"
 title: "Model facts and support stages"
 status: "needs-machine-validation"
-last_verified: "2026-07-16"
+last_verified: "2026-08-12"
 applies_to:
-  repositories: ["charlie12345/ROCmFPX", "ggml-org/llama.cpp"]
-  software_versions: ["ROCmFPX a5605a7", "llama.cpp 788e07d"]
+  repositories: ["charlie12345/ROCmFPX", "ggml-org/llama.cpp", "JCFrags/HaloFPX"]
+  software_versions: ["ROCmFPX a5605a7", "llama.cpp 788e07d", "HaloFPX b77f2bce"]
   hardware_revisions: []
 related_sections: ["30", "31", "33", "34", "35", "36"]
 ---
@@ -16,6 +16,7 @@ Parameter counts and active counts below are publisher labels unless a config di
 
 | Candidate and pinned source | Kind / intended role | Config facts | Nominal weights | Derived F16 KV B/token | License | Current evidence state |
 |---|---|---|---:|---:|---|---|
+| Qwen3-0.6B BF16 GGUF, `unsloth/Qwen3-0.6B-GGUF@28675487...`, exact file hash [S29-07] | dense GQA; small ordinary conversion/load fixture | 28 layers, hidden 1024, 16 Q / 8 KV heads, head 128, context 40,960 | publisher label 0.6B; BF16 GGUF 1,198,182,848 bytes; pure Q3/Q6/Q8 outputs have exact manifest sizes | 114,688 | Apache-2.0 declared by the exact-revision distribution card; base license text retained separately | **[VERIFIED]** CONFIG_PINNED and exact identities; **[MEASURED]** off-target CONVERTED and CPU_SMOKE for Q3/Q6/Q8; **[OPEN]** quality, HIP, Vulkan, target, and distributed validation |
 | Qwen2.5-Coder-32B-Instruct, `381fc969` [S29-02] | dense GQA; coding/tool-use | 64 layers, hidden 5120, 40 Q / 8 KV heads, head 128, native config context 32,768 | F16 ~64 GB; 8.25 bpw ~33 GB; 4.5 bpw ~18 GB | 262,144 | Apache-2.0 | **[VERIFIED]** config; **[OPEN]** fork conversion/backend/quality |
 | Qwen3-30B-A3B, `ad44e777` [S29-03] | MoE GQA; reasoning/tool candidate | 48 layers, hidden 2048, 32 Q / 4 KV heads, 128 experts, top-8, context 40,960; publisher name says 30B/A3B | F16 ~60 GB; 8.25 bpw ~30.9 GB; 4.5 bpw ~16.9 GB | 98,304 | Apache-2.0 | **[VERIFIED]** config and upstream Qwen3-MoE enum; **[OPEN]** target GGUF |
 | DeepSeek-V3, `e815299b` [S29-04] | MoE + MLA + one next-token-prediction layer; scale/transport stressor | 61 layers, hidden 7168, 256 routed + 1 shared experts, top-8, MLA ranks 512/1536, context 163,840 | publisher: 671B/37B active; nominal FP8 ~671 GB, 4-bit ~336 GB | not ordinary GQA; latent-cache layout required | model-specific license; verify before use | **[VERIFIED]** config and DeepSeek enums; **[INFERENCE]** whole-model local fit is unlikely; **[OPEN]** exact shard plan |
@@ -27,7 +28,7 @@ Parameter counts and active counts below are publisher labels unless a config di
 | Required class | Current catalog coverage | Gap |
 |---|---|---|
 | MHA | architecture family is represented upstream, but no production candidate pinned | **[OPEN] OQ29-01** choose a modern MHA baseline if needed |
-| GQA | Qwen, Mistral | machine validation |
+| GQA | Qwen3-0.6B fixture, Qwen2.5-Coder, Qwen3 MoE, Mistral | small fixture remains off-target; production candidates require machine validation |
 | MLA / MTP | DeepSeek-V3 | model exceeds likely aggregate memory; evaluate smaller MLA/MTP candidate |
 | sliding-window/global | no pinned candidate in this batch | **[OPEN] OQ29-02** pin Gemma-family or other primary checkpoint |
 | Mamba/SSM/hybrid | Nemotron-3-Nano | verify GGUF conversion and recurrent-state serialization |
@@ -45,4 +46,3 @@ Parameter counts and active counts below are publisher labels unless a config di
 7. `HALOFPX_VALIDATED`: both machines, intended context/cache/distributed mode, hashes and raw evidence recorded.
 
 No candidate currently reaches stage 7 in this workspace.
-
