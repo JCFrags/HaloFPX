@@ -3,6 +3,7 @@
 #include "quantize.cuh"
 #include "mmid.cuh"
 #include "rocmfpx-ffn-q8-reuse.h"
+#include "rocmfpx-qkv-q8-reuse.h"
 
 static void ggml_cuda_mul_mat_q_switch_type(ggml_backend_cuda_context & ctx, const mmq_args & args, cudaStream_t stream) {
     switch (args.type_x) {
@@ -158,6 +159,11 @@ void ggml_cuda_mul_mat_q(
                                         ne11, ne12, ne13, stream);
 
             } else {
+#if defined(GGML_HIP_ROCMFPX_QKV_Q8_REUSE)
+                if (halofpx_rocmfpx_qkv_q8_reuse_type(src0->type)) {
+                    ctx.halofpx_qkv_q8_conversions_submitted.fetch_add(1, std::memory_order_relaxed);
+                }
+#endif
                 quantize_mmq_q8_1_cuda(src1_d, nullptr, src1_q8_1.get(), src0->type, ne10, s11, s12, s13, ne10_padded,
                                        ne11, ne12, ne13, stream);
             }
@@ -176,6 +182,11 @@ void ggml_cuda_mul_mat_q(
             ne02, ne12, s02, s12, s2,
             ne03, ne13, s03, s13, s3,
             use_stream_k, ne1};
+#if defined(GGML_HIP_ROCMFPX_QKV_Q8_REUSE)
+        if (halofpx_rocmfpx_qkv_q8_reuse_type(src0->type)) {
+            ctx.halofpx_qkv_mmq_submissions.fetch_add(1, std::memory_order_relaxed);
+        }
+#endif
         ggml_cuda_mul_mat_q_switch_type(ctx, args, stream);
         return;
     }
@@ -335,6 +346,113 @@ void ggml_cuda_mul_mat_q_rocmfpx_pair(
     launch(src0_b, dst_b);
 }
 // HALOFPX_FFN_Q8_REUSE_PAIR_END
+#endif
+
+#if defined(GGML_HIP_ROCMFPX_QKV_Q8_REUSE)
+// HALOFPX_QKV_Q8_REUSE_TRIPLE_BEGIN
+void ggml_cuda_mul_mat_q_rocmfpx_triple(
+        ggml_backend_cuda_context & ctx,
+        const ggml_tensor * src0_q,
+        const ggml_tensor * src0_k,
+        const ggml_tensor * src0_v,
+        const ggml_tensor * src1,
+        ggml_tensor * dst_q,
+        ggml_tensor * dst_k,
+        ggml_tensor * dst_v) {
+    GGML_ASSERT(src0_q && src0_k && src0_v && src1 && dst_q && dst_k && dst_v);
+    GGML_ASSERT(ctx.curr_stream_no == 0);
+    GGML_ASSERT(halofpx_rocmfpx_qkv_q8_reuse_type(src0_q->type));
+    GGML_ASSERT(src0_q->type == src0_k->type && src0_q->type == src0_v->type);
+    GGML_ASSERT(src1->type == GGML_TYPE_F32);
+    GGML_ASSERT(dst_q->type == GGML_TYPE_F32 && dst_k->type == GGML_TYPE_F32 && dst_v->type == GGML_TYPE_F32);
+
+    const std::array<const ggml_tensor *, 3> weights = { src0_q, src0_k, src0_v };
+    const std::array<ggml_tensor *, 3> outputs = { dst_q, dst_k, dst_v };
+    for (size_t i = 0; i < weights.size(); ++i) {
+        GGML_ASSERT(weights[i]->ne[0] == src1->ne[0]);
+        GGML_ASSERT(outputs[i]->ne[0] == weights[i]->ne[1]);
+        GGML_ASSERT(outputs[i]->ne[1] == src1->ne[1]);
+        GGML_ASSERT(outputs[i]->ne[2] == src1->ne[2] / weights[i]->ne[2]);
+        GGML_ASSERT(outputs[i]->ne[3] == src1->ne[3] / weights[i]->ne[3]);
+    }
+
+    cudaStream_t stream = ctx.stream();
+    const int cc = ggml_cuda_info().devices[ctx.device].cc;
+    const size_t ts_src1 = ggml_type_size(src1->type);
+    GGML_ASSERT(src1->nb[0] == ts_src1);
+
+    const int64_t ne10 = src1->ne[0];
+    const int64_t ne11 = src1->ne[1];
+    const int64_t ne12 = src1->ne[2];
+    const int64_t ne13 = src1->ne[3];
+    const int64_t ne10_padded = GGML_PAD(ne10, MATRIX_ROW_PADDING);
+
+    const size_t nbytes_src1_q8_1 = ne13*ne12 * ne11*ne10_padded * sizeof(block_q8_1)/QK8_1 +
+        get_mmq_x_max_host(cc)*sizeof(block_q8_1_mmq);
+    ggml_cuda_pool_alloc<char> src1_q8_1(ctx.pool(), nbytes_src1_q8_1);
+
+    const int64_t src1_s11 = src1->nb[1] / ts_src1;
+    const int64_t src1_s12 = src1->nb[2] / ts_src1;
+    const int64_t src1_s13 = src1->nb[3] / ts_src1;
+
+    // This is the only activation conversion in the triple path. All three
+    // consumers are submitted on stream zero before the pool allocation dies.
+    ctx.halofpx_qkv_q8_conversions_submitted.fetch_add(1, std::memory_order_relaxed);
+    quantize_mmq_q8_1_cuda(
+        (const float *) src1->data, nullptr, src1_q8_1.get(), src0_q->type,
+        ne10, src1_s11, src1_s12, src1_s13, ne10_padded, ne11, ne12, ne13, stream);
+    CUDA_CHECK(cudaGetLastError());
+
+    const int64_t q8_s12 = ne11 * ne10_padded * sizeof(block_q8_1) / (QK8_1 * sizeof(int));
+    const int64_t q8_s13 = ne12 * q8_s12;
+    const bool use_stream_k = (GGML_CUDA_CC_IS_NVIDIA(cc) &&
+                               ggml_cuda_highest_compiled_arch(cc) >= GGML_CUDA_CC_VOLTA) ||
+                              GGML_CUDA_CC_IS_CDNA(cc);
+
+    const auto clear_compute_padding = [stream](const ggml_tensor * weight) {
+        if (ggml_backend_buffer_get_usage(weight->buffer) != GGML_BACKEND_BUFFER_USAGE_COMPUTE) {
+            return;
+        }
+        const size_t size_data  = ggml_nbytes(weight);
+        const size_t size_alloc = ggml_backend_buffer_get_alloc_size(weight->buffer, weight);
+        if (size_alloc > size_data) {
+            GGML_ASSERT(ggml_is_contiguously_allocated(weight));
+            GGML_ASSERT(!weight->view_src);
+            CUDA_CHECK(cudaMemsetAsync((char *) weight->data + size_data, 0, size_alloc - size_data, stream));
+        }
+    };
+
+    const auto launch = [&](const ggml_tensor * weight, ggml_tensor * dst) {
+        const size_t ts_weight = ggml_type_size(weight->type);
+        const size_t ts_dst    = ggml_type_size(dst->type);
+        GGML_ASSERT(weight->nb[0] == ts_weight);
+        GGML_ASSERT(dst->nb[0] == ts_dst);
+
+        const int64_t weight_s01 = weight->nb[1] / ts_weight;
+        const int64_t weight_s02 = weight->nb[2] / ts_weight;
+        const int64_t weight_s03 = weight->nb[3] / ts_weight;
+        const int64_t dst_s1     = dst->nb[1] / ts_dst;
+        const int64_t dst_s2     = dst->nb[2] / ts_dst;
+        const int64_t dst_s3     = dst->nb[3] / ts_dst;
+
+        clear_compute_padding(weight);
+        const mmq_args args = {
+            (const char *) weight->data, weight->type, (const int *) src1_q8_1.get(), nullptr, nullptr,
+            (float *) dst->data,
+            weight->ne[0], weight->ne[1], dst->ne[1], weight_s01, ne11, dst_s1,
+            weight->ne[2], ne12, weight_s02, q8_s12, dst_s2,
+            weight->ne[3], ne13, weight_s03, q8_s13, dst_s3,
+            use_stream_k, dst->ne[1]};
+        ctx.halofpx_qkv_mmq_submissions.fetch_add(1, std::memory_order_relaxed);
+        ggml_cuda_mul_mat_q_switch_type(ctx, args, stream);
+    };
+
+    launch(src0_q, dst_q);
+    launch(src0_k, dst_k);
+    launch(src0_v, dst_v);
+    ctx.halofpx_qkv_triple_dispatches.fetch_add(1, std::memory_order_relaxed);
+}
+// HALOFPX_QKV_Q8_REUSE_TRIPLE_END
 #endif
 
 void ggml_cuda_op_mul_mat_q(

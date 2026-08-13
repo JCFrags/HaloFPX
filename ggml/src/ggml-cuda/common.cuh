@@ -24,6 +24,7 @@
 
 #include <array>
 #include <algorithm>
+#include <atomic>
 #include <cassert>
 #include <cfloat>
 #include <cstdio>
@@ -1463,6 +1464,16 @@ struct ggml_backend_cuda_context {
     cublasHandle_t cublas_handles[GGML_CUDA_MAX_DEVICES] = {nullptr};
 
     int curr_stream_no = 0;
+
+#if defined(GGML_HIP_ROCMFPX_QKV_Q8_REUSE)
+    // Submission counters are diagnostic evidence for the default-off QKV
+    // experiment. They are per backend context so unrelated devices and test
+    // instances cannot contaminate one another.
+    std::atomic<uint64_t> halofpx_qkv_graph_groups_planned { 0 };
+    std::atomic<uint64_t> halofpx_qkv_triple_dispatches { 0 };
+    std::atomic<uint64_t> halofpx_qkv_q8_conversions_submitted { 0 };
+    std::atomic<uint64_t> halofpx_qkv_mmq_submissions { 0 };
+#endif
 
 #ifdef USE_CUDA_GRAPH
     // Map from first_node_ptr to cuda_graph - allows multiple graphs per context

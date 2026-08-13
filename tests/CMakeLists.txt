@@ -762,6 +762,9 @@ if (NOT LLAMA_SANITIZE_ADDRESS AND NOT GGML_SCHED_NO_REALLOC)
 endif()
 llama_build_and_test(test-gguf.cpp)
 llama_build_and_test(test-backend-ops.cpp)
+target_include_directories(test-backend-ops PRIVATE
+    ${CMAKE_SOURCE_DIR}/ggml/src
+    ${CMAKE_SOURCE_DIR}/ggml/src/ggml-cuda)
 
 foreach(HALOFPX_SUM_FREE_MODE IN ITEMS off on)
     set(HALOFPX_SUM_FREE_TARGET test-halofpx-rocmfpx-mmvq-sum-free-${HALOFPX_SUM_FREE_MODE})
@@ -808,6 +811,34 @@ add_test(
         -DSOURCE_ROOT=${CMAKE_SOURCE_DIR}
         -P ${CMAKE_CURRENT_SOURCE_DIR}/test-halofpx-rocmfpx-ffn-q8-reuse-source-contract.cmake)
 set_property(TEST test-halofpx-rocmfpx-ffn-q8-reuse-source-contract PROPERTY LABELS "main;halofpx")
+
+foreach(HALOFPX_QKV_Q8_REUSE_MODE IN ITEMS off on)
+    set(HALOFPX_QKV_Q8_REUSE_TARGET test-halofpx-rocmfpx-qkv-q8-reuse-${HALOFPX_QKV_Q8_REUSE_MODE})
+    add_executable(${HALOFPX_QKV_Q8_REUSE_TARGET} test-halofpx-rocmfpx-qkv-q8-reuse.cpp)
+    target_compile_features(${HALOFPX_QKV_Q8_REUSE_TARGET} PRIVATE cxx_std_17)
+    target_include_directories(${HALOFPX_QKV_Q8_REUSE_TARGET} PRIVATE
+        ${CMAKE_SOURCE_DIR}/ggml/include
+        ${CMAKE_SOURCE_DIR}/ggml/src
+        ${CMAKE_SOURCE_DIR}/ggml/src/ggml-cuda)
+    target_link_libraries(${HALOFPX_QKV_Q8_REUSE_TARGET} PRIVATE ggml)
+    if (HALOFPX_QKV_Q8_REUSE_MODE STREQUAL "on")
+        target_compile_definitions(${HALOFPX_QKV_Q8_REUSE_TARGET} PRIVATE
+            GGML_HIP_ROCMFPX_QKV_Q8_REUSE
+            HALOFPX_EXPECT_ROCMFPX_QKV_Q8_REUSE=1)
+    else()
+        target_compile_definitions(${HALOFPX_QKV_Q8_REUSE_TARGET} PRIVATE
+            HALOFPX_EXPECT_ROCMFPX_QKV_Q8_REUSE=0)
+    endif()
+    llama_test(${HALOFPX_QKV_Q8_REUSE_TARGET})
+    set_property(TEST ${HALOFPX_QKV_Q8_REUSE_TARGET} PROPERTY LABELS "main;halofpx")
+endforeach()
+
+add_test(
+    NAME test-halofpx-rocmfpx-qkv-q8-reuse-source-contract
+    COMMAND ${CMAKE_COMMAND}
+        -DSOURCE_ROOT=${CMAKE_SOURCE_DIR}
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/test-halofpx-rocmfpx-qkv-q8-reuse-source-contract.cmake)
+set_property(TEST test-halofpx-rocmfpx-qkv-q8-reuse-source-contract PROPERTY LABELS "main;halofpx")
 
 if (GGML_HIP AND GGML_RPC)
     llama_build(test-halofpx-rocmfpx-q6-view.cpp)
