@@ -1,0 +1,26 @@
+captured_utc=2026-08-13
+source_head=609c166421ecf3eecaa67340e4f40fcb750a0f48
+source_parent=3d9a0c3cc52168f696d600099742c7caf964161f
+host=Linux MainComputer 6.18.33.2-microsoft-standard-WSL2 x86_64 GNU/Linux
+cmake=4.2.3
+cxx=Ubuntu GCC 15.2.0-16ubuntu1
+release_build_type=Release
+release_shared_libraries=OFF
+release_ggml_hip=OFF
+release_ggml_native=OFF
+release_ggml_rpc=OFF
+release_tests=ON
+release_composed_host_ctest=17/17 PASS
+release_test_backend_ops=compiled
+release_test_backend_ops_sha256=c2b957100bb1f561625416189997bc45ef6ee1817fe81c7114511c198d4f58f3
+asan_build_type=Debug
+asan_shared_libraries=OFF
+asan_ggml_hip=OFF
+asan_ggml_native=OFF
+asan_ggml_rpc=OFF
+asan_tests=ON
+asan_options=detect_leaks=1
+ubsan_options=print_stacktrace=1:halt_on_error=1
+asan_ubsan_composition_ctest=11/11 PASS
+raw_release_log=host-release-ctest.txt
+raw_asan_log=host-asan-ctest.txt

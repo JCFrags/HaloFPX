@@ -1,0 +1,39 @@
+source_head=609c166421ecf3eecaa67340e4f40fcb750a0f48
+source_parent=3d9a0c3cc52168f696d600099742c7caf964161f
+# branch.oid 609c166421ecf3eecaa67340e4f40fcb750a0f48
+# branch.head codex/prefill-next-kernel-candidate
+# branch.upstream origin/codex/prefill-next-kernel-candidate
+# branch.ab +0 -0
+100644 blob 3f82ffb7b4dc93ec6387c9f632686f2af5a10e2b	.github/workflows/halofpx-ci.yml
+100644 blob e122a45d8ce4b05952ebdcf766833e864844195d	HANDOFF.md
+100644 blob 2f1c5a6d31edf1f23a74decf1583493b5876ace2	docs/halofpx/README.md
+100644 blob dc9683ca3a09a60785597ec58164cd4d5a97972d	docs/halofpx/decisions/0053-rocmfpx-qkv-q8-activation-reuse.md
+100644 blob a93c635a2c0857c5d2504f7c0831a5ef78a5f88b	docs/halofpx/decisions/0055-rocmfpx-strict-n1-mmvq-qkv-q8-reuse.md
+100644 blob 97a3b4512e9e84bacc0766ba6751824d9cd04030	docs/halofpx/decisions/0060-rocmfpx-routed-moe-q8-reuse.md
+100644 blob 699a070fd7b32ba897b0a34651aab4a146ff07ca	docs/halofpx/decisions/README.md
+100644 blob 37b0cfd0fc41a658be944ab181aca6ef07f5e827	docs/halofpx/rocmfpx-mmvq-qkv-q8-reuse.md
+100644 blob 06e379aea72b71af377489e455dea7a31ebef05c	docs/halofpx/rocmfpx-prefill-candidate-screen-9bfccf25.md
+100644 blob 1345009079fc60e61433bd00f1c43db9eb07faad	docs/halofpx/rocmfpx-qkv-q8-reuse.md
+100644 blob 2f1dd968f44f8e4fe45380ebee366b2f2adb27e9	docs/halofpx/rocmfpx-routed-moe-q8-reuse.md
+100644 blob 044acb65a52064e066b399e086130359edbb918a	ggml/CMakeLists.txt
+100644 blob 0f804688ef72012c5759f00b4e2e17152b2c561f	ggml/src/ggml-cuda/common.cuh
+100644 blob eef05efda49b4866674baeca72b26c53f36e7a7b	ggml/src/ggml-cuda/ggml-cuda.cu
+100644 blob adc22d4a332693731bc558183ae093079724b536	ggml/src/ggml-cuda/mmq.cu
+100644 blob ab479fc890474349f6ae06fce7f759e872fb62a3	ggml/src/ggml-cuda/mmq.cuh
+100644 blob 4bf87f8f4f21c08ef26aa174969d7cc6e7dab93b	ggml/src/ggml-cuda/mmvq.cu
+100644 blob 8e34d0330e8ae45f90fa09185138e093a9cb2e3a	ggml/src/ggml-cuda/mmvq.cuh
+100644 blob e5187ae5576d1b5dff4012dad3c9ba210febf67f	ggml/src/ggml-cuda/rocmfpx-mmvq-qkv-q8-reuse.h
+100644 blob b7700cabe306fabbd0e7fd3e3ee6f73797f3abd6	ggml/src/ggml-cuda/rocmfpx-moe-q8-reuse.h
+100644 blob 192ed5605273f7822ad4721041087a485b2b0bbf	ggml/src/ggml-cuda/rocmfpx-qkv-q8-reuse.h
+100644 blob 4757b09c397f0503ffd03c2b7038c4d9e56659a7	ggml/src/ggml-hip/CMakeLists.txt
+100755 blob 217d4979a1f61975b28ab62e3560961fbbe38426	scripts/build-halofpx-primary-matched.sh
+100755 blob babfaff74c1f8b4077823e58238c5e28a7941bea	scripts/build-strix-rocmfp4-mtp.sh
+100644 blob a3d4e18d8964955c189d99547751dbb0a39087d8	tests/CMakeLists.txt
+100644 blob 4f9e0e03735cd0743bd79074349bca4042817643	tests/test-backend-ops.cpp
+100644 blob 1c9a170aa9b17caecfb490ab5912c1960be7d468	tests/test-halofpx-rocmfpx-mmvq-qkv-q8-reuse-source-contract.cmake
+100644 blob a02c879a96926de2b00f7a5dd9ddee8be4917732	tests/test-halofpx-rocmfpx-mmvq-qkv-q8-reuse.cpp
+100644 blob 172fcbcfb4c34570e9fc8931770cb26de392b72d	tests/test-halofpx-rocmfpx-moe-q8-reuse-source-contract.cmake
+100644 blob 433c8690ab9adf3facd0e9e24e592d8a56075f3d	tests/test-halofpx-rocmfpx-moe-q8-reuse.cpp
+100644 blob b2c55f62153950a78c0ec044a1fec2e80965667e	tests/test-halofpx-rocmfpx-qkv-moe-composition.cpp
+100644 blob 9c08ee45246d1ae65c5a6e8eae90726a4cb053f9	tests/test-halofpx-rocmfpx-qkv-q8-reuse-source-contract.cmake
+100644 blob 2ff0bfe7c1b7bee3713ddff8f6efee2cdc64b342	tests/test-halofpx-rocmfpx-qkv-q8-reuse.cpp

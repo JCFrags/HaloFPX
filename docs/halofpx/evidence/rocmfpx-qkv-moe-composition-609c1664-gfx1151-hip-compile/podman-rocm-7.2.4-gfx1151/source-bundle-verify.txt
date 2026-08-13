@@ -1,0 +1,5 @@
+/home/britt/halofpx-qkv-moe-compose-609c1664/source.bundle is okay
+The bundle contains this ref:
+609c166421ecf3eecaa67340e4f40fcb750a0f48 refs/heads/codex/prefill-next-kernel-candidate
+The bundle records a complete history.
+The bundle uses this hash algorithm: sha1

@@ -1,0 +1,300 @@
+[
+     {
+          "Id": "64b964181b984457707f6502909c6132d9523d9a337ce47b7b59eb807023bb8c",
+          "Created": "2026-08-13T01:06:58.979809409-07:00",
+          "Path": "bash",
+          "Args": [
+               "/workspace/run.sh"
+          ],
+          "State": {
+               "OciVersion": "1.2.1",
+               "Status": "exited",
+               "Running": false,
+               "Paused": false,
+               "Restarting": false,
+               "OOMKilled": false,
+               "Dead": false,
+               "Pid": 0,
+               "ExitCode": 0,
+               "Error": "",
+               "StartedAt": "2026-08-13T01:06:59.034219479-07:00",
+               "FinishedAt": "2026-08-13T01:33:42.260588613-07:00",
+               "CheckpointedAt": "0001-01-01T00:00:00Z",
+               "RestoredAt": "0001-01-01T00:00:00Z"
+          },
+          "Image": "67427cc410efa89e605039547cc43780f400381874da97ec6d6e4cd3263757c2",
+          "ImageDigest": "sha256:9c7093f09068010487ad826e7677f9dc31b620db3a5544ef3c1da2c9d291dc80",
+          "ImageName": "localhost/halofpx-rocm-7.2.4-builddeps:qkv-113e4117",
+          "Rootfs": "",
+          "Pod": "",
+          "ResolvConfPath": "/run/user/1000/containers/overlay-containers/64b964181b984457707f6502909c6132d9523d9a337ce47b7b59eb807023bb8c/userdata/resolv.conf",
+          "HostnamePath": "/run/user/1000/containers/overlay-containers/64b964181b984457707f6502909c6132d9523d9a337ce47b7b59eb807023bb8c/userdata/hostname",
+          "HostsPath": "/run/user/1000/containers/overlay-containers/64b964181b984457707f6502909c6132d9523d9a337ce47b7b59eb807023bb8c/userdata/hosts",
+          "StaticDir": "/home/britt/.local/share/containers/storage/overlay-containers/64b964181b984457707f6502909c6132d9523d9a337ce47b7b59eb807023bb8c/userdata",
+          "OCIConfigPath": "/home/britt/.local/share/containers/storage/overlay-containers/64b964181b984457707f6502909c6132d9523d9a337ce47b7b59eb807023bb8c/userdata/config.json",
+          "OCIRuntime": "crun",
+          "ConmonPidFile": "/run/user/1000/containers/overlay-containers/64b964181b984457707f6502909c6132d9523d9a337ce47b7b59eb807023bb8c/userdata/conmon.pid",
+          "PidFile": "/run/user/1000/containers/overlay-containers/64b964181b984457707f6502909c6132d9523d9a337ce47b7b59eb807023bb8c/userdata/pidfile",
+          "Name": "halofpx-qkv-moe-compose-609c1664",
+          "RestartCount": 0,
+          "Driver": "overlay",
+          "MountLabel": "",
+          "ProcessLabel": "",
+          "AppArmorProfile": "",
+          "EffectiveCaps": [
+               "CAP_CHOWN",
+               "CAP_DAC_OVERRIDE",
+               "CAP_FOWNER",
+               "CAP_FSETID",
+               "CAP_KILL",
+               "CAP_NET_BIND_SERVICE",
+               "CAP_SETFCAP",
+               "CAP_SETGID",
+               "CAP_SETPCAP",
+               "CAP_SETUID",
+               "CAP_SYS_CHROOT"
+          ],
+          "BoundingCaps": [
+               "CAP_CHOWN",
+               "CAP_DAC_OVERRIDE",
+               "CAP_FOWNER",
+               "CAP_FSETID",
+               "CAP_KILL",
+               "CAP_NET_BIND_SERVICE",
+               "CAP_SETFCAP",
+               "CAP_SETGID",
+               "CAP_SETPCAP",
+               "CAP_SETUID",
+               "CAP_SYS_CHROOT"
+          ],
+          "ExecIDs": [],
+          "GraphDriver": {
+               "Name": "overlay",
+               "Data": {
+                    "LowerDir": "/home/britt/.local/share/containers/storage/overlay/c9a86ce9ffce14040b440755f96b0fe8e34ba17f2cef4a17e08f3a26d0f8bb0b/diff:/home/britt/.local/share/containers/storage/overlay/75335cfdbe0b368c60325ee5b8e7c7d887dd52e6988d36e75bbfea40d8ec01d4/diff:/home/britt/.local/share/containers/storage/overlay/7bc0ce78054e809a58035b734f9928bcc729fca68a4dbeae49aef42cd3df42a1/diff:/home/britt/.local/share/containers/storage/overlay/f13ebbc73ef6d414f8fb4cb1fa3e691dac1b18be8e78ab04c54f628e2ed1de6a/diff:/home/britt/.local/share/containers/storage/overlay/538812a4b9bd45adaac2b5e5b967daa6999aa44eb110aa32ae7c69702b906475/diff",
+                    "UpperDir": "/home/britt/.local/share/containers/storage/overlay/322e9c674703b5f3e026019c23e32d18933f5a5f913558b2e5069ca9fdbdc4e8/diff",
+                    "WorkDir": "/home/britt/.local/share/containers/storage/overlay/322e9c674703b5f3e026019c23e32d18933f5a5f913558b2e5069ca9fdbdc4e8/work"
+               }
+          },
+          "Mounts": [
+               {
+                    "Type": "bind",
+                    "Source": "/home/britt/halofpx-qkv-moe-compose-609c1664",
+                    "Destination": "/workspace",
+                    "Driver": "",
+                    "Mode": "",
+                    "Options": [
+                         "rbind"
+                    ],
+                    "RW": true,
+                    "Propagation": "rprivate"
+               }
+          ],
+          "Dependencies": [],
+          "NetworkSettings": {
+               "EndpointID": "",
+               "Gateway": "",
+               "IPAddress": "",
+               "IPPrefixLen": 0,
+               "IPv6Gateway": "",
+               "GlobalIPv6Address": "",
+               "GlobalIPv6PrefixLen": 0,
+               "MacAddress": "",
+               "Bridge": "",
+               "SandboxID": "",
+               "HairpinMode": false,
+               "LinkLocalIPv6Address": "",
+               "LinkLocalIPv6PrefixLen": 0,
+               "Ports": {},
+               "SandboxKey": "",
+               "Networks": {
+                    "pasta": {
+                         "EndpointID": "",
+                         "Gateway": "",
+                         "IPAddress": "",
+                         "IPPrefixLen": 0,
+                         "IPv6Gateway": "",
+                         "GlobalIPv6Address": "",
+                         "GlobalIPv6PrefixLen": 0,
+                         "MacAddress": "",
+                         "NetworkID": "pasta",
+                         "DriverOpts": null,
+                         "IPAMConfig": null,
+                         "Links": null
+                    }
+               }
+          },
+          "Namespace": "",
+          "IsInfra": false,
+          "IsService": false,
+          "KubeExitCodePropagation": "invalid",
+          "lockNumber": 4,
+          "Config": {
+               "Hostname": "64b964181b98",
+               "Domainname": "",
+               "User": "",
+               "AttachStdin": false,
+               "AttachStdout": false,
+               "AttachStderr": false,
+               "Tty": false,
+               "OpenStdin": false,
+               "StdinOnce": false,
+               "Env": [
+                    "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                    "container=podman",
+                    "HOME=/root",
+                    "HOSTNAME=64b964181b98"
+               ],
+               "Cmd": [
+                    "bash",
+                    "/workspace/run.sh"
+               ],
+               "Image": "localhost/halofpx-rocm-7.2.4-builddeps:qkv-113e4117",
+               "Volumes": null,
+               "WorkingDir": "/",
+               "Entrypoint": null,
+               "OnBuild": null,
+               "Labels": {
+                    "maintainer": "dl.mlsedevops@amd.com",
+                    "org.opencontainers.image.version": "24.04"
+               },
+               "Annotations": {
+                    "io.container.manager": "libpod",
+                    "io.podman.annotations.label": "disable",
+                    "org.opencontainers.image.stopSignal": "15",
+                    "org.systemd.property.KillSignal": "15",
+                    "org.systemd.property.TimeoutStopUSec": "uint64 10000000"
+               },
+               "StopSignal": "SIGTERM",
+               "HealthcheckOnFailureAction": "none",
+               "HealthLogDestination": "local",
+               "HealthcheckMaxLogCount": 5,
+               "HealthcheckMaxLogSize": 500,
+               "CreateCommand": [
+                    "podman",
+                    "run",
+                    "-d",
+                    "--pull=never",
+                    "--name",
+                    "halofpx-qkv-moe-compose-609c1664",
+                    "--security-opt",
+                    "label=disable",
+                    "-v",
+                    "/home/britt/halofpx-qkv-moe-compose-609c1664:/workspace",
+                    "localhost/halofpx-rocm-7.2.4-builddeps:qkv-113e4117",
+                    "bash",
+                    "/workspace/run.sh"
+               ],
+               "Umask": "0022",
+               "Timeout": 0,
+               "StopTimeout": 10,
+               "Passwd": true,
+               "sdNotifyMode": "container"
+          },
+          "HostConfig": {
+               "Binds": [
+                    "/home/britt/halofpx-qkv-moe-compose-609c1664:/workspace:rprivate,rbind"
+               ],
+               "CgroupManager": "systemd",
+               "CgroupMode": "private",
+               "ContainerIDFile": "",
+               "LogConfig": {
+                    "Type": "journald",
+                    "Config": null,
+                    "Path": "",
+                    "Tag": "",
+                    "Size": "-1B"
+               },
+               "NetworkMode": "pasta",
+               "PortBindings": {},
+               "RestartPolicy": {
+                    "Name": "no",
+                    "MaximumRetryCount": 0
+               },
+               "AutoRemove": false,
+               "AutoRemoveImage": false,
+               "Annotations": {
+                    "io.container.manager": "libpod",
+                    "io.podman.annotations.label": "disable",
+                    "org.opencontainers.image.stopSignal": "15",
+                    "org.systemd.property.KillSignal": "15",
+                    "org.systemd.property.TimeoutStopUSec": "uint64 10000000"
+               },
+               "VolumeDriver": "",
+               "VolumesFrom": null,
+               "CapAdd": [],
+               "CapDrop": [],
+               "Dns": [],
+               "DnsOptions": [],
+               "DnsSearch": [],
+               "ExtraHosts": [],
+               "HostsFile": "",
+               "GroupAdd": [],
+               "IpcMode": "shareable",
+               "Cgroup": "",
+               "Cgroups": "default",
+               "Links": null,
+               "OomScoreAdj": 0,
+               "PidMode": "private",
+               "Privileged": false,
+               "PublishAllPorts": false,
+               "ReadonlyRootfs": false,
+               "SecurityOpt": [
+                    "label=disable"
+               ],
+               "Tmpfs": {},
+               "UTSMode": "private",
+               "UsernsMode": "",
+               "ShmSize": 65536000,
+               "Runtime": "oci",
+               "ConsoleSize": [
+                    0,
+                    0
+               ],
+               "Isolation": "",
+               "CpuShares": 0,
+               "Memory": 0,
+               "NanoCpus": 0,
+               "CgroupParent": "user.slice",
+               "BlkioWeight": 0,
+               "BlkioWeightDevice": null,
+               "BlkioDeviceReadBps": null,
+               "BlkioDeviceWriteBps": null,
+               "BlkioDeviceReadIOps": null,
+               "BlkioDeviceWriteIOps": null,
+               "CpuPeriod": 0,
+               "CpuQuota": 0,
+               "CpuRealtimePeriod": 0,
+               "CpuRealtimeRuntime": 0,
+               "CpusetCpus": "",
+               "CpusetMems": "",
+               "Devices": [],
+               "DiskQuota": 0,
+               "KernelMemory": 0,
+               "MemoryReservation": 0,
+               "MemorySwap": 0,
+               "MemorySwappiness": 0,
+               "OomKillDisable": false,
+               "PidsLimit": 2048,
+               "Ulimits": [
+                    {
+                         "Name": "RLIMIT_NOFILE",
+                         "Soft": 1048576,
+                         "Hard": 1048576
+                    },
+                    {
+                         "Name": "RLIMIT_NPROC",
+                         "Soft": 93803,
+                         "Hard": 93803
+                    }
+               ],
+               "CpuCount": 0,
+               "CpuPercent": 0,
+               "IOMaximumIOps": 0,
+               "IOMaximumBandwidth": 0,
+               "CgroupConf": null
+          },
+          "UseImageHosts": false,
+          "UseImageHostname": false
+     }
+]

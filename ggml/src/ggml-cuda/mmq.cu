@@ -3,6 +3,7 @@
 #include "quantize.cuh"
 #include "mmid.cuh"
 #include "rocmfpx-ffn-q8-reuse.h"
+#include "rocmfpx-moe-q8-reuse.h"
 #include "rocmfpx-qkv-q8-reuse.h"
 
 static void ggml_cuda_mul_mat_q_switch_type(ggml_backend_cuda_context & ctx, const mmq_args & args, cudaStream_t stream) {
@@ -203,11 +204,19 @@ void ggml_cuda_mul_mat_q(
     ggml_cuda_pool_alloc<int32_t> ids_dst(ctx.pool(), ne_get_rows);
     ggml_cuda_pool_alloc<int32_t> expert_bounds(ctx.pool(), ne02 + 1);
 
+#if defined(GGML_HIP_ROCMFPX_MOE_Q8_REUSE)
+    // HALOFPX_MOE_Q8_REUSE_LEGACY_ID_METRICS_BEGIN
+#endif
     {
         GGML_ASSERT(ids->nb[0] == ggml_element_size(ids));
         const int si1  = ids->nb[1] / ggml_element_size(ids);
         const int sis1 = nb12 / nb11;
 
+#if defined(GGML_HIP_ROCMFPX_MOE_Q8_REUSE)
+        if (halofpx_rocmfpx_moe_q8_reuse_type(src0->type)) {
+            ctx.halofpx_moe_ids_helper_submissions.fetch_add(1, std::memory_order_relaxed);
+        }
+#endif
         ggml_cuda_launch_mm_ids_helper((const int32_t *) ids->data, ids_src1.get(), ids_dst.get(), expert_bounds.get(),
             ne02, ne12, n_expert_used, ne11, si1, sis1, stream);
         CUDA_CHECK(cudaGetLastError());
@@ -230,6 +239,11 @@ void ggml_cuda_mul_mat_q(
             quantize_mmq_fp4_cuda(src1_d, ids_src1.get(), src1_q8_1.get(), src0->type, ne10, s11, s12, s13,
                                     ne10_padded, ne11_flat, ne12_flat, ne13_flat, stream);
         } else {
+#if defined(GGML_HIP_ROCMFPX_MOE_Q8_REUSE)
+            if (halofpx_rocmfpx_moe_q8_reuse_type(src0->type)) {
+                ctx.halofpx_moe_q8_conversions_submitted.fetch_add(1, std::memory_order_relaxed);
+            }
+#endif
             quantize_mmq_q8_1_cuda(src1_d, ids_src1.get(), src1_q8_1.get(), src0->type, ne10, s11, s12, s13,
                                    ne10_padded, ne11_flat, ne12_flat, ne13_flat, stream);
         }
@@ -249,6 +263,12 @@ void ggml_cuda_mul_mat_q(
         ne03, ne13, s03, s13, s3,
         use_stream_k, ne12};
 
+#if defined(GGML_HIP_ROCMFPX_MOE_Q8_REUSE)
+    if (halofpx_rocmfpx_moe_q8_reuse_type(src0->type)) {
+        ctx.halofpx_moe_mmq_submissions.fetch_add(1, std::memory_order_relaxed);
+    }
+    // HALOFPX_MOE_Q8_REUSE_LEGACY_ID_METRICS_END
+#endif
     ggml_cuda_mul_mat_q_switch_type(ctx, args, stream);
 }
 
@@ -346,6 +366,162 @@ void ggml_cuda_mul_mat_q_rocmfpx_pair(
     launch(src0_b, dst_b);
 }
 // HALOFPX_FFN_Q8_REUSE_PAIR_END
+#endif
+
+#if defined(GGML_HIP_ROCMFPX_MOE_Q8_REUSE)
+// HALOFPX_MOE_Q8_REUSE_PAIR_BEGIN
+void ggml_cuda_mul_mat_id_q_rocmfpx_pair(
+        ggml_backend_cuda_context & ctx,
+        const ggml_tensor * src0_a,
+        const ggml_tensor * src0_b,
+        const ggml_tensor * src1,
+        const ggml_tensor * ids,
+        ggml_tensor * dst_a,
+        ggml_tensor * dst_b) {
+    GGML_ASSERT(src0_a && src0_b && src1 && ids && dst_a && dst_b);
+    GGML_ASSERT(ctx.curr_stream_no == 0);
+    GGML_ASSERT(halofpx_rocmfpx_moe_q8_reuse_type(src0_a->type));
+    GGML_ASSERT(src0_a->type == src0_b->type);
+    GGML_ASSERT(ggml_are_same_shape(src0_a, src0_b));
+    GGML_ASSERT(ggml_are_same_stride(src0_a, src0_b));
+    GGML_ASSERT(src1->type == GGML_TYPE_F32);
+    GGML_ASSERT(ids->type == GGML_TYPE_I32);
+    GGML_ASSERT(dst_a->type == GGML_TYPE_F32 && dst_b->type == GGML_TYPE_F32);
+    GGML_ASSERT(ggml_are_same_shape(dst_a, dst_b));
+    GGML_ASSERT(ggml_are_same_stride(dst_a, dst_b));
+
+    const size_t ts_src1 = ggml_type_size(src1->type);
+    const size_t ts_ids  = ggml_type_size(ids->type);
+    GGML_ASSERT(src1->nb[0] == ts_src1);
+    GGML_ASSERT(ids->nb[0] == ts_ids);
+    GGML_ASSERT(src1->ne[3] == 1);
+    GGML_ASSERT(src1->nb[2] % src1->nb[1] == 0);
+    GGML_ASSERT(dst_a->nb[2] % dst_a->nb[1] == 0);
+    GGML_ASSERT(dst_b->nb[2] % dst_b->nb[1] == 0);
+
+    const int64_t n_experts    = src0_a->ne[2];
+    const int64_t n_expert_used = ids->ne[0];
+    const int64_t n_tokens      = src1->ne[2];
+    const int64_t ne_get_rows   = n_tokens * n_expert_used;
+    GGML_ASSERT(n_experts == src0_b->ne[2]);
+    GGML_ASSERT(src1->ne[1] == n_expert_used);
+    GGML_ASSERT(ids->ne[1] == n_tokens);
+    GGML_ASSERT(dst_a->ne[1] == n_expert_used && dst_b->ne[1] == n_expert_used);
+    GGML_ASSERT(dst_a->ne[2] == n_tokens && dst_b->ne[2] == n_tokens);
+
+    cudaStream_t stream = ctx.stream();
+    const int cc = ggml_cuda_info().devices[ctx.device].cc;
+
+    ggml_cuda_pool_alloc<int32_t> ids_src1(ctx.pool(), ne_get_rows);
+    ggml_cuda_pool_alloc<int32_t> ids_dst(ctx.pool(), ne_get_rows);
+    ggml_cuda_pool_alloc<int32_t> expert_bounds(ctx.pool(), n_experts + 1);
+
+    const int ids_s1 = ids->nb[1] / ts_ids;
+    const int src1_sis1 = src1->nb[2] / src1->nb[1];
+    ctx.halofpx_moe_ids_helper_submissions.fetch_add(1, std::memory_order_relaxed);
+    ggml_cuda_launch_mm_ids_helper(
+        (const int32_t *) ids->data,
+        ids_src1.get(),
+        ids_dst.get(),
+        expert_bounds.get(),
+        static_cast<int>(n_experts),
+        static_cast<int>(n_tokens),
+        static_cast<int>(n_expert_used),
+        static_cast<int>(src1->ne[1]),
+        ids_s1,
+        src1_sis1,
+        stream);
+    CUDA_CHECK(cudaGetLastError());
+
+    const int64_t ne10 = src1->ne[0];
+    const int64_t ne10_padded = GGML_PAD(ne10, MATRIX_ROW_PADDING);
+    const size_t nbytes_src1_q8_1 =
+        n_tokens*n_expert_used*ne10_padded * sizeof(block_q8_1)/QK8_1 +
+        get_mmq_x_max_host(cc)*sizeof(block_q8_1_mmq);
+    ggml_cuda_pool_alloc<char> src1_q8_1(ctx.pool(), nbytes_src1_q8_1);
+
+    const int64_t src1_s11 = src1->nb[1] / ts_src1;
+    const int64_t src1_s12 = src1->nb[2] / ts_src1;
+    const int64_t src1_s13 = src1->nb[3] / ts_src1;
+    ctx.halofpx_moe_q8_conversions_submitted.fetch_add(1, std::memory_order_relaxed);
+    quantize_mmq_q8_1_cuda(
+        (const float *) src1->data,
+        ids_src1.get(),
+        src1_q8_1.get(),
+        src0_a->type,
+        ne10,
+        src1_s11,
+        src1_s12,
+        src1_s13,
+        ne10_padded,
+        ne_get_rows,
+        1,
+        1,
+        stream);
+    CUDA_CHECK(cudaGetLastError());
+
+    const int64_t q8_s12 = src1->ne[1] * ne10_padded * sizeof(block_q8_1) /
+                           (QK8_1 * sizeof(int));
+    const int64_t q8_s13 = src1->ne[2] * q8_s12;
+    const bool use_stream_k = (GGML_CUDA_CC_IS_NVIDIA(cc) &&
+                               ggml_cuda_highest_compiled_arch(cc) >= GGML_CUDA_CC_VOLTA) ||
+                              GGML_CUDA_CC_IS_CDNA(cc);
+
+    const auto clear_compute_padding = [stream](const ggml_tensor * weight) {
+        if (ggml_backend_buffer_get_usage(weight->buffer) != GGML_BACKEND_BUFFER_USAGE_COMPUTE) {
+            return;
+        }
+        const size_t size_data  = ggml_nbytes(weight);
+        const size_t size_alloc = ggml_backend_buffer_get_alloc_size(weight->buffer, weight);
+        if (size_alloc > size_data) {
+            GGML_ASSERT(ggml_is_contiguously_allocated(weight));
+            GGML_ASSERT(!weight->view_src);
+            CUDA_CHECK(cudaMemsetAsync((char *) weight->data + size_data, 0, size_alloc - size_data, stream));
+        }
+    };
+
+    const auto launch = [&](const ggml_tensor * weight, ggml_tensor * dst) {
+        const size_t ts_weight = ggml_type_size(weight->type);
+        const size_t ts_dst    = ggml_type_size(dst->type);
+        GGML_ASSERT(weight->nb[0] == ts_weight);
+        GGML_ASSERT(dst->nb[0] == ts_dst);
+
+        clear_compute_padding(weight);
+        const mmq_args args = {
+            (const char *) weight->data,
+            weight->type,
+            (const int *) src1_q8_1.get(),
+            ids_dst.get(),
+            expert_bounds.get(),
+            (float *) dst->data,
+            weight->ne[0],
+            weight->ne[1],
+            ne_get_rows,
+            static_cast<int64_t>(weight->nb[1] / ts_weight),
+            ne_get_rows,
+            static_cast<int64_t>(dst->nb[1] / ts_dst),
+            weight->ne[2],
+            weight->ne[2],
+            static_cast<int64_t>(weight->nb[2] / ts_weight),
+            q8_s12,
+            static_cast<int64_t>(dst->nb[2] / ts_dst),
+            weight->ne[3],
+            src1->ne[3],
+            static_cast<int64_t>(weight->nb[3] / ts_weight),
+            q8_s13,
+            static_cast<int64_t>(dst->nb[3] / ts_dst),
+            use_stream_k,
+            n_tokens,
+        };
+        ctx.halofpx_moe_mmq_submissions.fetch_add(1, std::memory_order_relaxed);
+        ggml_cuda_mul_mat_q_switch_type(ctx, args, stream);
+    };
+
+    launch(src0_a, dst_a);
+    launch(src0_b, dst_b);
+    ctx.halofpx_moe_pair_dispatches.fetch_add(1, std::memory_order_relaxed);
+}
+// HALOFPX_MOE_Q8_REUSE_PAIR_END
 #endif
 
 #if defined(GGML_HIP_ROCMFPX_QKV_Q8_REUSE)

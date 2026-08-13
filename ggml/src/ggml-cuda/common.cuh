@@ -1485,6 +1485,15 @@ struct ggml_backend_cuda_context {
     std::atomic<uint64_t> halofpx_mmvq_qkv_mmvq_submissions { 0 };
 #endif
 
+#if defined(GGML_HIP_ROCMFPX_MOE_Q8_REUSE)
+    // Per-context host-submission evidence for the default-off routed-MoE
+    // experiment. Scratch and counters never cross a backend/rank boundary.
+    std::atomic<uint64_t> halofpx_moe_pair_dispatches { 0 };
+    std::atomic<uint64_t> halofpx_moe_ids_helper_submissions { 0 };
+    std::atomic<uint64_t> halofpx_moe_q8_conversions_submitted { 0 };
+    std::atomic<uint64_t> halofpx_moe_mmq_submissions { 0 };
+#endif
+
 #ifdef USE_CUDA_GRAPH
     // Map from first_node_ptr to cuda_graph - allows multiple graphs per context
     // when the computation is split across CPU/GPU (e.g., with --n-cpu-moe)

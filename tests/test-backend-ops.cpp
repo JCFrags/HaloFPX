@@ -21,6 +21,7 @@
 #include <ggml-cpp.h>
 
 #include "ggml-backend-impl.h"
+#include "rocmfpx-moe-q8-reuse.h"
 #include "rocmfpx-qkv-q8-reuse.h"
 #include "rocmfpx-mmvq-qkv-q8-reuse.h"
 
@@ -6066,6 +6067,201 @@ struct test_mul_mat_vec_fusion : public test_case {
     }
 };
 
+// HaloFPX ADR-0060: an adjacent routed-MoE gate/up pair can share the exact
+// token-to-expert mapping and Q8_1 activation preparation. These whole-graph
+// cases run only on an enabled HIP backend and compare every retained output
+// against CPU. The eligible case deliberately uses an ID view with padded row
+// stride and deterministic routes that include expert 0 and the last expert.
+struct test_halofpx_rocmfpx_moe_q8_reuse : public test_case {
+    using metrics_proc_t = bool (*)(
+        ggml_backend_t,
+        bool,
+        halofpx_rocmfpx_moe_q8_reuse_metrics_v1 *);
+
+    const ggml_type type;
+    const int64_t tokens;
+    const bool distinct_ids;
+    const bool with_bias;
+
+    static constexpr int64_t hidden = 256;
+    static constexpr int64_t width = 128;
+    static constexpr int64_t n_experts = 32;
+    static constexpr int64_t n_expert_used = 4;
+
+    ggml_tensor * ids_a_storage = nullptr;
+    ggml_tensor * ids_b_storage = nullptr;
+    ggml_tensor * gate_projection = nullptr;
+    ggml_tensor * up_projection = nullptr;
+    ggml_tensor * out = nullptr;
+    metrics_proc_t metrics_proc = nullptr;
+
+    test_halofpx_rocmfpx_moe_q8_reuse(
+            ggml_type type,
+            int64_t tokens,
+            bool distinct_ids = false,
+            bool with_bias = false) :
+        type(type), tokens(tokens), distinct_ids(distinct_ids), with_bias(with_bias) {}
+
+    std::string vars() override {
+        return VARS_TO_STR4(type, tokens, distinct_ids, with_bias);
+    }
+
+    std::string op_desc(ggml_tensor * tensor) override {
+        GGML_UNUSED(tensor);
+        return "HALOFPX_ROCMFPX_MOE_Q8_REUSE";
+    }
+
+    bool is_applicable_to_backend(ggml_backend_t backend) override {
+        return backend_has_feature(backend, "ROCMFPX_MOE_Q8_REUSE");
+    }
+
+    bool run_whole_graph() override { return true; }
+
+    double max_nmse_err() override { return 5e-3; }
+
+    ggml_tensor * build_graph(ggml_context * ctx) override {
+        ggml_tensor * gate_weight = ggml_new_tensor_3d(ctx, type, hidden, width, n_experts);
+        ggml_tensor * up_weight = ggml_new_tensor_3d(ctx, type, hidden, width, n_experts);
+        ggml_set_name(gate_weight, "moe-gate-weight");
+        ggml_set_name(up_weight, "moe-up-weight");
+
+        ids_a_storage = ggml_new_tensor_2d(ctx, GGML_TYPE_I32, n_experts, tokens);
+        ggml_set_name(ids_a_storage, "moe-ids-a-storage");
+        ggml_tensor * ids_a = ggml_view_2d(
+            ctx, ids_a_storage, n_expert_used, tokens, ids_a_storage->nb[1], 0);
+        ggml_set_name(ids_a, "moe-ids-a-padded-view");
+
+        ggml_tensor * ids_b = ids_a;
+        ids_b_storage = ids_a_storage;
+        if (distinct_ids) {
+            ids_b_storage = ggml_new_tensor_2d(ctx, GGML_TYPE_I32, n_experts, tokens);
+            ggml_set_name(ids_b_storage, "moe-ids-b-storage");
+            ids_b = ggml_view_2d(
+                ctx, ids_b_storage, n_expert_used, tokens, ids_b_storage->nb[1], 0);
+            ggml_set_name(ids_b, "moe-ids-b-padded-view");
+        }
+
+        ggml_tensor * activation = ggml_new_tensor_3d(
+            ctx, GGML_TYPE_F32, hidden, n_expert_used, tokens);
+        ggml_set_name(activation, "moe-shared-activation");
+
+        gate_projection = ggml_mul_mat_id(ctx, gate_weight, activation, ids_a);
+        up_projection = ggml_mul_mat_id(ctx, up_weight, activation, ids_b);
+        ggml_set_name(gate_projection, "moe-gate-projection");
+        ggml_set_name(up_projection, "moe-up-projection");
+
+        ggml_tensor * gate_for_glu = gate_projection;
+        ggml_tensor * up_for_glu = up_projection;
+        if (with_bias) {
+            ggml_tensor * gate_bias = ggml_new_tensor_2d(ctx, GGML_TYPE_F32, width, n_experts);
+            ggml_tensor * up_bias = ggml_new_tensor_2d(ctx, GGML_TYPE_F32, width, n_experts);
+            gate_for_glu = ggml_add_id(ctx, gate_projection, gate_bias, ids_a);
+            up_for_glu = ggml_add_id(ctx, up_projection, up_bias, ids_b);
+        }
+
+        out = ggml_glu_split(ctx, gate_for_glu, up_for_glu, GGML_GLU_OP_SWIGLU);
+        ggml_set_name(out, "moe-gate-up-glu");
+        return out;
+    }
+
+    std::vector<ggml_tensor *> fusion_test_nodes() override {
+        return { gate_projection, up_projection, out };
+    }
+
+    void initialize_tensors(ggml_context * ctx) override {
+        for (ggml_tensor * tensor = ggml_get_first_tensor(ctx);
+             tensor != nullptr;
+             tensor = ggml_get_next_tensor(ctx, tensor)) {
+            if (tensor == ids_a_storage || tensor == ids_b_storage || tensor->type == GGML_TYPE_I32 ||
+                ggml_is_view_op(tensor->op)) {
+                continue;
+            }
+            init_tensor_uniform(tensor);
+        }
+
+        const auto set_routes = [&](ggml_tensor * storage, bool alternate) {
+            std::vector<int32_t> row(n_experts);
+            for (int64_t token = 0; token < tokens; ++token) {
+                for (int64_t i = 0; i < n_experts; ++i) {
+                    row[i] = static_cast<int32_t>((i + token) % n_experts);
+                }
+                const std::array<int32_t, n_expert_used> routes_a = {
+                    0, static_cast<int32_t>(n_experts - 1), 1, static_cast<int32_t>(n_experts / 2),
+                };
+                const std::array<int32_t, n_expert_used> routes_b = {
+                    static_cast<int32_t>(n_experts - 2), 2,
+                    static_cast<int32_t>(n_experts / 2 + 1), 3,
+                };
+                const auto & routes = alternate ? routes_b : routes_a;
+                for (int64_t slot = 0; slot < n_expert_used; ++slot) {
+                    row[slot] = routes[(slot + token) % n_expert_used];
+                }
+                ggml_backend_tensor_set(
+                    storage, row.data(), token * storage->nb[1], row.size() * sizeof(row[0]));
+            }
+        };
+        set_routes(ids_a_storage, false);
+        if (ids_b_storage != ids_a_storage) {
+            set_routes(ids_b_storage, true);
+        }
+    }
+
+    bool prepare_graph_before_allocation(ggml_backend_t backend, ggml_cgraph * graph) override {
+        GGML_UNUSED(graph);
+        ggml_backend_reg_t reg = ggml_backend_dev_backend_reg(ggml_backend_get_device(backend));
+        metrics_proc = (metrics_proc_t) ggml_backend_reg_get_proc_address(
+            reg, "halofpx_rocmfpx_moe_q8_reuse_metrics_v1");
+        if (!metrics_proc) {
+            std::fprintf(stderr, "routed-MoE reuse metrics proc is missing ");
+            return false;
+        }
+        halofpx_rocmfpx_moe_q8_reuse_metrics_v1 metrics = {};
+        metrics.struct_size = sizeof(metrics);
+        metrics.version = HALOFPX_ROCMFPX_MOE_Q8_REUSE_METRICS_VERSION;
+        return metrics_proc(backend, true, &metrics) &&
+               metrics.pair_dispatches == 0 && metrics.ids_helper_submissions == 0 &&
+               metrics.q8_conversions_submitted == 0 && metrics.mmq_submissions == 0;
+    }
+
+    bool before_backend_compare(ggml_backend_t backend) override {
+        halofpx_rocmfpx_moe_q8_reuse_metrics_v1 metrics = {};
+        metrics.struct_size = sizeof(metrics);
+        metrics.version = HALOFPX_ROCMFPX_MOE_Q8_REUSE_METRICS_VERSION;
+        return metrics_proc && metrics_proc(backend, false, &metrics) &&
+               metrics.pair_dispatches == 0 && metrics.ids_helper_submissions == 0 &&
+               metrics.q8_conversions_submitted == 0 && metrics.mmq_submissions == 0;
+    }
+
+    bool after_backend_compare(ggml_backend_t backend) override {
+        halofpx_rocmfpx_moe_q8_reuse_metrics_v1 metrics = {};
+        metrics.struct_size = sizeof(metrics);
+        metrics.version = HALOFPX_ROCMFPX_MOE_Q8_REUSE_METRICS_VERSION;
+        if (!metrics_proc || !metrics_proc(backend, false, &metrics)) {
+            return false;
+        }
+        const bool eligible = tokens > 8 && !distinct_ids && !with_bias;
+        const uint64_t expected_pairs = eligible ? 1 : 0;
+        const bool legacy_mmq_pair = tokens > 8 && !eligible;
+        const uint64_t expected_shared_submissions = eligible ? 1 : (legacy_mmq_pair ? 2 : 0);
+        const uint64_t expected_mmqs = tokens > 8 ? 2 : 0;
+        const bool ok =
+            metrics.pair_dispatches == expected_pairs &&
+            metrics.ids_helper_submissions == expected_shared_submissions &&
+            metrics.q8_conversions_submitted == expected_shared_submissions &&
+            metrics.mmq_submissions == expected_mmqs;
+        if (!ok) {
+            std::fprintf(stderr,
+                "routed-MoE metrics mismatch: pair=%" PRIu64 " ids=%" PRIu64
+                " conversion=%" PRIu64 " mmq=%" PRIu64 " ",
+                metrics.pair_dispatches,
+                metrics.ids_helper_submissions,
+                metrics.q8_conversions_submitted,
+                metrics.mmq_submissions);
+        }
+        return ok;
+    }
+};
+
 // HaloFPX issue #42: one prompt activation conversion feeds three independent
 // ROCmFPX Q/K/V MMQs. This graph case is always compiled, but only runs on a
 // backend that advertises the default-off experimental feature.
@@ -9811,6 +10007,24 @@ static std::vector<std::unique_ptr<test_case>> make_test_cases_eval() {
     }
     test_cases.emplace_back(new test_halofpx_rocmfpx_mmvq_qkv_q8_reuse(
         GGML_TYPE_Q6_0_ROCMFPX, true));
+
+    // ADR-0060 routed-MoE gate/up reuse. Eligible cases use shuffled boundary
+    // expert IDs through a padded-stride view. Controls independently cover
+    // short MMVQ routing, distinct route tensors, and the bias graph shape.
+    for (ggml_type type : {
+            GGML_TYPE_Q2_0_ROCMFPX,
+            GGML_TYPE_Q3_0_ROCMFPX,
+            GGML_TYPE_Q6_0_ROCMFPX,
+            GGML_TYPE_Q8_0_ROCMFPX}) {
+        test_cases.emplace_back(new test_halofpx_rocmfpx_moe_q8_reuse(type, 9));
+        test_cases.emplace_back(new test_halofpx_rocmfpx_moe_q8_reuse(type, 32));
+    }
+    test_cases.emplace_back(new test_halofpx_rocmfpx_moe_q8_reuse(
+        GGML_TYPE_Q6_0_ROCMFPX, 1));
+    test_cases.emplace_back(new test_halofpx_rocmfpx_moe_q8_reuse(
+        GGML_TYPE_Q6_0_ROCMFPX, 32, true));
+    test_cases.emplace_back(new test_halofpx_rocmfpx_moe_q8_reuse(
+        GGML_TYPE_Q6_0_ROCMFPX, 32, false, true));
 
     for (auto gate : {GATING_FUNC_SOFTMAX, GATING_FUNC_SIGMOID, GATING_FUNC_SOFTMAX_WEIGHT}) {
         for (bool with_norm : {false, true}) {

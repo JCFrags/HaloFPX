@@ -1,0 +1,16 @@
+captured_utc=2026-08-13T08:34:54+00:00
+initial_supervisor_script=supervisor-start.sh
+initial_wait_pid=24295
+initial_wait_process_after_container_exit=ABSENT
+initial_wait_log_after_container_exit=ABSENT
+container_state_before_recovery=Exited (0)
+runner_pass_before_recovery=PRESENT
+runner_exit_code_before_recovery=0
+recovery_reason=The initial nohup/setsid waiter did not survive the WSL command boundary. The completed container and in-container runner evidence remained intact.
+recovery_command=systemd-run --user --unit halofpx-qkv-moe-finalize-609c1664 --collect /home/britt/halofpx-qkv-moe-compose-609c1664/wait.sh
+systemd_started=2026-08-13T01:34:54-07:00
+recovery_script=supervisor-wait.sh
+recovery_result=supervisor-PASS
+post_recovery_podman_exit_code=0
+post_recovery_runner_exit_code=0
+post_recovery_manifest_check=PASS

@@ -829,7 +829,7 @@ jobs:
           find build/ci-rocmfpx-mmvq-qkv-q8-reuse-hip -name 'libggml-hip.so*' -print -quit | grep -q .
 
   rocmfpx-qkv-reuse-composition-hip-compile:
-    name: ROCmFPX prompt and n=1 QKV reuse gfx1151 composition compile
+    name: ROCmFPX prompt, n=1 QKV, and routed-MoE reuse gfx1151 composition compile
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     container:
@@ -872,6 +872,7 @@ jobs:
             -DGGML_HIP=ON \
             -DGGML_HIP_ROCMFPX_QKV_Q8_REUSE="${option}" \
             -DGGML_HIP_ROCMFPX_MMVQ_QKV_Q8_REUSE="${option}" \
+            -DGGML_HIP_ROCMFPX_MOE_Q8_REUSE="${option}" \
             -DGGML_HIP_ROCMFPX_FFN_Q8_REUSE=OFF \
             -DGGML_NATIVE=OFF \
             -DGGML_RPC=OFF \
@@ -905,6 +906,7 @@ jobs:
           macros = (
               "-DGGML_HIP_ROCMFPX_QKV_Q8_REUSE",
               "-DGGML_HIP_ROCMFPX_MMVQ_QKV_Q8_REUSE",
+              "-DGGML_HIP_ROCMFPX_MOE_Q8_REUSE",
           )
           for suffix in (
               "/ggml/src/ggml-cuda/ggml-cuda.cu",
@@ -925,6 +927,53 @@ jobs:
           PY
           find build/ci-rocmfpx-qkv-compose-${COMPOSE_MODE} -name 'libggml-hip.so*' -print -quit | grep -q .
   # HALOFPX_MMVQ_QKV_Q8_REUSE_CI_END
+
+
+  # HALOFPX_MOE_Q8_REUSE_CI_BEGIN
+  rocmfpx-moe-q8-reuse-contract:
+    name: ROCmFPX routed-MoE Q8_1 reuse host contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        # actions/checkout v4.4.0
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Configure focused host tests
+        run: >-
+          cmake -S . -B build/ci-rocmfpx-moe-q8-reuse
+          -DCMAKE_BUILD_TYPE=Release
+          -DBUILD_SHARED_LIBS=OFF
+          -DGGML_NATIVE=OFF
+          -DGGML_HIP=OFF
+          -DGGML_RPC=OFF
+          -DLLAMA_BUILD_TESTS=ON
+          -DLLAMA_BUILD_TOOLS=OFF
+          -DLLAMA_BUILD_EXAMPLES=OFF
+          -DLLAMA_BUILD_SERVER=OFF
+          -DLLAMA_BUILD_WEBUI=OFF
+          -DLLAMA_OPENSSL=OFF
+
+      - name: Compile selectors, composition contract, and backend graph case
+        run: >-
+          cmake --build build/ci-rocmfpx-moe-q8-reuse
+          --target
+          test-halofpx-rocmfpx-moe-q8-reuse-off
+          test-halofpx-rocmfpx-moe-q8-reuse-on
+          test-halofpx-rocmfpx-qkv-moe-composition-matrix
+          test-backend-ops
+          --parallel 2
+
+      - name: Run host and source contracts
+        run: >-
+          ctest --test-dir build/ci-rocmfpx-moe-q8-reuse
+          --output-on-failure
+          -R '^test-halofpx-rocmfpx-(moe-q8-reuse-(off|on|source-contract)|qkv-moe-composition-p[01]-d[01]-m[01])$'
+
+  # HALOFPX_MOE_Q8_REUSE_CI_END
 
   prompt-cache-integrity-test:
     name: CPU prompt-cache integrity (${{ matrix.provider }})

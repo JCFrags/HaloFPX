@@ -1,0 +1,7 @@
+container=halofpx-qkv-moe-compose-609c1664
+image=localhost/halofpx-rocm-7.2.4-builddeps:qkv-113e4117
+image_id=67427cc410efa89e605039547cc43780f400381874da97ec6d6e4cd3263757c2
+image_digest=localhost/halofpx-rocm-7.2.4-builddeps@sha256:9c7093f09068010487ad826e7677f9dc31b620db3a5544ef3c1da2c9d291dc80
+mount=/home/britt/halofpx-qkv-moe-compose-609c1664:/workspace
+pull=never
+device_mounts=none
