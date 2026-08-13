@@ -140,6 +140,9 @@ census phase.
 No GGUF in this registry is tracked by Git. The intended private prerelease
 publishes only the three derived GGUFs; the BF16 source remains an exact pinned
 Hugging Face download.
+[The tracked release manifest](qwen3-0.6b-rocmfpx-pure-v1-release-manifest.json)
+and [checksum ledger](qwen3-0.6b-rocmfpx-pure-v1-SHA256SUMS.txt) define the
+complete nine-asset set for tag `fixture-qwen3-0.6b-rocmfpx-pure-v1`.
 [GitHub rejects ordinary Git blobs larger than 100 MiB](https://docs.github.com/en/repositories/working-with-files/managing-large-files/about-large-files-on-github).
 [GitHub release assets must each be smaller than 2 GiB](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases);
 all four files satisfy that individual limit, and repository permissions were

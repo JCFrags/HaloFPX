@@ -1,0 +1,151 @@
+{
+  "schema_version": 1,
+  "fixture_id": "qwen3-0.6b-rocmfpx-pure-v1",
+  "tag_name": "fixture-qwen3-0.6b-rocmfpx-pure-v1",
+  "repository": "JCFrags/HaloFPX",
+  "release_kind": "private immutable prerelease",
+  "tracking_issue": "https://github.com/JCFrags/HaloFPX/issues/43",
+  "recipe_commit": "94ab0fb356920d07f80125deff9277b3737d5e1b",
+  "tag_target_note": "The tag target is intentionally recorded after draft upload verification in the tracked publication receipt; embedding the target here would make this tracked manifest self-referential.",
+  "visibility": {
+    "repository": "private",
+    "authentication_required": true,
+    "public_redistribution_approved": false
+  },
+  "claim_boundary": "Exact artifact identity and off-target CPU control evidence only.",
+  "excluded_claims": [
+    "model quality",
+    "inference performance",
+    "HIP compatibility",
+    "Vulkan compatibility",
+    "single-node Strix Halo compatibility",
+    "dual-node Strix Halo compatibility"
+  ],
+  "target_qualification": "open",
+  "source": {
+    "external_only": true,
+    "repository": "unsloth/Qwen3-0.6B-GGUF",
+    "revision": "28675487b4ea2d7766af79bf32527c73ec715cae",
+    "filename": "Qwen3-0.6B-BF16.gguf",
+    "url": "https://huggingface.co/unsloth/Qwen3-0.6B-GGUF/resolve/28675487b4ea2d7766af79bf32527c73ec715cae/Qwen3-0.6B-BF16.gguf?download=true",
+    "size_bytes": 1198182848,
+    "sha256": "f9c9f1d3c1e21755b82d4e165f88dbbbd4355646d632fb5d6cef7c66ed4ee04e",
+    "architecture": "qwen3",
+    "license_spdx": "Apache-2.0",
+    "license_declaration_authority": "Pinned exact-revision distribution model card",
+    "base_model": "Qwen/Qwen3-0.6B",
+    "base_revision_boundary": "The distribution card names the base repository but does not encode the exact upstream checkpoint revision used to create the BF16 GGUF."
+  },
+  "producer": {
+    "repository": "https://github.com/JCFrags/HaloFPX.git",
+    "commit": "6c88472bf5f567a1064f27f4d8a90fc8e2b47a02",
+    "observed_binary_sha256": "2607634c06a712bd32b57552e6413b0e9d706020519f30a88c1d06c0b9ef0feb",
+    "platform": "WSL2 Linux x86_64, GNU 15.2.0",
+    "arguments": ["--pure", "{source}", "{output}", "{format}", "{threads}"],
+    "threads": 8,
+    "build_receipt": "docs/halofpx/evidence/2026-08-12-qwen3-0.6b-rocmfpx-fixture/build-receipt.txt"
+  },
+  "smoke_consumer": {
+    "repository": "https://github.com/JCFrags/HaloFPX.git",
+    "commit": "b77f2bce6e7875ab065e09894f45915585c9f156",
+    "observed_binary_sha256": "14276f08ebeb7f3a4bfee4aebb4daf99d05e7f2e1334cb1b9e716586062c3f54",
+    "platform": "WSL2 Linux x86_64, GNU 15.2.0",
+    "acceptance": "Exit zero after model load, tensor check, and four-token CPU generation; output text and timing are not acceptance criteria."
+  },
+  "assets": [
+    {
+      "role": "derived ROCmFPX fixture",
+      "filename": "Qwen3-0.6B-Q3_0_ROCMFPX-pure.gguf",
+      "size_bytes": 266957248,
+      "sha256": "d1404c1afc61ffe49357c14c6d3dbfb252a72e87744fb7e491e7a2e205321fff",
+      "media_type": "application/octet-stream",
+      "format": "Q3_0_ROCMFPX",
+      "general_file_type": 112,
+      "tensor_count": 310,
+      "download_url": "https://github.com/JCFrags/HaloFPX/releases/download/fixture-qwen3-0.6b-rocmfpx-pure-v1/Qwen3-0.6B-Q3_0_ROCMFPX-pure.gguf"
+    },
+    {
+      "role": "derived ROCmFPX fixture",
+      "filename": "Qwen3-0.6B-Q6_0_ROCMFPX-pure.gguf",
+      "size_bytes": 490451392,
+      "sha256": "8d5c0eb545651c7518508632d9c00138cb64c22902eb83f5b8d7d52cf5fae8cc",
+      "media_type": "application/octet-stream",
+      "format": "Q6_0_ROCMFPX",
+      "general_file_type": 110,
+      "tensor_count": 310,
+      "download_url": "https://github.com/JCFrags/HaloFPX/releases/download/fixture-qwen3-0.6b-rocmfpx-pure-v1/Qwen3-0.6B-Q6_0_ROCMFPX-pure.gguf"
+    },
+    {
+      "role": "derived ROCmFPX fixture",
+      "filename": "Qwen3-0.6B-Q8_0_ROCMFPX-pure.gguf",
+      "size_bytes": 620822976,
+      "sha256": "ec152fed6e498cad29e75c32e11c8d520fed34bea26c5ad5bfef8a4e210a4bd7",
+      "media_type": "application/octet-stream",
+      "format": "Q8_0_ROCMFPX",
+      "general_file_type": 111,
+      "tensor_count": 310,
+      "download_url": "https://github.com/JCFrags/HaloFPX/releases/download/fixture-qwen3-0.6b-rocmfpx-pure-v1/Qwen3-0.6B-Q8_0_ROCMFPX-pure.gguf"
+    },
+    {
+      "role": "Apache-2.0 license-text snapshot",
+      "filename": "Qwen3-0.6B-LICENSE-c1899de2.txt",
+      "size_bytes": 11344,
+      "sha256": "c156170b718ec29139d3653d40ed1986fd92fb7e0959b5c71f3c48f62e6636f4",
+      "media_type": "text/plain",
+      "normalization": "One terminal LF added to the exact pinned license snapshot.",
+      "download_url": "https://github.com/JCFrags/HaloFPX/releases/download/fixture-qwen3-0.6b-rocmfpx-pure-v1/Qwen3-0.6B-LICENSE-c1899de2.txt"
+    },
+    {
+      "role": "modified-artifact notice",
+      "filename": "Qwen3-0.6B-ROCMFPX-MODIFICATION-NOTICE.md",
+      "size_bytes": 1638,
+      "sha256": "7343c1ea8dbeb363493a2e0aa1abaa2263ff5c41f7965cd000389cb6f80379eb",
+      "media_type": "text/markdown",
+      "normalization": "Repository LF text contract.",
+      "download_url": "https://github.com/JCFrags/HaloFPX/releases/download/fixture-qwen3-0.6b-rocmfpx-pure-v1/Qwen3-0.6B-ROCMFPX-MODIFICATION-NOTICE.md"
+    },
+    {
+      "role": "pinned distribution model card and license declaration",
+      "filename": "source-distribution-README-28675487.md",
+      "size_bytes": 17083,
+      "sha256": "8259b834c95b6f38aca22c26d25ea9987ef384bd0562de228ea814506f077e06",
+      "media_type": "text/markdown",
+      "normalization": "One terminal LF added to the exact-revision source card.",
+      "download_url": "https://github.com/JCFrags/HaloFPX/releases/download/fixture-qwen3-0.6b-rocmfpx-pure-v1/source-distribution-README-28675487.md"
+    },
+    {
+      "role": "pinned distribution architecture config",
+      "filename": "source-distribution-config-28675487.json",
+      "size_bytes": 752,
+      "sha256": "a5f8e23bdf1f9aa5944ed7fdb573985f9c3c87f67b728f8a317d5d005b6bb690",
+      "media_type": "application/json",
+      "normalization": "None; byte-identical to the exact-revision source.",
+      "download_url": "https://github.com/JCFrags/HaloFPX/releases/download/fixture-qwen3-0.6b-rocmfpx-pure-v1/source-distribution-config-28675487.json"
+    }
+  ],
+  "control_assets": {
+    "manifest": "qwen3-0.6b-rocmfpx-pure-v1-release-manifest.json",
+    "checksums": "qwen3-0.6b-rocmfpx-pure-v1-SHA256SUMS.txt",
+    "identity_note": "SHA256SUMS covers the manifest and all seven listed assets. The checksum file itself is bound by the immutable tag and post-upload publication receipt."
+  },
+  "repository_records": {
+    "registry": {
+      "path": "docs/halofpx/fixtures/qwen3-0.6b-rocmfpx/registry.json",
+      "size_bytes": 8731,
+      "sha256": "ff625d68237de7b988a26d70dbb25077a2310dcbd76222fc395ed0e277edced1"
+    },
+    "evidence_index": {
+      "path": "docs/halofpx/evidence/2026-08-12-qwen3-0.6b-rocmfpx-fixture/README.md",
+      "size_bytes": 3558,
+      "sha256": "5c4d1782f6564bbe1cbb8f00bd47a044419ab839ef2f044e32a12ca0399daac9"
+    }
+  },
+  "publication_checks": {
+    "checked_at_utc": "2026-08-13T03:31:35Z",
+    "ordinary_git_limit_source": "https://docs.github.com/en/repositories/working-with-files/managing-large-files/about-large-files-on-github",
+    "release_asset_limit_source": "https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases",
+    "repository_permissions": "Authenticated identity reported admin, maintain, pull, push, and triage.",
+    "immutable_releases_enabled": true,
+    "required_workflow": "Create draft prerelease, upload and verify all nine assets, then publish exactly once."
+  }
+}
