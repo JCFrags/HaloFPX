@@ -1,7 +1,7 @@
 # Dual-Strix-Halo operating strategy
 
 Status: **[RECOMMENDATION] source/evidence audit complete at
-`3d9a0c3cc52168f696d600099742c7caf964161f`; target execution is `REFUSE`
+`cfc52dc19c83f229155cd84e95823a55093f653e`; target execution is `REFUSE`
 under issue [#41](https://github.com/JCFrags/HaloFPX/issues/41)**
 
 This document chooses operating modes and the next bounded measurements for
@@ -12,7 +12,7 @@ the engine is optimized around.
 
 ## Current-main routing
 
-The exact audited main adds no target result. Its four newest merged lanes
+The exact audited main adds no target result. Its six newest merged lanes
 change how this strategy is executed, not the evidence boundary:
 
 - **[VERIFIED]** PR [#53](https://github.com/JCFrags/HaloFPX/pull/53), exact
@@ -35,6 +35,18 @@ change how this strategy is executed, not the evidence boundary:
   commit `3d9a0c3cc52168f696d600099742c7caf964161f`, hardens offline fresh-PC
   continuation and retains same-PC recovery provenance. A full fresh-PC `PASS`
   and target execution remain open; it does not relax issue #41.
+- **[VERIFIED]** PR [#62](https://github.com/JCFrags/HaloFPX/pull/62), exact
+  commit `83079e2dc15e4bb0d1e530607401c723d8181775`, adds an offline-fake
+  maintenance admission controller and a strict closed-tree evidence verifier.
+  It defines no target runner or SSH path, keeps real execution literal `OFF`,
+  and does not supply owner authorization, an independent watchdog, target
+  recovery proof, issue-#41 closure, or performance evidence.
+- **[VERIFIED]** PR [#63](https://github.com/JCFrags/HaloFPX/pull/63), exact
+  commit `cfc52dc19c83f229155cd84e95823a55093f653e`, adds deterministic
+  generation and validation for a non-authoritative GitHub Wiki convenience
+  mirror. Its CI has no Wiki write credential and does not enable, create, or
+  publish a Wiki; the canonical project Wiki and Project Lead authority remain
+  in this repository.
 
 ## Decision summary
 
