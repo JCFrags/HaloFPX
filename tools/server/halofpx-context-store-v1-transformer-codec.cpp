@@ -164,6 +164,11 @@ uint64_t expected_frame_size(std::string_view type, size_t payload_size) noexcep
     return fixed + variable + payload_size;
 }
 
+uint64_t frame_overhead(std::string_view type) noexcept {
+    constexpr uint64_t fixed = 8 + 2 + 2 + 8;
+    return fixed + object_domain.size() + type.size();
+}
+
 bool derive_manifest_key(
         const context_store_v1_transformer_manifest_parameters & parameters,
         const context_store_identity & identity,
@@ -217,6 +222,101 @@ void clear(context_store_v1_transformer_encoded_snapshot & encoded) noexcept {
 }
 
 } // namespace
+
+context_store_v1_transformer_manifest_inspection_result
+context_store_inspect_transformer_manifest_v1(
+        const context_store_v1_transformer_manifest_inspection_request & request) noexcept {
+    context_store_v1_transformer_manifest_inspection_result result;
+    const auto * metadata = request.metadata;
+    if (metadata == nullptr || request.objects == nullptr ||
+        request.object_count != context_store_v1_transformer_frame_count ||
+        !complete(request.compatibility_identity) ||
+        !context_store_transformer_profile_v1_is_admitted(request.profile) ||
+        request.profile.world_size != 1 || request.profile.rank != 0 ||
+        request.profile.architecture != context_store_transformer_architecture_v1::transformer ||
+        !nonzero(request.store_uuid) || !nonzero(request.producer_identity) ||
+        !nonzero(request.global_plan_digest) ||
+        !nonzero(request.rank_ownership_digest) ||
+        !nonzero(request.rank_placement_digest) || request.topology_epoch == 0 ||
+        request.limits.snapshot.max_tokens == 0 ||
+        request.limits.snapshot.max_state_bytes == 0 ||
+        request.limits.max_frame_bytes == 0 ||
+        request.limits.max_manifest_bytes == 0) {
+        return result;
+    }
+    if (metadata->store_uuid != request.store_uuid || metadata->generation != 1 ||
+        metadata->has_predecessor ||
+        !std::all_of(metadata->predecessor_manifest_digest.begin(),
+                     metadata->predecessor_manifest_digest.end(),
+                     [](uint8_t byte) { return byte == 0; }) ||
+        metadata->checkpoint_lineage_id !=
+            request.compatibility_identity.checkpoint_lineage_id ||
+        metadata->compatibility_root !=
+            request.compatibility_identity.compatibility_root ||
+        metadata->scope_namespace != request.compatibility_identity.scope_namespace ||
+        metadata->policy_epoch != request.compatibility_identity.policy_epoch ||
+        metadata->world_size != 1 || metadata->rank_count != 1 ||
+        !same_id(metadata->topology_plan_schema_id, topology_schema) ||
+        !same_id(metadata->topology_execution_mode, execution_mode) ||
+        metadata->global_plan_digest != request.global_plan_digest ||
+        metadata->topology_epoch != request.topology_epoch ||
+        metadata->rank_ownership[0] != request.rank_ownership_digest ||
+        metadata->rank_placements[0] != request.rank_placement_digest ||
+        !same_id(metadata->state_profile_id, state_profile) ||
+        metadata->producer_identity != request.producer_identity ||
+        metadata->durability_mode != 0) {
+        result.status = context_store_v1_transformer_codec_status::incompatible_runtime;
+        return result;
+    }
+
+    const auto & tokens = request.objects[0];
+    const auto & state = request.objects[1];
+    const uint64_t max_total_frame_bytes =
+        request.limits.max_frame_bytes >
+                UINT64_MAX / context_store_v1_transformer_frame_count
+            ? UINT64_MAX
+            : request.limits.max_frame_bytes *
+                context_store_v1_transformer_frame_count;
+    if (!same_id(tokens.stream_type, token_stream) ||
+        !same_id(tokens.codec_id, token_codec) ||
+        !same_id(state.stream_type, state_stream) ||
+        !same_id(state.codec_id, state_codec) || !tokens.required || !state.required ||
+        tokens.codec_schema_major != 1 || tokens.codec_schema_minor != 0 ||
+        state.codec_schema_major != 1 || state.codec_schema_minor != 0 ||
+        !tokens.has_logical_rank || !state.has_logical_rank ||
+        tokens.logical_rank != 0 || state.logical_rank != 0 ||
+        tokens.rank_ownership_digest != request.rank_ownership_digest ||
+        state.rank_ownership_digest != request.rank_ownership_digest ||
+        tokens.compatibility_root != request.compatibility_identity.compatibility_root ||
+        state.compatibility_root != request.compatibility_identity.compatibility_root ||
+        !nonzero(tokens.token_sequence_digest) ||
+        tokens.token_sequence_digest != state.token_sequence_digest ||
+        tokens.logical_position == 0 ||
+        tokens.logical_position != tokens.output_boundary ||
+        tokens.logical_position != state.logical_position ||
+        tokens.output_boundary != state.output_boundary ||
+        tokens.logical_position > request.limits.snapshot.max_tokens ||
+        tokens.logical_position > std::numeric_limits<size_t>::max() ||
+        tokens.logical_position >
+            (std::numeric_limits<uint64_t>::max() - frame_overhead(token_stream)) /
+                sizeof(int32_t) ||
+        tokens.frame_bytes != frame_overhead(token_stream) +
+            tokens.logical_position * sizeof(int32_t) ||
+        state.frame_bytes <= frame_overhead(state_stream) ||
+        state.frame_bytes - frame_overhead(state_stream) >
+            request.limits.snapshot.max_state_bytes ||
+        tokens.frame_bytes > request.limits.max_frame_bytes ||
+        state.frame_bytes > request.limits.max_frame_bytes ||
+        tokens.frame_bytes > UINT64_MAX - state.frame_bytes ||
+        tokens.frame_bytes + state.frame_bytes >
+            max_total_frame_bytes) {
+        result.status = context_store_v1_transformer_codec_status::wrong_descriptor;
+        return result;
+    }
+    result.status = context_store_v1_transformer_codec_status::decoded;
+    result.token_count = static_cast<size_t>(tokens.logical_position);
+    return result;
+}
 
 context_store_v1_transformer_encode_result context_store_encode_transformer_snapshot_v1(
         const context_store_transformer_snapshot_v1 & snapshot,

@@ -166,6 +166,28 @@ if (HALOFPX_CONTEXT_STORE_LONGEST_PREFIX_CANARY AND
         "HALOFPX_CONTEXT_STORE_LONGEST_PREFIX_CANARY is supported only on Linux")
 endif()
 
+# Product routing is a separate literal-default-OFF gate.  It composes the
+# authenticated selector but remains cold until the server owns a typed live
+# world1 loader authority.
+option(HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT
+       "Compile the fail-closed world1 authenticated prefix product path"
+       OFF)
+if (HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT AND
+    NOT HALOFPX_CONTEXT_STORE_LONGEST_PREFIX_CANARY)
+    message(FATAL_ERROR
+        "HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT requires the longest-prefix selector gate")
+endif()
+if (HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT AND
+    (NOT LLAMA_BUILD_COMMON OR NOT LLAMA_BUILD_TOOLS OR NOT LLAMA_BUILD_SERVER))
+    message(FATAL_ERROR
+        "HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT requires LLAMA_BUILD_COMMON, LLAMA_BUILD_TOOLS, and LLAMA_BUILD_SERVER")
+endif()
+if (HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT AND
+    NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    message(FATAL_ERROR
+        "HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT is supported only on Linux")
+endif()
+
 # P06a is a test-only expert-axis contract seam. It does not enable MiniMax
 # tensor mode, alter model placement, or link into the inference runtime.
 option(HALOFPX_MINIMAX_M2_EXPERT_PARTITION_CANARY

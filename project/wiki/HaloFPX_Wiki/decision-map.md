@@ -2,7 +2,7 @@
 
 Status: authoritative routing index
 
-Last verified: 2026-07-29
+Last verified: 2026-08-12
 
 This page routes workers to decision authority.
 This page does not replace any decision record.
@@ -26,6 +26,12 @@ Current accepted architecture decision records (ADRs) include:
   real-lifecycle pre-execute authority.
 - [Decision 0050](../../../docs/halofpx/decisions/0050-l67-retained-adr0049-foundation.md):
   retain the L67 ADR-0049 default-off foundation.
+- [ADR-0051](../../../docs/halofpx/decisions/0051-default-off-exact-longest-prefix-selector.md):
+  default-off exact longest-prefix selector.
+- [ADR-0052](../../../docs/halofpx/decisions/0052-standalone-live-cache-authority.md):
+  standalone live-derived cache authority.
+- [ADR-0054](../../../docs/halofpx/decisions/0054-default-off-world1-prefix-product-shell.md):
+  default-off world-1 authenticated-prefix product shell.
 
 Read each complete decision in the HaloFPX implementation repository.
 Do not copy a decision into the Wiki as a replacement authority.

@@ -483,9 +483,19 @@ context_store_v1_catalog::context_store_v1_catalog(std::unique_ptr<implementatio
     : implementation_(std::move(value)) {}
 context_store_v1_catalog::~context_store_v1_catalog() = default;
 
+context_store_v1_catalog_mutation_custody
+context_store_v1_catalog::acquire_mutation_custody() noexcept {
+    return context_store_v1_catalog_mutation_custody(mutation_mutex_);
+}
+
 context_store_v1_catalog_publish_result context_store_v1_catalog::publish(
         const context_store_transformer_snapshot_v1 & snapshot) noexcept {
     context_store_v1_catalog_publish_result result;
+    std::unique_lock<std::mutex> mutation_lock(mutation_mutex_, std::try_to_lock);
+    if (!mutation_lock.owns_lock()) {
+        result.status = context_store_v1_catalog_status::busy;
+        return result;
+    }
     std::unique_lock<std::mutex> lock(operation_mutex_, std::try_to_lock);
     if (!lock.owns_lock()) { result.status = context_store_v1_catalog_status::busy; return result; }
     if (!implementation_) return result;
@@ -594,6 +604,7 @@ context_store_v1_catalog_restore_result context_store_v1_catalog::restore_exact(
     size_t selected = implementation_->capacity;
     context_store_format_digest selected_manifest {};
     bool has_empty_position = false;
+    bool authenticated_incomplete_identity = false;
     for (size_t i = 0; i != implementation_->capacity; ++i) {
         record reservation, final, reserve_pending, final_pending;
         const auto reservation_state = read_record(
@@ -639,7 +650,29 @@ context_store_v1_catalog_restore_result context_store_v1_catalog::restore_exact(
             final_pending_state == file_state::absent) {
             has_empty_position = true;
         }
-        if (state == file_state::absent) continue;
+        if (state == file_state::absent) {
+            // A valid reservation or pending record still authenticates its
+            // identity.  If it is the requested identity, its incomplete
+            // publication is terminal uncertainty rather than evidence that
+            // the caller may safely try a shorter prefix.
+            const bool incomplete_match =
+                (reservation_state == file_state::valid &&
+                 same_identity(reservation.identity, identity)) ||
+                (reserve_pending_state == file_state::valid &&
+                 same_identity(reserve_pending.identity, identity)) ||
+                (final_pending_state == file_state::valid &&
+                 same_identity(final_pending.identity, identity));
+            if (incomplete_match) {
+                result.authenticated_record_selected = true;
+                if (authenticated_incomplete_identity ||
+                    selected != implementation_->capacity) {
+                    result.status = context_store_v1_catalog_status::miss_corrupt;
+                    return result;
+                }
+                authenticated_incomplete_identity = true;
+            }
+            continue;
+        }
         if (reservation_state != file_state::valid ||
             !same_identity(reservation.identity, final.identity) ||
             !same_digest(reservation.manifest, final.manifest)) {
@@ -647,12 +680,17 @@ context_store_v1_catalog_restore_result context_store_v1_catalog::restore_exact(
             return result;
         }
         if (!same_identity(final.identity, identity)) continue;
+        result.authenticated_record_selected = true;
         if (selected != implementation_->capacity) {
             result.status = context_store_v1_catalog_status::miss_corrupt;
             return result;
         }
         selected = i;
         selected_manifest = final.manifest;
+    }
+    if (authenticated_incomplete_identity) {
+        result.status = context_store_v1_catalog_status::miss_corrupt;
+        return result;
     }
     if (selected == implementation_->capacity) {
         result.status = has_empty_position
@@ -670,6 +708,138 @@ context_store_v1_catalog_restore_result context_store_v1_catalog::restore_exact(
     // An exact authenticated record is unique authority. Never fall through
     // after its child fails validation.
     result.status = map_status(child.status);
+    return result;
+}
+
+context_store_v1_catalog_prefix_result
+context_store_v1_catalog::discover_prefix_token_counts(
+        const context_store_v1_catalog_prefix_query & query) noexcept {
+    context_store_v1_catalog_prefix_result result;
+    const auto fail = [&result](context_store_v1_catalog_status status) noexcept {
+        result.status = status;
+        result.token_counts.fill(0);
+        result.token_count = 0;
+        return result;
+    };
+    std::unique_lock<std::mutex> lock(operation_mutex_, std::try_to_lock);
+    if (!lock.owns_lock()) {
+        return fail(context_store_v1_catalog_status::busy);
+    }
+    if (!implementation_ ||
+        !nonzero(query.compatibility_root) || !nonzero(query.producer_identity) ||
+        !nonzero(query.scope_namespace) ||
+        query.policy_epoch == 0 || query.max_token_count == 0 ||
+        !context_store_transformer_profile_v1_is_admitted(query.profile) ||
+        query.profile.world_size != 1 || query.profile.rank != 0 ||
+        query.profile.architecture !=
+            context_store_transformer_architecture_v1::transformer) {
+        return fail(context_store_v1_catalog_status::source_rejected);
+    }
+    if (!same_digest(query.producer_identity,
+                     implementation_->config.producer_identity)) {
+        return fail(context_store_v1_catalog_status::miss_incompatible);
+    }
+    if (!implementation_->layout_valid()) {
+        return fail(context_store_v1_catalog_status::miss_corrupt);
+    }
+
+    std::array<context_store_identity, context_store_v1_catalog_max_slots> identities {};
+    size_t identity_count = 0;
+    for (size_t i = 0; i != implementation_->capacity; ++i) {
+        record reservation, final, reserve_pending, final_pending;
+        const auto reservation_state = read_record(
+            implementation_->root.get(), implementation_->catalog_identity,
+            name(i, "reserve"), implementation_->record_key, reservation);
+        const auto final_state = read_record(
+            implementation_->root.get(), implementation_->catalog_identity,
+            name(i, "final"), implementation_->record_key, final);
+        const auto reserve_pending_state = read_record(
+            implementation_->root.get(), implementation_->catalog_identity,
+            name(i, "reserve-pending"), implementation_->record_key, reserve_pending);
+        const auto final_pending_state = read_record(
+            implementation_->root.get(), implementation_->catalog_identity,
+            name(i, "final-pending"), implementation_->record_key, final_pending);
+
+        if (reservation_state == file_state::invalid ||
+            final_state == file_state::invalid ||
+            reserve_pending_state == file_state::invalid ||
+            final_pending_state == file_state::invalid ||
+            (reservation_state == file_state::valid &&
+             !implementation_->expected(reservation, i, 1)) ||
+            (final_state == file_state::valid &&
+             !implementation_->expected(final, i, 2)) ||
+            (reserve_pending_state == file_state::valid &&
+             !implementation_->expected(reserve_pending, i, 1)) ||
+            (final_pending_state == file_state::valid &&
+             !implementation_->expected(final_pending, i, 2)) ||
+            (final_state == file_state::valid &&
+             (reserve_pending_state == file_state::valid ||
+              final_pending_state == file_state::valid)) ||
+            (reservation_state == file_state::valid &&
+             reserve_pending_state == file_state::valid)) {
+            return fail(context_store_v1_catalog_status::miss_corrupt);
+        }
+        if (final_state == file_state::absent) {
+            const auto relevant = [&query](file_state state,
+                                           const record & candidate) noexcept {
+                return state == file_state::valid &&
+                    same_digest(candidate.identity.compatibility_root,
+                                query.compatibility_root) &&
+                    same_digest(candidate.identity.scope_namespace,
+                                query.scope_namespace) &&
+                    candidate.identity.policy_epoch == query.policy_epoch;
+            };
+            if (relevant(reservation_state, reservation) ||
+                relevant(reserve_pending_state, reserve_pending) ||
+                relevant(final_pending_state, final_pending)) {
+                return fail(context_store_v1_catalog_status::miss_corrupt);
+            }
+            continue;
+        }
+        if (reservation_state != file_state::valid ||
+            !same_identity(reservation.identity, final.identity) ||
+            !same_digest(reservation.manifest, final.manifest) ||
+            std::any_of(identities.begin(), identities.begin() + identity_count,
+                [&final](const context_store_identity & identity) {
+                    return same_identity(identity, final.identity);
+                })) {
+            return fail(context_store_v1_catalog_status::miss_corrupt);
+        }
+        identities[identity_count++] = final.identity;
+        if (!same_digest(final.identity.compatibility_root, query.compatibility_root) ||
+            !same_digest(final.identity.scope_namespace, query.scope_namespace) ||
+            final.identity.policy_epoch != query.policy_epoch) {
+            continue;
+        }
+        const auto inspected = implementation_->slots[i].canary->inspect_manifest(
+            final.manifest, final.identity, query.profile);
+        if (inspected.status != context_store_v1_server_canary_status::ready ||
+            inspected.token_count == 0) {
+            result.status = map_status(inspected.status);
+            if (result.status == context_store_v1_catalog_status::ready ||
+                result.status == context_store_v1_catalog_status::published ||
+                result.status == context_store_v1_catalog_status::hit ||
+                result.status == context_store_v1_catalog_status::miss_not_found ||
+                result.status == context_store_v1_catalog_status::capacity_exhausted) {
+                result.status = context_store_v1_catalog_status::miss_corrupt;
+            }
+            return fail(result.status);
+        }
+        if (inspected.token_count > query.max_token_count) continue;
+        const auto end = result.token_counts.begin() + result.token_count;
+        if (std::find(result.token_counts.begin(), end, inspected.token_count) == end) {
+            if (result.token_count == result.token_counts.size()) {
+                return fail(context_store_v1_catalog_status::miss_corrupt);
+            }
+            result.token_counts[result.token_count++] = inspected.token_count;
+        }
+    }
+
+    std::sort(result.token_counts.begin(),
+              result.token_counts.begin() + result.token_count);
+    result.status = result.token_count == 0
+        ? context_store_v1_catalog_status::miss_not_found
+        : context_store_v1_catalog_status::ready;
     return result;
 }
 

@@ -94,6 +94,27 @@ struct context_store_v1_transformer_decode_result {
     context_store_transformer_snapshot_v1 snapshot;
 };
 
+struct context_store_v1_transformer_manifest_inspection_request {
+    const context_store_authenticated_manifest_metadata * metadata = nullptr;
+    const context_store_object_reference * objects = nullptr;
+    size_t object_count = 0;
+    context_store_identity compatibility_identity {};
+    context_store_transformer_profile_v1 profile {};
+    std::array<uint8_t, 16> store_uuid {};
+    context_store_format_digest producer_identity {};
+    context_store_format_digest global_plan_digest {};
+    context_store_format_digest rank_ownership_digest {};
+    context_store_format_digest rank_placement_digest {};
+    uint64_t topology_epoch = 0;
+    context_store_v1_transformer_codec_limits limits {};
+};
+
+struct context_store_v1_transformer_manifest_inspection_result {
+    context_store_v1_transformer_codec_status status =
+        context_store_v1_transformer_codec_status::invalid_argument;
+    size_t token_count = 0;
+};
+
 // Produces only target-owned canonical full-v1 bytes. The signing key is
 // borrowed for this call and is never retained in the result.
 context_store_v1_transformer_encode_result context_store_encode_transformer_snapshot_v1(
@@ -106,6 +127,13 @@ context_store_v1_transformer_encode_result context_store_encode_transformer_snap
 // a llama_context.
 context_store_v1_transformer_decode_result context_store_decode_transformer_snapshot_v1(
     const context_store_v1_transformer_decode_request & request) noexcept;
+
+// Admits only the exact ordinary-transformer world1/rank0 generation-one
+// manifest shape and derives its canonical token count without loading object
+// payloads.  Inputs must already be authenticated by the manifest verifier.
+context_store_v1_transformer_manifest_inspection_result
+context_store_inspect_transformer_manifest_v1(
+    const context_store_v1_transformer_manifest_inspection_request & request) noexcept;
 
 const char * context_store_v1_transformer_codec_status_name(
     context_store_v1_transformer_codec_status status) noexcept;

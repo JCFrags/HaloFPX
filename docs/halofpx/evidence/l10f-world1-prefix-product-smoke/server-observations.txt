@@ -1,0 +1,28 @@
+HaloFPX L10f no-authority server smoke
+Date: 2026-08-12 PDT
+Code: b7ccadc592435667896e5e456e343fdbed293773
+Server SHA-256: 728af091ca3418483b595c0d99c262b29d72ed8133ea565f90f2a9d389786070
+Server bytes: 3117896
+Model release: JCFrags/HaloFPX fixture-qwen3-0.6b-rocmfpx-pure-v1
+Model asset: Qwen3-0.6B-Q3_0_ROCMFPX-pure.gguf
+Model SHA-256: d1404c1afc61ffe49357c14c6d3dbfb252a72e87744fb7e491e7a2e205321fff
+Model bytes: 266957248
+Raw request SHA-256 with terminal LF: 2a3af6ec52ddfc3a127354980e5d1dd144f5763862290fbc300cdb60e5fa7c2e
+Raw product response SHA-256 with terminal LF: dd63c4f3143ead9587f9a3b83819aa36d49ab7377d6bd76619adb86a75778db8
+Raw runtime-off response SHA-256 with terminal LF: d19870b9b737540b37db3fb42e2b2819ab568bc1044ed6839907bbd57d417669
+Raw product server log SHA-256: 2febcb183b2299b0dfc112785329c7b2f7fd0f26574bab1df01c1550bc2a396f
+Raw runtime-off server log SHA-256: fb074872308c0e5b5540e34006d7ee9c1adf8fe78227b9fd992053b30ea6fcd4
+
+Product command suffix:
+--halofpx-context-store-mode full-v1-world1-prefix-product
+
+Runtime-off control command suffix:
+--halofpx-context-store-mode off
+
+Common arguments:
+-m "$MODEL" --host 127.0.0.1 --port "$PORT" --parallel 1 --ctx-size 128 --n-gpu-layers 0 --fit off --temp 0 --samplers temperature --cache-ram 0 --no-cache-idle-slots --no-webui --no-jinja --reasoning-format none --offline --no-warmup
+
+Exact product log observation:
+W srv init_halofpx: HaloFPX world1 prefix product has no typed live authority; inference continues cold
+
+Assertions: product telemetry matched the typed cold/no-authority object; product and runtime-off content and token arrays were identical; runtime-off emitted no halofpx_cache field. Both processes were stopped after the run. This is off-target correctness evidence only, not a performance measurement.

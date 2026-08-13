@@ -392,8 +392,9 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
         halofpx-context-store-v1-server-canary)
     target_compile_features(halofpx-context-store-v1-catalog PRIVATE cxx_std_17)
 
-    # Exact longest-prefix selector for CPU qualification only. Product/server
-    # wiring remains closed until one owner can restore all distributed ranks.
+    # Exact longest-prefix selector, isolated by default. The separately gated
+    # ADR-0054 world-1 shell may compose it; distributed restoration remains
+    # closed until one owner can restore all ranks atomically.
     if (HALOFPX_CONTEXT_STORE_LONGEST_PREFIX_CANARY)
         add_library(halofpx-context-store-v1-prefix-selector STATIC EXCLUDE_FROM_ALL
             halofpx-context-store-v1-prefix-selector.cpp
@@ -403,6 +404,17 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
             halofpx-context-store-v1-catalog
             halofpx-context-store-exact-session)
         target_compile_features(halofpx-context-store-v1-prefix-selector PRIVATE cxx_std_17)
+
+        if (HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT)
+            add_library(halofpx-context-store-world1-prefix-product-v1 STATIC EXCLUDE_FROM_ALL
+                halofpx-context-store-world1-prefix-product-v1.cpp
+                halofpx-context-store-world1-prefix-product-v1.h
+            )
+            target_link_libraries(halofpx-context-store-world1-prefix-product-v1 PUBLIC
+                halofpx-context-store-v1-prefix-selector
+                halofpx-context-store-compatibility-v1)
+            target_compile_features(halofpx-context-store-world1-prefix-product-v1 PRIVATE cxx_std_17)
+        endif()
     endif()
 endif()
 
@@ -985,6 +997,15 @@ if (HALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY)
     target_compile_definitions(${TARGET} PUBLIC
         HALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY=1)
     target_link_libraries(${TARGET} PRIVATE halofpx-context-store-v1-catalog)
+endif()
+
+if (HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT)
+    target_compile_definitions(llama-common PUBLIC
+        HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT=1)
+    target_compile_definitions(${TARGET} PUBLIC
+        HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT=1)
+    target_link_libraries(${TARGET} PRIVATE
+        halofpx-context-store-world1-prefix-product-v1)
 endif()
 
 if (BUILD_TESTING)

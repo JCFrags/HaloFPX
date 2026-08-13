@@ -399,6 +399,18 @@ void server_tokens::insert(const llama_tokens & inp_tokens) {
     tokens.insert(tokens.end(), inp_tokens.begin(), inp_tokens.end());
 }
 
+#if defined(HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT)
+void server_tokens::reserve(size_t token_capacity) {
+    tokens.reserve(token_capacity);
+}
+
+void server_tokens::insert_prefix(const llama_tokens & inp_tokens, size_t count) {
+    GGML_ASSERT(count <= inp_tokens.size());
+    tokens.insert(tokens.end(), inp_tokens.begin(),
+                  inp_tokens.begin() + static_cast<std::ptrdiff_t>(count));
+}
+#endif
+
 const llama_tokens & server_tokens::get_tokens() const {
     GGML_ASSERT(!has_mtmd);
     return tokens;

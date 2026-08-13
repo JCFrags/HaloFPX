@@ -1,7 +1,8 @@
 # ADR-0051: default-off exact longest-prefix selector
 
-Status: accepted for the standalone L10e selector-unit seam only. Product,
-server, and distributed prefix restoration remain closed.
+Status: accepted for the standalone L10e selector-unit seam. ADR-0054 narrowly
+supersedes its no-product-link boundary under a second default-off world-1
+gate; positive server reuse and distributed prefix restoration remain closed.
 
 Date: 2026-08-12
 
@@ -25,10 +26,12 @@ qualified.
 
 Add a Linux-only, literal-default-`OFF`, `EXCLUDE_FROM_ALL` selector library
 around the unchanged ADR-0038 catalog. It has no server-context, llama-server,
-CLI, or runtime-mode link. The gate requires the exact-key catalog and the
-common, tools, and server build graph before test traversal; the focused test
-may then name the isolated implementation target that tools/server defines
-later in the same configure graph.
+CLI, or runtime-mode link by itself. The gate requires the exact-key catalog
+and the common, tools, and server build graph before test traversal; the
+focused test may then name the isolated implementation target that
+tools/server defines later in the same configure graph. Only the exact
+separately default-off ADR-0054 world-1 product block may link this target;
+all other product references remain forbidden.
 
 The caller provides the complete canonical request token IDs and no more than
 eight complete semantic checkpoint boundaries in strictly increasing order.
@@ -48,8 +51,8 @@ The standalone API is deterministic over a quiescent catalog. Its public
 catalog dependency locks each exact probe independently, so the caller must
 hold catalog-mutation custody across the complete longest-to-shortest call.
 No publish or other catalog mutation may interleave between probes; concurrent
-read-only restores are permitted. A later product coordinator must enforce
-this custody explicitly rather than treating the selector as an atomic catalog
+read-only restores are permitted. ADR-0054's product coordinator enforces this
+custody explicitly rather than treating the selector as an atomic catalog
 snapshot.
 
 A missing candidate or a catalog entry under a different authenticated
@@ -79,11 +82,13 @@ different longer authority followed by a shorter exact hit, unsupported
 profile/topology rejection, and terminal selected-child incompatibility,
 same-size corruption, and truncation without rewrite. A source contract must
 prove literal default-off, early dependency/Linux gates, an isolated target,
-no product link, exact-session/catalog calls, and absence of fuzzy, prompt-text,
-FNV, or string-based selection.
+no unapproved product link, the exact default-off ADR-0054 exception when
+present, exact-session/catalog calls, and absence of fuzzy, prompt-text, FNV,
+or string-based selection.
 
-This qualification does not prove behavior under concurrent publication; such
-use violates the standalone API contract above.
+The standalone qualification does not prove behavior under concurrent
+publication; calling it without the mutation-custody contract violates this
+API boundary. ADR-0054 separately qualifies its guarded composition.
 
 This does not close issue #32. Fresh-process selector execution, pinned-model
 output equality, canonical-token/timing evidence, retained raw evidence, real
@@ -95,9 +100,11 @@ open. A correctness-only WSL run is not target evidence.
 This decision narrowly succeeds ADR-0038 only for a standalone selector-unit
 seam. It does not change the catalog format, weaken any prior authority, or
 reopen ADR-0038's product, shared-scope, replacement, eviction, or distributed
-exclusions. Product composition requires a later decision after issue #26 has
-one atomic two-rank owner with ordinary recompute and single-node fallback.
+exclusions. ADR-0054 separately permits a fail-closed world-1 product shell,
+without a positive live-authority provider or speed claim. Two-rank
+composition still requires issue #26 to establish one atomic owner with
+ordinary recompute and single-node fallback.
 
 Rollback removes the option, selector target/source, focused tests/contracts,
-L10e record, and this ADR. Because no product target links the library and no
-stored format changed, rollback requires no cache migration.
+L10e record, and this ADR. ADR-0054 owns removal of its exact gated product
+link. No stored format changed, so rollback requires no cache migration.
