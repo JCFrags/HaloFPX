@@ -1383,7 +1383,11 @@ common_params_context common_params_parser_init(common_params & params, llama_ex
     add_opt(common_arg(
         {"--halofpx-context-store-mode"},
 #if defined(HALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY)
+#if defined(HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT)
+        "off|direct-rw|protected-rw-canary|full-v1-rw-canary|full-v1-exact-key-canary|full-v1-exact-key-catalog-canary|full-v1-world1-prefix-product",
+#else
         "off|direct-rw|protected-rw-canary|full-v1-rw-canary|full-v1-exact-key-canary|full-v1-exact-key-catalog-canary",
+#endif
 #elif defined(HALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY)
         "off|direct-rw|protected-rw-canary|full-v1-rw-canary|full-v1-exact-key-canary",
 #elif defined(HALOFPX_CONTEXT_STORE_FULL_V1_CANARY)
@@ -1393,18 +1397,31 @@ common_params_context common_params_parser_init(common_params & params, llama_ex
 #else
         "off|direct-rw",
 #endif
+#if defined(HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT)
+        "default-off HaloFPX persistent-cache modes; the world1 prefix product "
+        "requires a typed live-loader authority and otherwise remains cold",
+#else
         "experimental direct-session HaloFPX persistent-cache canary (default: off); "
         "no automatic lookup, prefix matching, shared scope, or anonymous access",
+#endif
         [](common_params & params, const std::string & value) {
 #if defined(HALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY)
             if (value != "off" && value != "direct-rw" &&
                 value != "protected-rw-canary" && value != "full-v1-rw-canary" &&
                 value != "full-v1-exact-key-canary" &&
-                value != "full-v1-exact-key-catalog-canary") {
+                value != "full-v1-exact-key-catalog-canary"
+#if defined(HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT)
+                && value != "full-v1-world1-prefix-product"
+#endif
+                ) {
                 throw std::invalid_argument(
                     "HaloFPX context-store mode must be off, direct-rw, protected-rw-canary, "
                     "full-v1-rw-canary, full-v1-exact-key-canary, or "
-                    "full-v1-exact-key-catalog-canary");
+                    "full-v1-exact-key-catalog-canary"
+#if defined(HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT)
+                    ", or full-v1-world1-prefix-product"
+#endif
+                    );
             }
 #elif defined(HALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY)
             if (value != "off" && value != "direct-rw" &&

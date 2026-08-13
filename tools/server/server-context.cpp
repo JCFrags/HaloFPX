@@ -37,9 +37,13 @@
 #if defined(HALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY)
 #include "halofpx-context-store-v1-catalog.h"
 #endif
+#if defined(HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT)
+#include "halofpx-context-store-world1-prefix-product-v1.h"
+#endif
 #endif
 
 #include <algorithm>
+#include <chrono>
 #include <cctype>
 #include <cstdlib>
 #include <cstring>
@@ -980,6 +984,12 @@ private:
 #if defined(HALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY)
     std::unique_ptr<halofpx::context_store_v1_catalog> halofpx_catalog_store;
 #endif
+#if defined(HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT)
+    // Installed only by a future trusted live-loader adapter.  There is no
+    // operator/CLI construction path for this capability.
+    std::unique_ptr<const halofpx::context_store_world1_cache_authority_v1>
+        halofpx_world1_cache_authority;
+#endif
     halofpx::context_store_format_digest halofpx_scope_key {};
     halofpx::context_store_format_digest halofpx_compatibility_root {};
 #if defined(HALOFPX_CONTEXT_STORE_COMPONENT_AUTHORITY)
@@ -1001,6 +1011,20 @@ private:
     bool sleeping = false;
 
     void destroy() {
+#if defined(HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT)
+        if (params_base.halofpx_context_store_mode ==
+                "full-v1-world1-prefix-product") {
+#if defined(HALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY)
+            halofpx_catalog_store.reset();
+#endif
+            halofpx_world1_cache_authority.reset();
+            halofpx_wipe(halofpx_scope_key.data(), halofpx_scope_key.size());
+            halofpx_compatibility_root.fill(0);
+#if defined(HALOFPX_CONTEXT_STORE_COMPONENT_AUTHORITY)
+            halofpx_compatibility_expectation = {};
+#endif
+        }
+#endif
         spec.reset();
         ctx_dft.reset();
         model_dft.reset();
@@ -1051,6 +1075,21 @@ private:
         if (params_base.halofpx_context_store_mode == "off") {
             return true;
         }
+#if defined(HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT)
+        const bool prefix_product_mode = params_base.halofpx_context_store_mode ==
+            "full-v1-world1-prefix-product";
+        if (prefix_product_mode &&
+            (!halofpx_world1_cache_authority ||
+             !halofpx::context_store_world1_cache_authority_v1_is_valid(
+                 *halofpx_world1_cache_authority))) {
+            SRV_WRN("%s", halofpx_world1_cache_authority
+                ? "HaloFPX world1 prefix product live authority is invalid; inference continues cold\n"
+                : "HaloFPX world1 prefix product has no typed live authority; inference continues cold\n");
+            return true;
+        }
+#else
+        const bool prefix_product_mode = false;
+#endif
         const bool direct_mode = params_base.halofpx_context_store_mode == "direct-rw";
 #if defined(HALOFPX_CONTEXT_STORE_PROTECTED_CANARY)
         const bool protected_mode = params_base.halofpx_context_store_mode == "protected-rw-canary";
@@ -1067,13 +1106,16 @@ private:
 #if defined(HALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY)
             || params_base.halofpx_context_store_mode == "full-v1-exact-key-catalog-canary"
 #endif
+#if defined(HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT)
+            || prefix_product_mode
+#endif
             ;
 #else
         const bool full_v1_mode = false;
 #endif
 #if defined(HALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY)
         const bool catalog_mode = params_base.halofpx_context_store_mode ==
-            "full-v1-exact-key-catalog-canary";
+            "full-v1-exact-key-catalog-canary" || prefix_product_mode;
         constexpr int32_t catalog_max_entries = static_cast<int32_t>(
             halofpx::context_store_v1_catalog_max_slots);
 #else
@@ -1083,7 +1125,18 @@ private:
         bool compatibility_valid = false;
 #if defined(HALOFPX_CONTEXT_STORE_COMPONENT_AUTHORITY)
         halofpx_compatibility_expectation = {};
-        if (protected_mode || full_v1_mode) {
+        if (prefix_product_mode) {
+#if defined(HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT)
+            compatibility_valid = halofpx::context_store_world1_cache_authority_v1_is_valid(
+                *halofpx_world1_cache_authority);
+            if (compatibility_valid) {
+                halofpx_compatibility_expectation =
+                    halofpx_world1_cache_authority->compatibility;
+                halofpx_compatibility_root =
+                    halofpx_world1_cache_authority->compatibility.root;
+            }
+#endif
+        } else if (protected_mode || full_v1_mode) {
             compatibility_valid =
                 params_base.halofpx_context_store_compatibility_root.empty() &&
                 halofpx_build_compatibility_expectation(
@@ -1184,11 +1237,27 @@ private:
             config.operator_key = { operator_key.data(), operator_key.size() };
             config.store_uuid = protected_store_uuid;
             config.compatibility = halofpx_compatibility_expectation;
+#if defined(HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT)
+            if (prefix_product_mode) {
+                config.producer_identity =
+                    halofpx_world1_cache_authority->producer_identity;
+                config.global_plan_digest =
+                    halofpx_world1_cache_authority->global_plan_digest;
+                config.rank_ownership_digest =
+                    halofpx_world1_cache_authority->rank_ownership_digest;
+                config.rank_placement_digest =
+                    halofpx_world1_cache_authority->rank_placement_digest;
+                config.topology_epoch =
+                    halofpx_world1_cache_authority->topology_epoch;
+            } else
+#endif
+            {
             config.producer_identity = halofpx_compatibility_expectation.components[6];
             config.global_plan_digest = halofpx_compatibility_expectation.components[14];
             config.rank_ownership_digest = halofpx_compatibility_expectation.components[14];
             config.rank_placement_digest = halofpx_compatibility_expectation.components[14];
             config.topology_epoch = 1;
+            }
             config.quota_bytes =
                 static_cast<uint64_t>(params_base.halofpx_context_store_quota_mib) * HALOFPX_MIB;
             config.reserve_bytes =
@@ -1203,8 +1272,7 @@ private:
                 halofpx::context_store_linux_direct_max_state_bytes + 1024 * 1024;
             config.limits.max_manifest_bytes = halofpx::context_store_manifest_max_bytes;
 #if defined(HALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY)
-            if (params_base.halofpx_context_store_mode ==
-                    "full-v1-exact-key-catalog-canary") {
+            if (catalog_mode) {
                 const size_t count = static_cast<size_t>(
                     params_base.halofpx_context_store_max_entries);
                 std::vector<std::string> data_paths(count);
@@ -1233,7 +1301,11 @@ private:
                     return true;
                 }
                 halofpx_catalog_store = std::move(opened.catalog);
-                SRV_INF("HaloFPX exact-key catalog canary enabled: capacity=%zu\n", count);
+                if (prefix_product_mode) {
+                    SRV_INF("HaloFPX world1 prefix product catalog enabled: capacity=%zu\n", count);
+                } else {
+                    SRV_INF("HaloFPX exact-key catalog canary enabled: capacity=%zu\n", count);
+                }
                 return true;
             }
 #endif
@@ -1507,6 +1579,180 @@ private:
 #endif
         {
             (void) halofpx_full_v1_store->publish(captured.snapshot);
+        }
+        halofpx_wipe(captured.snapshot.state.data(), captured.snapshot.state.size());
+    }
+#endif
+
+#if defined(HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT)
+    bool halofpx_prefix_product_exact_session(
+            const server_task & task,
+            halofpx::context_store_exact_session_inputs_v1 & exact,
+            halofpx::context_store_exact_session_result_v1 & resolved) const noexcept {
+        if (!halofpx_world1_cache_authority ||
+            task.halofpx_prefix_product.authority_generation !=
+                halofpx_world1_cache_authority->model_generation) {
+            return false;
+        }
+        const llama_tokens & tokens = task.tokens.get_tokens();
+        exact.derivation_key = { halofpx_scope_key.data(), halofpx_scope_key.size() };
+        exact.scope_namespace = task.halofpx_prefix_product.scope_namespace;
+        exact.compatibility_root = halofpx_world1_cache_authority->compatibility.root;
+        exact.tokens = tokens.data();
+        exact.token_count = tokens.size();
+        exact.logical_boundary = tokens.size();
+        exact.output_boundary = tokens.size();
+        exact.profile = halofpx::context_store_exact_session_profile_v1::
+            target_only_greedy_memoryless;
+        exact.global_plan_digest = halofpx_world1_cache_authority->global_plan_digest;
+        exact.rank_ownership_digest =
+            halofpx_world1_cache_authority->rank_ownership_digest;
+        exact.rank_placement_digest =
+            halofpx_world1_cache_authority->rank_placement_digest;
+        exact.topology_epoch = halofpx_world1_cache_authority->topology_epoch;
+        exact.world_size = 1;
+        exact.rank = 0;
+        resolved = halofpx::context_store_resolve_exact_session_v1(exact);
+        return resolved.resolved();
+    }
+
+    bool halofpx_prefix_product_restore_before_launch(
+            server_slot & slot, server_task & task) noexcept {
+        auto & carrier = task.halofpx_prefix_product;
+        if (!carrier.active || !slot.prompt.tokens.empty() ||
+            !halofpx_catalog_store || !halofpx_world1_cache_authority) {
+            return false;
+        }
+        halofpx::context_store_transformer_profile_v1 profile;
+        if (!halofpx_profile_for_slot(slot, profile, false)) return false;
+        halofpx::context_store_exact_session_inputs_v1 exact;
+        halofpx::context_store_exact_session_result_v1 resolved;
+        if (!halofpx_prefix_product_exact_session(task, exact, resolved)) {
+            carrier.active = false;
+            carrier.telemetry.fallback_reason = "authority-generation-changed";
+            return false;
+        }
+
+        halofpx::context_store_world1_prefix_lookup_request_v1 lookup_request;
+        lookup_request.enabled = true;
+        lookup_request.authority = halofpx_world1_cache_authority.get();
+        lookup_request.expected_model_generation = carrier.authority_generation;
+        lookup_request.catalog = halofpx_catalog_store.get();
+        lookup_request.exact_session = exact;
+        lookup_request.policy_epoch = 1;
+        lookup_request.profile = profile;
+        auto lookup = halofpx::context_store_world1_prefix_lookup_v1(lookup_request);
+        carrier.telemetry.source =
+            halofpx::context_store_world1_prefix_source_name_v1(lookup.source);
+        carrier.telemetry.fallback_reason =
+            halofpx::context_store_world1_prefix_fallback_name_v1(lookup.fallback);
+        carrier.telemetry.selected_prefix_tokens = lookup.selected_prefix_tokens;
+        carrier.telemetry.restored_tokens = lookup.restored_tokens;
+        carrier.telemetry.residual_tokens = lookup.residual_tokens;
+        carrier.telemetry.candidates_examined = lookup.candidates_examined;
+        carrier.telemetry.lookup_validation_ns = lookup.validation_time_ns;
+        if (!lookup.hit()) {
+            carrier.publish_after_prompt = lookup.fallback ==
+                halofpx::context_store_world1_prefix_fallback_v1::
+                    no_authenticated_checkpoint;
+            return false;
+        }
+        const auto install_started = std::chrono::steady_clock::now();
+        const llama_tokens & tokens = task.tokens.get_tokens();
+        const halofpx::context_store_transformer_limits_v1 limits {
+            halofpx::context_store_linux_direct_max_state_bytes,
+            halofpx::context_store_linux_direct_max_tokens,
+        };
+        halofpx::context_store_world1_prefix_install_request_v1 install_request;
+        install_request.authority = halofpx_world1_cache_authority.get();
+        install_request.expected_model_generation = carrier.authority_generation;
+        install_request.lookup = &lookup;
+        install_request.context = ctx_tgt;
+        install_request.sequence = slot.id;
+        install_request.full_tokens = tokens.data();
+        install_request.full_token_count = tokens.size();
+        install_request.profile = profile;
+        install_request.limits = limits;
+        const auto install_result =
+            halofpx::context_store_world1_prefix_install_v1(install_request);
+        // The product install seam intentionally wipes the restored state after
+        // applying it, so this phase is restore validation + apply + cleanup.
+        const auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now() - install_started).count();
+        carrier.telemetry.state_install_ns =
+            elapsed <= 0 ? 0 : static_cast<uint64_t>(elapsed);
+        if (!install_result.installed()) {
+            slot.prompt_clear(false);
+            slot.prompt.checkpoints.clear();
+            carrier.telemetry.source = "cold";
+            carrier.telemetry.fallback_reason = install_result.status ==
+                    halofpx::context_store_world1_prefix_install_status_v1::
+                        authority_generation_changed
+                ? "authority-generation-changed"
+                : "state-install-failed";
+            carrier.telemetry.selected_prefix_tokens = 0;
+            carrier.telemetry.restored_tokens = 0;
+            carrier.telemetry.residual_tokens = tokens.size();
+            return false;
+        }
+        const size_t prefix_tokens = install_result.installed_prefix_tokens;
+        try {
+            llama_tokens installed_tokens(tokens.begin(), tokens.begin() + prefix_tokens);
+            // Checkpoint payloads belong to the previous live slot state and
+            // must never survive an externally installed restart snapshot.
+            slot.prompt.checkpoints.clear();
+            slot.prompt.tokens.insert(installed_tokens);
+        } catch (const std::bad_alloc &) {
+            slot.prompt_clear(false);
+            slot.prompt.checkpoints.clear();
+            carrier.telemetry.source = "cold";
+            carrier.telemetry.fallback_reason = "state-install-failed";
+            carrier.telemetry.selected_prefix_tokens = 0;
+            carrier.telemetry.restored_tokens = 0;
+            carrier.telemetry.residual_tokens = tokens.size();
+            return false;
+        }
+        carrier.publish_after_prompt = install_result.residual_tokens != 0;
+        return true;
+    }
+
+    void halofpx_prefix_product_publish_at_prompt_boundary(server_slot & slot) noexcept {
+        if (!slot.task || !slot.task->halofpx_prefix_product.active ||
+            !slot.task->halofpx_prefix_product.publish_after_prompt ||
+            slot.task->halofpx_prefix_product.publication_attempted ||
+            !halofpx_catalog_store || !halofpx_world1_cache_authority) {
+            return;
+        }
+        auto & carrier = slot.task->halofpx_prefix_product;
+        carrier.publication_attempted = true;
+        if (carrier.authority_generation !=
+                halofpx_world1_cache_authority->model_generation) {
+            carrier.telemetry.source = "cold";
+            carrier.telemetry.fallback_reason = "authority-generation-changed";
+            return;
+        }
+        halofpx::context_store_transformer_profile_v1 profile;
+        if (!halofpx_profile_for_slot(slot, profile, false)) return;
+        halofpx::context_store_exact_session_inputs_v1 exact;
+        halofpx::context_store_exact_session_result_v1 resolved;
+        if (!halofpx_prefix_product_exact_session(*slot.task, exact, resolved)) return;
+        halofpx::context_store_identity identity;
+        identity.compatibility_root = exact.compatibility_root;
+        identity.scope_namespace = exact.scope_namespace;
+        identity.checkpoint_lineage_id = resolved.session_id;
+        identity.policy_epoch = 1;
+        const llama_tokens & tokens = slot.prompt.tokens.get_tokens();
+        const halofpx::context_store_transformer_limits_v1 limits {
+            halofpx::context_store_linux_direct_max_state_bytes,
+            halofpx::context_store_linux_direct_max_tokens,
+        };
+        auto captured = halofpx::context_store_capture_transformer_state_v1(
+            ctx_tgt, slot.id, tokens.data(), tokens.size(), identity, profile, limits);
+        if (captured.status !=
+                halofpx::context_store_transformer_status_v1::captured) return;
+        if (carrier.authority_generation ==
+                halofpx_world1_cache_authority->model_generation) {
+            (void) halofpx_catalog_store->publish(captured.snapshot);
         }
         halofpx_wipe(captured.snapshot.state.data(), captured.snapshot.state.size());
     }
@@ -2523,6 +2769,9 @@ private:
         res->timings         = slot.get_timings();
         res->prompt          = slot.task->tokens.detokenize(ctx_tgt, true);
         res->response_fields = std::move(slot.task->params.response_fields);
+#if defined(HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT)
+        res->halofpx_cache = slot.task->halofpx_prefix_product.telemetry;
+#endif
 
         res->truncated             = slot.truncated;
         res->n_decoded             = slot.n_decoded;
@@ -2789,6 +3038,13 @@ private:
                         task.halofpx_exact_key.clear();
                     } else {
                         (void) halofpx_exact_key_restore_before_launch(*slot, task);
+                    }
+#endif
+#if defined(HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT)
+                    if (task.is_parent() || task.is_child()) {
+                        task.halofpx_prefix_product.clear();
+                    } else {
+                        (void) halofpx_prefix_product_restore_before_launch(*slot, task);
                     }
 #endif
 
@@ -4260,6 +4516,9 @@ private:
                     // Publication is best-effort; inference remains authoritative.
                     halofpx_exact_key_publish_at_prompt_boundary(slot);
 #endif
+#if defined(HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT)
+                    halofpx_prefix_product_publish_at_prompt_boundary(slot);
+#endif
 
                     // prompt evaluated for next-token prediction
                     slot.state = SLOT_STATE_GENERATING;
@@ -4980,6 +5239,74 @@ std::unique_ptr<server_res_generator> server_routes::handle_completions_impl(
                         task.halofpx_exact_key.compatibility_root =
                             ctx_server.halofpx_compatibility_root;
                         task.halofpx_exact_key.active = true;
+                    }
+                }
+            }
+#endif
+
+#if defined(HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT)
+            task.halofpx_prefix_product.clear();
+            const bool prefix_product_mode = params.halofpx_context_store_mode ==
+                "full-v1-world1-prefix-product";
+            const auto & prefix_parser = task.params.chat_parser_params;
+            const bool observable_prefix_request = prefix_product_mode &&
+                type == SERVER_TASK_TYPE_COMPLETION &&
+                res_type == TASK_RESPONSE_TYPE_NONE && files.empty() && inputs.size() == 1 &&
+                !task.cli && task.id_slot == -1 && task.tokens.size() != 0 &&
+                !task.params.stream && task.params.n_cmpl == 1;
+            if (observable_prefix_request) {
+                auto & carrier = task.halofpx_prefix_product;
+                carrier.telemetry.enabled = true;
+                carrier.telemetry.source = "cold";
+                carrier.telemetry.residual_tokens = task.tokens.size();
+                carrier.telemetry.fallback_reason =
+                    ctx_server.halofpx_world1_cache_authority
+                        ? (ctx_server.halofpx_catalog_store
+                            ? "invalid-request" : "catalog-unavailable")
+                        : "live-authority-unavailable";
+                const bool eligible = task.params.cache_prompt &&
+                    task.params.lora.empty() && task.params.antiprompt.empty() &&
+                    task.params.response_fields.empty() &&
+                    task.params.speculative.types.size() == 1 &&
+                    task.params.speculative.types.front() == COMMON_SPECULATIVE_TYPE_NONE &&
+                    halofpx_sampling_is_memoryless_greedy(task.params.sampling) &&
+                    prefix_parser.format == COMMON_CHAT_FORMAT_CONTENT_ONLY &&
+                    prefix_parser.reasoning_format == COMMON_REASONING_FORMAT_NONE &&
+                    !prefix_parser.reasoning_in_content &&
+                    prefix_parser.generation_prompt.empty() &&
+                    !prefix_parser.parse_tool_calls && prefix_parser.parser.empty() &&
+                    ctx_server.halofpx_world1_cache_authority &&
+                    ctx_server.halofpx_catalog_store;
+                if (eligible) {
+                    std::string principal =
+                        halofpx_authenticated_principal(req, params.api_keys);
+                    halofpx::context_store_scope_policy_v1 scope_policy;
+                    scope_policy.policy_key = { ctx_server.halofpx_scope_key.data(),
+                                                ctx_server.halofpx_scope_key.size() };
+                    scope_policy.policy_key_id = {
+                        reinterpret_cast<const uint8_t *>(HALOFPX_POLICY_KEY_ID),
+                        sizeof(HALOFPX_POLICY_KEY_ID) - 1 };
+                    scope_policy.authentication_issuer = {
+                        reinterpret_cast<const uint8_t *>(HALOFPX_AUTHENTICATION_ISSUER),
+                        sizeof(HALOFPX_AUTHENTICATION_ISSUER) - 1 };
+                    scope_policy.authenticated_principal = {
+                        reinterpret_cast<const uint8_t *>(principal.data()), principal.size() };
+                    scope_policy.security_domain = {
+                        reinterpret_cast<const uint8_t *>(HALOFPX_SECURITY_DOMAIN),
+                        sizeof(HALOFPX_SECURITY_DOMAIN) - 1 };
+                    scope_policy.policy_epoch = 1;
+                    scope_policy.compatibility_root =
+                        ctx_server.halofpx_world1_cache_authority->compatibility.root;
+                    const auto scope =
+                        halofpx::context_store_resolve_private_scope_v1(scope_policy);
+                    halofpx_wipe(principal.data(), principal.size());
+                    if (scope.resolved()) {
+                        carrier.scope_namespace = scope.namespace_id;
+                        carrier.authority_generation =
+                            ctx_server.halofpx_world1_cache_authority->model_generation;
+                        carrier.active = true;
+                        carrier.telemetry.fallback_reason =
+                            "no-authenticated-checkpoint";
                     }
                 }
             }

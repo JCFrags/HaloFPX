@@ -129,6 +129,7 @@ if (LLAMA_BUILD_SERVER)
             -DHALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY=${HALOFPX_CONTEXT_STORE_EXACT_KEY_CANARY}
             -DHALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY=${HALOFPX_CONTEXT_STORE_EXACT_KEY_CATALOG_CANARY}
             -DHALOFPX_CONTEXT_STORE_LONGEST_PREFIX_CANARY=${HALOFPX_CONTEXT_STORE_LONGEST_PREFIX_CANARY}
+            -DHALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT=${HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT}
             -P ${CMAKE_CURRENT_SOURCE_DIR}/test-halofpx-feature-off-contract.cmake)
     set_property(TEST test-halofpx-feature-off-contract PROPERTY LABELS "main;halofpx")
 endif()
@@ -249,6 +250,12 @@ if (UNIX AND NOT APPLE)
         ${CMAKE_SOURCE_DIR}/tools/server)
     target_link_libraries(test-halofpx-context-store-v1-catalog PRIVATE
         halofpx-context-store-v1-catalog)
+    if (HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT)
+        target_link_libraries(test-halofpx-context-store-v1-catalog PRIVATE
+            halofpx-context-store-world1-prefix-product-v1)
+        target_compile_definitions(test-halofpx-context-store-v1-catalog PRIVATE
+            HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT=1)
+    endif()
     llama_test(test-halofpx-context-store-v1-catalog)
     set_property(TEST test-halofpx-context-store-v1-catalog PROPERTY
         LABELS "main;halofpx;linux")

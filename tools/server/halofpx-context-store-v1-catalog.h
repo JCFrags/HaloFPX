@@ -2,6 +2,7 @@
 
 #include "halofpx-context-store-v1-server-canary.h"
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <memory>
@@ -44,6 +45,26 @@ struct context_store_v1_catalog_publish_result {
 struct context_store_v1_catalog_restore_result {
     context_store_v1_catalog_status status = context_store_v1_catalog_status::miss_not_found;
     context_store_transformer_snapshot_v1 snapshot;
+    // True only after an authenticated final, reservation, or pending record
+    // matched the exact requested identity.  A non-hit with this bit set is
+    // terminal uncertainty for prefix selection and must not fall through to
+    // a shorter checkpoint.
+    bool authenticated_record_selected = false;
+};
+
+struct context_store_v1_catalog_prefix_query {
+    context_store_format_digest compatibility_root {};
+    context_store_format_digest scope_namespace {};
+    uint64_t policy_epoch = 0;
+    size_t max_token_count = 0;
+    context_store_transformer_profile_v1 profile;
+};
+
+struct context_store_v1_catalog_prefix_result {
+    context_store_v1_catalog_status status =
+        context_store_v1_catalog_status::miss_not_found;
+    std::array<size_t, context_store_v1_catalog_max_slots> token_counts {};
+    size_t token_count = 0;
 };
 
 struct context_store_v1_catalog_open_result;
@@ -61,6 +82,13 @@ public:
         size_t expected_token_count,
         const context_store_identity & identity,
         const context_store_transformer_profile_v1 & profile) noexcept;
+    // Returns strictly increasing checkpoint lengths derived from authenticated
+    // child manifests for the requested compatibility/scope/policy/profile.
+    // It never loads object payloads or exposes lineage, prompt, path, digest,
+    // or state material.  restore_exact() remains the sole child-state
+    // validation authority.
+    context_store_v1_catalog_prefix_result discover_prefix_token_counts(
+        const context_store_v1_catalog_prefix_query & query) noexcept;
 
 private:
     class implementation;

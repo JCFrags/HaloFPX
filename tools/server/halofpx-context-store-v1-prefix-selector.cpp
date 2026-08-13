@@ -184,9 +184,19 @@ context_store_v1_restore_longest_prefix(
             request.exact_session.tokens, boundary, identity, request.profile);
         result.last_catalog_status = restored.status;
 
-        if (restored.status == context_store_v1_catalog_status::miss_not_found ||
-            restored.status == context_store_v1_catalog_status::capacity_exhausted) {
+        if (!restored.authenticated_record_selected &&
+            (restored.status == context_store_v1_catalog_status::miss_not_found ||
+             restored.status == context_store_v1_catalog_status::capacity_exhausted)) {
             continue;
+        }
+        if (restored.authenticated_record_selected &&
+            restored.status == context_store_v1_catalog_status::miss_not_found) {
+            result.status = context_store_v1_prefix_selector_status::miss_corrupt;
+            result.fallback_reason =
+                context_store_v1_prefix_fallback_reason::authenticated_state_corrupt;
+            result.last_catalog_status =
+                context_store_v1_catalog_status::miss_corrupt;
+            return finish();
         }
         if (restored.status != context_store_v1_catalog_status::hit) {
             fail_catalog(result, restored.status);

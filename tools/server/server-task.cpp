@@ -771,6 +771,21 @@ json server_task_result_cmpl_final::to_json_non_oaicompat() {
     if (!stream && !probs_output.empty()) {
         res["completion_probabilities"] = completion_token_output::probs_vector_to_json(probs_output, post_sampling_probs);
     }
+#if defined(HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT)
+    if (halofpx_cache.enabled) {
+        res["halofpx_cache"] = json {
+            {"source",                    halofpx_cache.source},
+            {"selected_prefix_tokens",    halofpx_cache.selected_prefix_tokens},
+            {"restored_tokens",           halofpx_cache.restored_tokens},
+            {"residual_tokens",           halofpx_cache.residual_tokens},
+            {"actual_prompt_tokens",      timings.prompt_n},
+            {"candidates_examined",       halofpx_cache.candidates_examined},
+            {"lookup_validation_ns",      halofpx_cache.lookup_validation_ns},
+            {"state_install_ns",          halofpx_cache.state_install_ns},
+            {"fallback_reason",           halofpx_cache.fallback_reason},
+        };
+    }
+#endif
     return response_fields.empty() ? res : json_get_nested_values(response_fields, res);
 }
 

@@ -522,7 +522,9 @@ public:
             }
             uint64_t size = 0;
             if (!exact_regular(manifest.get(), data_identity,
-                               context_store_manifest_max_bytes, size)) return result;
+                               std::min<uint64_t>(limits.max_manifest_bytes,
+                                                  context_store_manifest_max_bytes),
+                               size)) return result;
             std::vector<uint8_t> bytes(static_cast<size_t>(size));
             if (!read_exact(manifest.get(), bytes.data(), bytes.size())) return result;
             const auto verified = context_store_verify_manifest_v1(
@@ -700,6 +702,50 @@ context_store_v1_server_canary_restore_result context_store_v1_server_canary::re
         return result;
     }
     return restore_unlocked(selected_manifest, expected_tokens, expected_token_count, identity, profile);
+}
+
+context_store_v1_server_canary_manifest_result
+context_store_v1_server_canary::inspect_manifest(
+        const context_store_format_digest & selected_manifest,
+        const context_store_identity & identity,
+        const context_store_transformer_profile_v1 & profile) noexcept {
+    context_store_v1_server_canary_manifest_result result;
+    std::unique_lock<std::mutex> operation(operation_mutex_, std::try_to_lock);
+    if (!operation.owns_lock()) {
+        result.status = context_store_v1_server_canary_status::busy;
+        return result;
+    }
+    if (!implementation_ || !nonzero(selected_manifest)) return result;
+    auto loaded = implementation_->load_admission(identity, selected_manifest);
+    if (loaded.status != context_store_v1_server_canary_status::ready) {
+        result.status = loaded.status;
+        return result;
+    }
+    context_store_v1_transformer_manifest_inspection_request request;
+    request.metadata = &loaded.metadata;
+    request.objects = loaded.objects.data();
+    request.object_count = loaded.object_count;
+    request.compatibility_identity = identity;
+    request.profile = profile;
+    request.store_uuid = implementation_->store_uuid;
+    request.producer_identity = implementation_->producer_identity;
+    request.global_plan_digest = implementation_->global_plan_digest;
+    request.rank_ownership_digest = implementation_->rank_ownership_digest;
+    request.rank_placement_digest = implementation_->rank_placement_digest;
+    request.topology_epoch = implementation_->topology_epoch;
+    request.limits = implementation_->limits;
+    const auto inspected = context_store_inspect_transformer_manifest_v1(request);
+    if (inspected.status != context_store_v1_transformer_codec_status::decoded) {
+        result.status = inspected.status ==
+                context_store_v1_transformer_codec_status::incompatible_runtime ||
+                inspected.status == context_store_v1_transformer_codec_status::incompatible_identity
+            ? context_store_v1_server_canary_status::miss_incompatible
+            : context_store_v1_server_canary_status::miss_corrupt;
+        return result;
+    }
+    result.status = context_store_v1_server_canary_status::ready;
+    result.token_count = inspected.token_count;
+    return result;
 }
 
 context_store_v1_server_canary_restore_result context_store_v1_server_canary::restore_unlocked(

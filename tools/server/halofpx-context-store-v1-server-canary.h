@@ -123,6 +123,12 @@ struct context_store_v1_server_canary_restore_result {
     context_store_transformer_snapshot_v1 snapshot;
 };
 
+struct context_store_v1_server_canary_manifest_result {
+    context_store_v1_server_canary_status status =
+        context_store_v1_server_canary_status::miss_unsupported;
+    size_t token_count = 0;
+};
+
 struct context_store_v1_server_canary_open_result;
 
 // Default-off explicit-handle server adapter. One server controller thread must
@@ -152,6 +158,11 @@ public:
     context_store_v1_server_canary_restore_result restore_selected(
         const llama_token * expected_tokens,
         size_t expected_token_count,
+        const context_store_identity & identity,
+        const context_store_transformer_profile_v1 & profile) noexcept;
+
+    context_store_v1_server_canary_manifest_result inspect_manifest(
+        const context_store_format_digest & selected_manifest,
         const context_store_identity & identity,
         const context_store_transformer_profile_v1 & profile) noexcept;
 

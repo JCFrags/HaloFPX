@@ -84,16 +84,23 @@ else()
     endif()
 endif()
 
-# The longest-prefix selector is deliberately a non-product seam even in an
-# opt-in qualification build. It must never add a server mode or CLI surface.
-foreach(forbidden_prefix_surface
-        "longest-prefix"
-        "prefix-selector")
-    string(FIND "${server_help}" "${forbidden_prefix_surface}" prefix_position)
-    if (NOT prefix_position EQUAL -1)
-        message(FATAL_ERROR "non-product prefix selector entered server CLI: ${forbidden_prefix_surface}")
+if (NOT HALOFPX_CONTEXT_STORE_WORLD1_PREFIX_PRODUCT)
+    # The selector alone remains non-product and must expose no server mode.
+    foreach(forbidden_prefix_surface
+            "longest-prefix"
+            "prefix-selector"
+            "full-v1-world1-prefix-product")
+        string(FIND "${server_help}" "${forbidden_prefix_surface}" prefix_position)
+        if (NOT prefix_position EQUAL -1)
+            message(FATAL_ERROR "prefix feature-off surface is exposed: ${forbidden_prefix_surface}")
+        endif()
+    endforeach()
+else()
+    string(FIND "${server_help}" "full-v1-world1-prefix-product" prefix_product_position)
+    if (prefix_product_position EQUAL -1)
+        message(FATAL_ERROR "world1 prefix product build lost its explicit runtime mode")
     endif()
-endforeach()
+endif()
 
 if (NOT HALOFPX_CONTEXT_STORE_COMPONENT_AUTHORITY)
     string(FIND "${server_help}"
