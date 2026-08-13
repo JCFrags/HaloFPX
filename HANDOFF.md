@@ -360,6 +360,8 @@ Record the output of each tool's version command in the recovery receipt. Then
 clone, fetch every tag, reject incomplete history, and run the offline gates:
 
 ```powershell
+$env:PYTHONUTF8 = '1'
+$env:PYTHONIOENCODING = 'utf-8'
 gh auth setup-git
 git clone https://github.com/JCFrags/HaloFPX.git
 Set-Location HaloFPX
@@ -434,6 +436,36 @@ this mode. Interpret its state with the
 [`fresh-PC recovery template`](docs/publication/fresh-pc-recovery-template.md).
 A metadata result is prerequisite evidence only; it is not the full issue #2
 acceptance or a fresh-PC `PASS`.
+
+The runner keeps ordinary commands on a 300-second deadline. The exact
+original-publication verifier reads roughly 23.3 GB (21.7 GiB) and therefore
+uses a separate 43,200-second default: approximately 0.51 MiB/s at the
+admitted size.
+Only that verifier accepts `--verifier-timeout-seconds`; the value is bounded
+from 300 through 86,400 seconds. For example:
+
+```powershell
+./.venv/bin/python -X utf8 -B scripts/halofpx-fresh-pc-recovery.py `
+  --registry docs/publication/continuation-releases.json `
+  --work-root $env:HALOFPX_RECOVERY_ROOT `
+  --expected-commit $expectedCommit `
+  --verifier-timeout-seconds 43200 `
+  verify-original-assets --asset-directory /absolute/path/to/all-original-assets
+```
+
+Caught recovery errors are written atomically as terminal `FAIL` or `BLOCKED`
+steps with a bounded, path/URL/credential-redacted class, exit code, message,
+and retry instruction. Correct the cause and rerun the same step; it transitions
+back through `RUNNING` and may reach `PASS`. An external termination such as
+power loss or `KeyboardInterrupt` can honestly leave `RUNNING`, and rerunning
+the same step is the recovery operation.
+
+The work root is a single-trusted-operator boundary. The runner rejects links,
+reparse points, unsafe containment, and unmarked existing roots, but it does
+not claim a lock or protection against a second local actor changing files
+between validation and use. Keep the root operator-owned and do not run two
+recovery processes against it. Concurrent-actor/TOCTOU hardening remains a
+separate follow-up; it does not block this bounded personal recovery lane.
 
 [MEASURED] Immediately before publication work, the source documentation tree
 passed its manifest check, all 86 wiki sections passed structural and schema

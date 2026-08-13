@@ -77,6 +77,8 @@ offline documentation, Strix A/B harness, and fixture contracts from the
 repository root:
 
 ```powershell
+$env:PYTHONUTF8 = '1'
+$env:PYTHONIOENCODING = 'utf-8'
 python3.12 -X utf8 -m venv .venv
 ./.venv/bin/python -m pip install --requirement requirements/requirements-halofpx-validation.txt
 ./.venv/bin/python -X utf8 -B project/research/prompts/tools/generate_wiki_manifest.py project/wiki/HaloFPX_Wiki --check
@@ -86,6 +88,10 @@ python3.12 -X utf8 -m venv .venv
 ./.venv/bin/python -X utf8 -B tests/test_materialize_rocmfpx_fixture.py -v
 ./.venv/bin/python -X utf8 -B project/project-management/documentation/validate_documentation.py
 ```
+
+Keep those environment settings on Windows control PCs. They prevent a legacy
+CP1252 console from rejecting Unicode documentation output; `-X utf8` remains
+explicit on repository Python invocations as a second boundary.
 
 On a Windows control checkout, substitute `py -3.12` and
 `.\.venv\Scripts\python.exe -X utf8`. Issue #2's acceptance environment is

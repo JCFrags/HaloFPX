@@ -43,11 +43,16 @@ The generator uses `research/prompts/section_index.yaml` and the present section
 It generates the manifest deterministically:
 
 ```powershell
+$env:PYTHONUTF8 = '1'
+$env:PYTHONIOENCODING = 'utf-8'
 python3.12 -X utf8 -m venv .venv
 ./.venv/bin/python -m pip install --requirement requirements/requirements-halofpx-validation.txt
 ./.venv/bin/python -X utf8 project/research/prompts/tools/generate_wiki_manifest.py project/wiki/HaloFPX_Wiki
 ./.venv/bin/python -X utf8 project/research/prompts/tools/generate_wiki_manifest.py project/wiki/HaloFPX_Wiki --check
 ```
+
+The UTF-8 environment is part of the Windows control-PC contract. It prevents
+legacy CP1252 standard streams from failing on Unicode Wiki diagnostics.
 
 Validate both required artifacts and the permissive-core `section.yaml` contract with:
 

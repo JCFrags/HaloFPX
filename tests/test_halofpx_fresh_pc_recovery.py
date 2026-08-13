@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 import importlib.util
 import json
+import os
 import shutil
 import sys
 import tempfile
@@ -115,12 +116,18 @@ class FakeCommandRunner:
         self.registry = registry
         self.expected_commit = expected_commit
         self.calls: list[tuple[tuple[str, ...], Path | None]] = []
+        self.timeouts: list[float] = []
 
     def run(
-        self, argv: list[str], *, cwd: Path | None = None
+        self,
+        argv: list[str],
+        *,
+        cwd: Path | None = None,
+        timeout_seconds: float = recovery.COMMAND_TIMEOUT_SECONDS,
     ) -> recovery.CommandResult:
         command = tuple(argv)
         self.calls.append((command, cwd))
+        self.timeouts.append(float(timeout_seconds))
         stdout = ""
 
         if command == ("gh", "--version"):
@@ -790,6 +797,58 @@ class AtomicJsonTests(unittest.TestCase):
             )
 
 
+class CommandRunnerTests(unittest.TestCase):
+    def test_ordinary_deadline_remains_short_and_explicit_deadline_is_forwarded(self) -> None:
+        completed = SimpleNamespace(returncode=0, stdout="ok\n", stderr="")
+        runner = recovery.CommandRunner()
+        with mock.patch.object(recovery.subprocess, "run", return_value=completed) as invoked:
+            runner.run(["tool", "ordinary"])
+            self.assertEqual(
+                invoked.call_args.kwargs["timeout"], recovery.COMMAND_TIMEOUT_SECONDS
+            )
+            runner.run(["tool", "verifier"], timeout_seconds=12_345)
+            self.assertEqual(invoked.call_args.kwargs["timeout"], 12_345.0)
+
+    def test_runner_forces_utf8_when_parent_environment_is_cp1252(self) -> None:
+        runner = recovery.CommandRunner()
+        forced = os.environ.copy()
+        forced["PYTHONUTF8"] = "0"
+        forced["PYTHONIOENCODING"] = "cp1252"
+        with mock.patch.dict(os.environ, forced, clear=True):
+            result = runner.run(
+                [sys.executable, "-c", "print('fresh-PC ↔ continuation')"]
+            )
+        self.assertEqual(result.returncode, 0)
+        self.assertEqual(result.stdout.strip(), "fresh-PC ↔ continuation")
+
+    def test_runner_executes_documentation_validator_with_cp1252_parent(self) -> None:
+        runner = recovery.CommandRunner()
+        forced = os.environ.copy()
+        forced["PYTHONUTF8"] = "0"
+        forced["PYTHONIOENCODING"] = "cp1252"
+        validator = (
+            REPO_ROOT
+            / "project"
+            / "project-management"
+            / "documentation"
+            / "validate_documentation.py"
+        )
+        with mock.patch.dict(os.environ, forced, clear=True):
+            result = runner.run(
+                [sys.executable, "-X", "utf8", str(validator)], cwd=REPO_ROOT
+            )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout)["status"], "PASS")
+
+    def test_timeout_bounds_reject_nonfinite_and_unbounded_values(self) -> None:
+        runner = recovery.CommandRunner()
+        for value in (0, -1, float("nan"), float("inf"), 86_401, True):
+            with self.subTest(value=value), self.assertRaises(
+                recovery.UsageSafetyError
+            ):
+                runner.run(["tool"], timeout_seconds=value)
+
+
 class RecoveryOrchestrationTests(unittest.TestCase):
     EXPECTED_COMMIT = "3758febacfc07fdc6e84b63637131b02d413de59"
 
@@ -895,6 +954,91 @@ class RecoveryOrchestrationTests(unittest.TestCase):
         resumed = self.instance._load_state()
         self.assertEqual(resumed["steps"]["preflight"]["status"], "PASS")
         self.assertNotIn("metadata", resumed["steps"])
+
+    def test_recovery_errors_persist_terminal_custody_and_same_step_can_resume(self) -> None:
+        cases = (
+            (recovery.RecoveryError("bad <candidate>"), "FAIL", 1),
+            (recovery.UsageSafetyError("unsafe candidate"), "FAIL", 2),
+            (recovery.BlockedError("tool unavailable"), "BLOCKED", 3),
+        )
+        for error, expected_status, expected_exit in cases:
+            with self.subTest(error=error.__class__.__name__):
+                if self.work_root.exists():
+                    shutil.rmtree(self.work_root)
+                self.runner.calls.clear()
+                self.runner.timeouts.clear()
+                with mock.patch.object(
+                    self.instance, "_run_preflight_checks", side_effect=error
+                ):
+                    with self.assertRaises(error.__class__):
+                        self.instance.run_preflight()
+
+                failed = self.instance._load_state()
+                step = failed["steps"]["preflight"]
+                self.assertEqual(step["status"], expected_status)
+                self.assertEqual(step["details"]["error_class"], error.__class__.__name__)
+                self.assertEqual(step["details"]["exit_code"], expected_exit)
+                self.assertEqual(
+                    step["details"]["resume"],
+                    "rerun-same-step-after-correcting-cause",
+                )
+                self.run_mocked_preflight()
+                resumed = self.instance._load_state()
+                self.assertEqual(resumed["steps"]["preflight"]["status"], "PASS")
+
+    def test_metadata_error_is_terminal_and_retry_preserves_preflight_dependency(self) -> None:
+        found = lambda name: f"/test-tools/{name}"
+        disk = SimpleNamespace(
+            total=100 * 1024**3,
+            used=10 * 1024**3,
+            free=90 * 1024**3,
+        )
+        environment = (
+            mock.patch.object(recovery.sys, "version_info", Python312()),
+            mock.patch.object(recovery.sys, "version", "3.12.0 (test)"),
+            mock.patch.object(recovery.shutil, "which", side_effect=found),
+            mock.patch.object(recovery.shutil, "disk_usage", return_value=disk),
+        )
+        with environment[0], environment[1], environment[2], environment[3]:
+            with mock.patch.object(
+                self.instance,
+                "_run_metadata_checks",
+                side_effect=recovery.RecoveryError("metadata mismatch"),
+            ):
+                with self.assertRaises(recovery.RecoveryError):
+                    self.instance.run_metadata()
+
+        failed = self.instance._load_state()
+        self.assertEqual(failed["steps"]["preflight"]["status"], "PASS")
+        self.assertEqual(failed["steps"]["metadata"]["status"], "FAIL")
+
+        with (
+            mock.patch.object(recovery.sys, "version_info", Python312()),
+            mock.patch.object(recovery.sys, "version", "3.12.0 (test)"),
+            mock.patch.object(recovery.shutil, "which", side_effect=found),
+            mock.patch.object(recovery.shutil, "disk_usage", return_value=disk),
+        ):
+            self.instance.run_metadata()
+        resumed = self.instance._load_state()
+        self.assertEqual(resumed["steps"]["preflight"]["status"], "PASS")
+        self.assertEqual(resumed["steps"]["metadata"]["status"], "PASS")
+
+    def test_terminal_error_custody_redacts_known_paths_urls_and_tokens(self) -> None:
+        secret = recovery.RecoveryError(
+            f"write {self.work_root} https://example.invalid token=do-not-store"
+        )
+        with mock.patch.object(
+            self.instance, "_run_preflight_checks", side_effect=secret
+        ):
+            with self.assertRaises(recovery.RecoveryError):
+                self.instance.run_preflight()
+        message = self.instance._load_state()["steps"]["preflight"]["details"][
+            "message"
+        ]
+        self.assertIn("<work-root>", message)
+        self.assertIn("<url>", message)
+        self.assertIn("token=<redacted>", message.lower())
+        self.assertNotIn("do-not-store", message)
 
     def test_metadata_cli_dispatch_does_not_call_preflight_twice(self) -> None:
         fake = mock.Mock()
@@ -1049,8 +1193,62 @@ class RecoveryOrchestrationTests(unittest.TestCase):
         )
         self.assertIn((("git", "fsck", "--full"), REPO_ROOT), self.runner.calls)
         self.assertEqual(result["status"], "PASS")
+        self.assertEqual(
+            self.runner.timeouts[-1], recovery.DEFAULT_VERIFIER_TIMEOUT_SECONDS
+        )
         self.assertNotIn("download", expected_argv)
         self.assertNotIn("latest", expected_argv)
+
+    def test_original_asset_verifier_uses_only_configured_long_deadline(self) -> None:
+        asset_directory = self.base / "slow verified assets"
+        asset_directory.mkdir()
+        configured = 21_600.0
+        instance = recovery.Recovery(
+            REGISTRY_PATH,
+            self.base / "other recovery work",
+            self.EXPECTED_COMMIT,
+            repo_root=REPO_ROOT,
+            runner=self.runner,
+            verifier_timeout_seconds=configured,
+        )
+        found = lambda name: f"/test-tools/{name}"
+        with (
+            mock.patch.object(recovery.sys, "version_info", Python312()),
+            mock.patch.object(recovery.sys, "version", "3.12.0 (test)"),
+            mock.patch.object(recovery.shutil, "which", side_effect=found),
+            mock.patch.object(
+                recovery.shutil,
+                "disk_usage",
+                return_value=SimpleNamespace(
+                    total=100 * 1024**3,
+                    used=10 * 1024**3,
+                    free=90 * 1024**3,
+                ),
+            ),
+        ):
+            instance.verify_original_assets(asset_directory)
+
+        self.assertEqual(self.runner.timeouts[-1], configured)
+        self.assertTrue(
+            all(
+                timeout == recovery.COMMAND_TIMEOUT_SECONDS
+                for timeout in self.runner.timeouts[:-1]
+            )
+        )
+
+    def test_verifier_deadline_configuration_is_bounded(self) -> None:
+        for value in (299, 86_401, float("nan"), float("inf"), True):
+            with self.subTest(value=value), self.assertRaises(
+                recovery.UsageSafetyError
+            ):
+                recovery.Recovery(
+                    REGISTRY_PATH,
+                    self.base / f"deadline-{str(value).replace('.', '-')}",
+                    self.EXPECTED_COMMIT,
+                    repo_root=REPO_ROOT,
+                    runner=self.runner,
+                    verifier_timeout_seconds=value,
+                )
 
     def test_forged_passing_state_is_rejected(self) -> None:
         self.instance._initialize_root()

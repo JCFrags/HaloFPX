@@ -24,6 +24,7 @@ owns prerequisite/bootstrap work; completing it does not close issue #2.
 | `origin/main` | `[NOT RECORDED]` |
 | Registry SHA-256 | `[NOT RECORDED]` |
 | Runner state/receipt paths | `[NOT RECORDED]` |
+| Original-asset verifier deadline | `43,200 seconds default; record any bounded override` |
 
 Never copy credentials, tokens, private keys, cookies, authenticated command
 output, or secrets into this receipt.
@@ -50,6 +51,7 @@ machine-readable receipt for every claimed `PASS`.
 | `gh release verify` succeeds for all four exact tags | `NOT RUN` | — |
 | All 52 release assets downloaded and size/SHA-256 verified | `NOT RUN` | — |
 | Original 41-asset release accepted by `verify-publication-assets.ps1` | `NOT RUN` | — |
+| Runner has no stale `RUNNING` state after a caught recovery error | `NOT RUN` | — |
 | Both split payloads reconstructed in manifest order and rehashed | `NOT RUN` | — |
 | Legacy and donor Git bundles pass `git bundle verify` and expected-ref checks | `NOT RUN` | — |
 | FFN evidence archive verified and inspected safely | `NOT RUN` | — |
@@ -119,6 +121,11 @@ silently described as restored:
   artifacts.
 - `[NOT AUTHORIZED]` The private release set and mixed-license research
   collection are not approved for blanket public redistribution.
+- `[OPEN / THREAT BOUNDARY]` The runner assumes one trusted local operator and
+  one process per work root. It rejects links/reparse points and unsafe
+  containment, but it does not lock against a second local actor changing a
+  validated file before use. Keep the root operator-owned; concurrent-actor/
+  TOCTOU hardening remains a distinct follow-up.
 
 ## Final disposition
 

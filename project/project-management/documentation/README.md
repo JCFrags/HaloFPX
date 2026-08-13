@@ -19,8 +19,8 @@ The inventory records unknown items without moving them.
 Run the validator from either the monorepo root or `project/`:
 
 ```powershell
-python project/project-management/documentation/validate_documentation.py
-python project-management/documentation/validate_documentation.py
+python -X utf8 project/project-management/documentation/validate_documentation.py
+python -X utf8 project-management/documentation/validate_documentation.py
 ```
 
 In the former standalone documentation worktree, the validator recomputes the

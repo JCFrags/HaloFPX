@@ -121,6 +121,8 @@ versions and exact free-byte result in the recovery receipt.
 After that preflight, bootstrap and validate the clone with:
 
 ```powershell
+$env:PYTHONUTF8 = '1'
+$env:PYTHONIOENCODING = 'utf-8'
 gh auth status --hostname github.com
 gh release verify --help | Out-Null
 gh auth setup-git
@@ -142,6 +144,9 @@ python3.12 -X utf8 -m venv .venv
 ./.venv/bin/python -X utf8 -B tests/test_materialize_rocmfpx_fixture.py -v
 ./.venv/bin/python -X utf8 -B project/project-management/documentation/validate_documentation.py
 ```
+
+The UTF-8 environment is required on a Windows control checkout so a CP1252
+console cannot fail while printing Unicode documentation diagnostics.
 
 Issue #2's acceptance lane is one clean Linux environment. A Windows control
 checkout may substitute `py -3.12` and

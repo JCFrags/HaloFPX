@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import os
 import re
 import shutil
@@ -54,6 +55,14 @@ VERIFICATION_RESULT_MEDIA_TYPE = (
 RELEASE_CERTIFICATE_ISSUER = "CN=Fulcio Intermediate l1,O=GitHub\\, Inc."
 RELEASE_SUBJECT_ALTERNATIVE_NAME = "https://dotcom.releases.github.com"
 VERIFIED_RELEASE_SAN_REGEXP = r"^https://dotcom\.releases\.github\.com$"
+COMMAND_TIMEOUT_SECONDS = 300.0
+# The original immutable release is about 23.3 GB (21.7 GiB).  Twelve hours
+# admits an intentionally slow verifier averaging roughly 0.51 MiB/s while
+# the 24-hour ceiling still prevents an accidentally unbounded command.
+DEFAULT_VERIFIER_TIMEOUT_SECONDS = 12 * 60 * 60.0
+MIN_VERIFIER_TIMEOUT_SECONDS = COMMAND_TIMEOUT_SECONDS
+MAX_VERIFIER_TIMEOUT_SECONDS = 24 * 60 * 60.0
+MAX_ERROR_MESSAGE_CHARACTERS = 1024
 
 
 class RecoveryError(RuntimeError):
@@ -79,9 +88,29 @@ class CommandResult:
 class CommandRunner:
     """Small injectable subprocess boundary; commands are never shell strings."""
 
-    def run(self, argv: list[str], *, cwd: Path | None = None) -> CommandResult:
+    def run(
+        self,
+        argv: list[str],
+        *,
+        cwd: Path | None = None,
+        timeout_seconds: float = COMMAND_TIMEOUT_SECONDS,
+    ) -> CommandResult:
         if not argv or any(not isinstance(item, str) or not item for item in argv):
             raise UsageSafetyError("Command argv must contain non-empty strings.")
+        if (
+            isinstance(timeout_seconds, bool)
+            or not isinstance(timeout_seconds, (int, float))
+            or not math.isfinite(timeout_seconds)
+            or timeout_seconds <= 0
+            or timeout_seconds > MAX_VERIFIER_TIMEOUT_SECONDS
+        ):
+            raise UsageSafetyError("Command timeout is outside the supported bounded range.")
+        environment = os.environ.copy()
+        # Recovery commands must remain Unicode-safe even when the control PC's
+        # legacy Windows locale is CP1252.  PYTHONIOENCODING also overrides a
+        # hostile inherited value for any Python child process.
+        environment["PYTHONUTF8"] = "1"
+        environment["PYTHONIOENCODING"] = "utf-8"
         try:
             completed = subprocess.run(
                 argv,
@@ -92,10 +121,17 @@ class CommandRunner:
                 encoding="utf-8",
                 errors="replace",
                 shell=False,
-                timeout=300,
+                timeout=float(timeout_seconds),
+                env=environment,
             )
-        except (OSError, subprocess.TimeoutExpired) as error:
-            raise BlockedError(f"Could not run {argv[0]}: {error}") from error
+        except subprocess.TimeoutExpired as error:
+            raise BlockedError(
+                f"{argv[0]} exceeded its {float(timeout_seconds):g}-second deadline."
+            ) from error
+        except OSError as error:
+            raise BlockedError(
+                f"Could not run {argv[0]} ({error.__class__.__name__})."
+            ) from error
         return CommandResult(tuple(argv), completed.returncode, completed.stdout, completed.stderr)
 
 
@@ -750,6 +786,7 @@ class Recovery:
         *,
         repo_root: Path | None = None,
         runner: CommandRunner | None = None,
+        verifier_timeout_seconds: float = DEFAULT_VERIFIER_TIMEOUT_SECONDS,
     ) -> None:
         self.repo_root = (repo_root or Path(__file__).resolve().parents[1]).resolve()
         canonical_registry_raw = self.repo_root / CANONICAL_REGISTRY_RELATIVE
@@ -780,6 +817,22 @@ class Recovery:
         self.expected_commit = expected_commit
         self.work_root = validate_work_root(work_root, self.repo_root)
         self.runner = runner or CommandRunner()
+        if (
+            isinstance(verifier_timeout_seconds, bool)
+            or not isinstance(verifier_timeout_seconds, (int, float))
+            or not math.isfinite(verifier_timeout_seconds)
+            or not (
+                MIN_VERIFIER_TIMEOUT_SECONDS
+                <= verifier_timeout_seconds
+                <= MAX_VERIFIER_TIMEOUT_SECONDS
+            )
+        ):
+            raise UsageSafetyError(
+                "--verifier-timeout-seconds must be between "
+                f"{MIN_VERIFIER_TIMEOUT_SECONDS:g} and "
+                f"{MAX_VERIFIER_TIMEOUT_SECONDS:g}."
+            )
+        self.verifier_timeout_seconds = float(verifier_timeout_seconds)
         self.state_path = self.work_root / STATE_NAME
 
     def _initialize_root(self) -> None:
@@ -838,6 +891,8 @@ class Recovery:
             self._validate_utc(step["recorded_at_utc"], f"state.steps.{name}.recorded_at_utc")
             if step["status"] == "RUNNING" and step["details"] is not None:
                 raise UsageSafetyError(f"Recovery state running step {name} has unexpected details.")
+            if step["status"] in {"FAIL", "BLOCKED"}:
+                self._validate_error_details(step["details"], step["status"], name)
             if step["status"] == "PASS":
                 if name == "preflight":
                     self._validate_preflight_details(step["details"])
@@ -860,6 +915,25 @@ class Recovery:
             datetime.strptime(value, "%Y-%m-%dT%H:%M:%SZ")
         except ValueError as error:
             raise UsageSafetyError(f"{label} is not a valid UTC date/time.") from error
+
+    @staticmethod
+    def _validate_error_details(raw: Any, status: str, step: str) -> None:
+        details = _expect_dict(raw, f"state.steps.{step}.details")
+        if set(details) != {"error_class", "exit_code", "message", "resume"}:
+            raise UsageSafetyError(f"Recovery state step {step} has invalid error custody.")
+        if (
+            not isinstance(details["error_class"], str)
+            or not details["error_class"]
+            or type(details["exit_code"]) is not int
+            or details["exit_code"] not in {1, 2, 3}
+            or not isinstance(details["message"], str)
+            or not details["message"]
+            or len(details["message"]) > MAX_ERROR_MESSAGE_CHARACTERS
+            or details["resume"] != "rerun-same-step-after-correcting-cause"
+        ):
+            raise UsageSafetyError(f"Recovery state step {step} has invalid error custody.")
+        if (status == "BLOCKED") != (details["exit_code"] == BlockedError.exit_code):
+            raise UsageSafetyError(f"Recovery state step {step} has inconsistent terminal status.")
 
     def _validate_preflight_details(self, raw: Any) -> None:
         details = _expect_dict(raw, "state.steps.preflight.details")
@@ -951,11 +1025,50 @@ class Recovery:
         state["updated_at_utc"] = _utc_now()
         atomic_write_json(self.state_path, state)
 
-    def _command(self, argv: list[str], *, label: str) -> CommandResult:
-        result = self.runner.run(argv, cwd=self.repo_root)
+    def _save_terminal_error(
+        self, state: dict[str, Any], step: str, error: RecoveryError
+    ) -> None:
+        message = " ".join(str(error).split())[:MAX_ERROR_MESSAGE_CHARACTERS]
+        for path, replacement in (
+            (self.registry_path, "<registry>"),
+            (self.work_root, "<work-root>"),
+            (self.repo_root, "<repo-root>"),
+        ):
+            message = message.replace(str(path), replacement)
+        message = re.sub(r"https?://\S+", "<url>", message)
+        message = re.sub(
+            r"(?i)\b(token|password|secret|authorization)\s*[:=]\s*\S+",
+            r"\1=<redacted>",
+            message,
+        )
+        message = message[:MAX_ERROR_MESSAGE_CHARACTERS]
+        if not message:
+            message = "Recovery step failed without a diagnostic message."
+        status = "BLOCKED" if isinstance(error, BlockedError) else "FAIL"
+        self._save_step(
+            state,
+            step,
+            status,
+            {
+                "error_class": error.__class__.__name__,
+                "exit_code": error.exit_code,
+                "message": message,
+                "resume": "rerun-same-step-after-correcting-cause",
+            },
+        )
+
+    def _command(
+        self,
+        argv: list[str],
+        *,
+        label: str,
+        timeout_seconds: float = COMMAND_TIMEOUT_SECONDS,
+    ) -> CommandResult:
+        result = self.runner.run(
+            argv, cwd=self.repo_root, timeout_seconds=timeout_seconds
+        )
         if result.returncode != 0:
-            message = result.stderr.strip() or result.stdout.strip() or f"exit {result.returncode}"
-            raise BlockedError(f"{label} failed: {message}")
+            raise BlockedError(f"{label} failed with exit code {result.returncode}.")
         return result
 
     def run_preflight(self) -> dict[str, Any]:
@@ -968,6 +1081,13 @@ class Recovery:
         # its own next load.
         state.setdefault("steps", {}).pop("metadata", None)
         self._save_step(state, "preflight", "RUNNING")
+        try:
+            return self._run_preflight_checks(state)
+        except RecoveryError as error:
+            self._save_terminal_error(state, "preflight", error)
+            raise
+
+    def _run_preflight_checks(self, state: dict[str, Any]) -> dict[str, Any]:
         if sys.version_info[:2] != (3, 12):
             raise BlockedError(f"Python 3.12 is required; running {sys.version_info.major}.{sys.version_info.minor}.")
         try:
@@ -1069,6 +1189,13 @@ class Recovery:
         if state.get("steps", {}).get("preflight", {}).get("status") != "PASS":
             raise UsageSafetyError("Metadata verification requires a recorded passing preflight.")
         self._save_step(state, "metadata", "RUNNING")
+        try:
+            return self._run_metadata_checks(state)
+        except RecoveryError as error:
+            self._save_terminal_error(state, "metadata", error)
+            raise
+
+    def _run_metadata_checks(self, state: dict[str, Any]) -> dict[str, Any]:
         repository = self.registry["repository"]
         repo_payload_text = self._command(
             ["gh", "api", f"repos/{repository['slug']}"], label="GitHub repository metadata"
@@ -1183,6 +1310,7 @@ class Recovery:
                 str(manifest),
             ],
             label="original publication asset verifier",
+            timeout_seconds=self.verifier_timeout_seconds,
         )
         return {"status": "PASS", "asset_directory": str(directory), "output": result.stdout.strip()}
 
@@ -1192,6 +1320,16 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--registry", required=True, type=Path)
     parser.add_argument("--work-root", required=True, type=Path)
     parser.add_argument("--expected-commit", required=True)
+    parser.add_argument(
+        "--verifier-timeout-seconds",
+        type=float,
+        default=DEFAULT_VERIFIER_TIMEOUT_SECONDS,
+        help=(
+            "Deadline used only by verify-original-assets "
+            f"({MIN_VERIFIER_TIMEOUT_SECONDS:g}..{MAX_VERIFIER_TIMEOUT_SECONDS:g}; "
+            f"default {DEFAULT_VERIFIER_TIMEOUT_SECONDS:g})."
+        ),
+    )
     subparsers = parser.add_subparsers(dest="command", required=True)
     run = subparsers.add_parser("run", help="Run preflight and optional metadata-only verification.")
     run.add_argument("--through", choices=("preflight", "metadata"), default="metadata")
@@ -1206,7 +1344,12 @@ def main(argv: list[str] | None = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
     try:
-        recovery = Recovery(args.registry, args.work_root, args.expected_commit)
+        recovery = Recovery(
+            args.registry,
+            args.work_root,
+            args.expected_commit,
+            verifier_timeout_seconds=args.verifier_timeout_seconds,
+        )
         if args.command == "run":
             if args.through == "metadata":
                 metadata = recovery.run_metadata()
