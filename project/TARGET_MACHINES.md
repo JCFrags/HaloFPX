@@ -102,25 +102,61 @@ those experiments. Never infer a current role from the hostname.
 ## Fresh-PC continuation
 
 The Git repository restores source, Wiki, decisions, tests, scripts, and
-sanitized evidence:
+sanitized evidence. [Issue #11](https://github.com/JCFrags/HaloFPX/issues/11)
+owns the pinned bootstrap/tooling prerequisite for
+[issue #2](https://github.com/JCFrags/HaloFPX/issues/2); completing that
+prerequisite alone does not close the end-to-end clean-PC acceptance. Issue #2
+and a full fresh-PC `PASS` remain `[OPEN]` until a retained run completes every
+gate.
+
+A machine intended to run the full recovery must have PowerShell `7.2` or
+newer; Python `3.12` with `venv`; Git; an authenticated GitHub CLI with
+`gh release verify`; CMake; Ninja; `cc`; `c++`; `sha256sum`; and `tar`. The
+chosen external recovery-work volume must have at least `53,687,091,200` free
+bytes before recovery starts; `60 GiB` (`64,424,509,440` bytes) or more is
+recommended. Use the fail-closed command preflight in the root
+[`HANDOFF.md`](../HANDOFF.md#first-clean-clone-checks), and retain its tool
+versions and exact free-byte result in the recovery receipt.
+
+After that preflight, bootstrap and validate the clone with:
 
 ```powershell
-gh auth status
+gh auth status --hostname github.com
+gh release verify --help | Out-Null
 gh auth setup-git
 git clone https://github.com/JCFrags/HaloFPX.git
 Set-Location HaloFPX
 git switch main
+git fetch --tags --force origin
+if ((git rev-parse --is-shallow-repository).Trim() -eq 'true') {
+    git fetch --unshallow --tags --force origin
+}
+git merge --ff-only origin/main
 git fsck --full
-py -3.12 -m venv .venv
-.\.venv\Scripts\python.exe -m pip install PyYAML==6.0.3
-.\.venv\Scripts\python.exe -B project/research/prompts/tools/generate_wiki_manifest.py project/wiki/HaloFPX_Wiki --check
-.\.venv\Scripts\python.exe -B project/research/prompts/tools/validate_wiki.py project/wiki/HaloFPX_Wiki
-.\.venv\Scripts\python.exe -B -m unittest discover -s project/research/prompts/tools -p "test_validate_wiki.py"
-.\.venv\Scripts\python.exe -B project/project-management/documentation/validate_documentation.py
+python3.12 -X utf8 -m venv .venv
+./.venv/bin/python -m pip install --requirement requirements/requirements-halofpx-validation.txt
+./.venv/bin/python -X utf8 -B project/research/prompts/tools/generate_wiki_manifest.py project/wiki/HaloFPX_Wiki --check
+./.venv/bin/python -X utf8 -B project/research/prompts/tools/validate_wiki.py project/wiki/HaloFPX_Wiki
+./.venv/bin/python -X utf8 -B -m unittest discover -s project/research/prompts/tools -p "test_*.py"
+./.venv/bin/python -X utf8 -B -m unittest tests/test_halofpx_strix_ab.py tests/test_halofpx_strix_ab_cachyos.py -v
+./.venv/bin/python -X utf8 -B tests/test_materialize_rocmfpx_fixture.py -v
+./.venv/bin/python -X utf8 -B project/project-management/documentation/validate_documentation.py
 ```
 
-This assumes Git, GitHub CLI, Python 3.12, and PowerShell 7 are installed. The
-repository is private, so GitHub authentication must already authorize it.
+Issue #2's acceptance lane is one clean Linux environment. A Windows control
+checkout may substitute `py -3.12` and
+`.\.venv\Scripts\python.exe -X utf8`, but that run does not satisfy issue #2
+by itself.
+
+The Wiki discovery pattern includes both validator and manifest-generator
+tests. The model-general Strix A/B, CachyOS adapter, and fixture-materialization
+suites are offline contracts; they neither contact the targets nor download
+any model or release payload. The fixture suite currently contains 12 tests.
+The repository is private, so GitHub
+authentication must authorize it. Continue with the resumable metadata and
+attestation command in the root
+[`HANDOFF.md`](../HANDOFF.md#first-clean-clone-checks); its metadata-only result
+does not replace the full issue #2 receipt.
 
 Ordinary development needs only the clone. Optional large historical evidence
 from the immutable release is more than 23.3 GB and needs additional

@@ -4,12 +4,74 @@ This is the shortest safe route into the combined HaloFPX repository. It records
 the publication boundary, not a claim that every historical experiment is still
 current.
 
-## Current continuation layer — 2026-08-12
+## Current continuation layer — 2026-08-13
 
 The immutable publication boundary below remains valid, but current work has
 advanced beyond L111:
 
-- the Q/K/V candidate's exact base `main` at this update is
+- [PR #44](https://github.com/JCFrags/HaloFPX/pull/44) retained the target HMM
+  OOM incident at merge commit
+  `ad4930fd632f2f57bbe852dc2268ba3b5b7f5666`. Its safety result is still the
+  current target rule: [issue #41](https://github.com/JCFrags/HaloFPX/issues/41)
+  is open P0 and target builds, quantization, disposable inference, and
+  benchmarks are `REFUSE` while protected production or any unaccounted
+  KFD/render/HMM owner exists. The incident is not a benchmark or target-work
+  authorization.
+- [PR #45](https://github.com/JCFrags/HaloFPX/pull/45) merged the default-off
+  dense ROCmFPX FFN Q8 conversion-reuse slice as
+  `0db715c6e436be88a4d5444763421020f53dc728`; [PR #47](https://github.com/JCFrags/HaloFPX/pull/47)
+  retained its exact source in a thin bundle at
+  `d79a584cd68082f31f87dccce9e69f04937250e8`. The bounded host, compile, and
+  evidence results do not establish target runtime parity or speed. The old
+  target binaries and raw checksum-command output were not republished.
+- [PR #46](https://github.com/JCFrags/HaloFPX/pull/46) merged the default-off
+  repeated sampling-output synchronization coalescing slice as
+  `72436b9c701c4a309a6393979db382c44d871e43`. Its focused correctness evidence
+  does not establish a matched target latency gain.
+- [PR #48](https://github.com/JCFrags/HaloFPX/pull/48) merged the portable
+  Qwen3-0.6B pure-ROCmFPX derived-fixture lane as
+  `e3e8b286b8316abd246fb155044effd11e60b0eb`. The immutable GitHub release
+  preserves the derived Q3/Q6/Q8 GGUFs and their verification controls, not the
+  redistribution-sensitive BF16 source. It is a correctness fixture, not a
+  primary-model, target, or performance result.
+- [PR #49](https://github.com/JCFrags/HaloFPX/pull/49) merged the default-off
+  exact longest-prefix selector as
+  `3758febacfc07fdc6e84b63637131b02d413de59`. [Issue #32](https://github.com/JCFrags/HaloFPX/issues/32)
+  therefore no longer means “selector absent”; it remains open for positive
+  model-backed server restore, suffix-only prefill proof, target parity, and
+  performance evidence.
+- [PR #50](https://github.com/JCFrags/HaloFPX/pull/50) merged the default-off
+  gfx1151 ROCmFPX prompt-MMQ Q/K/V Q8 activation-conversion reuse candidate as
+  `9bfccf25d43af0c446df591035e9cdac0b74d6c0`. Focused host contracts and a
+  pinned GPU-less ROCm OFF/ON compile/link lane passed. No Strix Halo target
+  ran it; target runtime parity, real-model reachability, launch tracing, and
+  matched prompt-speed evidence remain open.
+- [PR #51](https://github.com/JCFrags/HaloFPX/pull/51) merged the offline
+  CachyOS A/B process-adapter draft and fake-process qualification as
+  `e330c4db1ca7b2daf0763968a81e369becadf06e`. [Issue #37](https://github.com/JCFrags/HaloFPX/issues/37)
+  remains open because real SSH execution is hard-disabled,
+  `execution_qualified=false`, and issue #41 currently makes target execution
+  `REFUSE`. No benchmark was run or accepted.
+- [PR #52](https://github.com/JCFrags/HaloFPX/pull/52) merged the default-off
+  standalone two-rank live-derived authority builder as
+  `65bddac2538c020b62cefe62c3c7cc4ab365c55c`; it remains deliberately
+  product-isolated. [PR #54](https://github.com/JCFrags/HaloFPX/pull/54) then
+  merged the separate fail-closed world-1 authenticated-prefix server shell as
+  `3bf10a1f4afcb18dfa17c657f17d0e54c82d48fb`. The shell consumes a typed
+  world-1 capability but no trusted live-loader provider installs one, so the
+  reachable path stays cold with `live-authority-unavailable`. [Issue #33](https://github.com/JCFrags/HaloFPX/issues/33)
+  remains open for the trusted live product authority, lifecycle invalidation,
+  and complete request/plan derivation. [Issue #18](https://github.com/JCFrags/HaloFPX/issues/18)
+  remains open for complete reuse-source/useful-work attribution and matched
+  target timing; PR #54's bounded cache telemetry is not that acceptance.
+
+These merge commits are dated continuation anchors, not a hard-coded live
+branch pointer. A fresh worker must record and validate its own checked-out
+`HEAD` and `origin/main` before continuing.
+
+### Earlier retained continuation anchors
+
+- the Q/K/V candidate's exact base `main` at its retained update is
   `3bf10a1f4afcb18dfa17c657f17d0e54c82d48fb`. Its core implementation head is
   `884150aa15ed9b52b5eb9989d417131aaaf9d8d3`, and its publication-source head
   is `eed1c06488e4075eee444403884ecec1a1275fb3`. The incident record separately
@@ -90,6 +152,11 @@ advanced beyond L111:
   product target.
 - both physical Strix Halo targets are Nimo MME3L machines running CachyOS.
   Ubuntu is a portability/control lane; Windows is the local control PC.
+- [Issue #11](https://github.com/JCFrags/HaloFPX/issues/11) owns the pinned
+  bootstrap and recovery-tool prerequisites for a new control PC. It is a
+  prerequisite to, and does not close, the end-to-end clean-PC acceptance in
+  [issue #2](https://github.com/JCFrags/HaloFPX/issues/2). That acceptance
+  remains `[OPEN]` until a retained run completes its full scope.
 - the `2026-08-12T23:06:08Z` zero-restart
   [health receipt](docs/halofpx/evidence/2026-08-12-strix-halo-health-recheck/README.md)
   is historical before-state. A later target HMM/global-OOM incident restarted
@@ -216,26 +283,157 @@ authority.
 
 ## First clean-clone checks
 
-Run these from the repository root. Use a disposable build directory and do
-not point tests at production services or model storage.
+Run the tool and storage preflight below on the clean Linux recovery machine
+before cloning. After cloning, run the second block from the repository root.
+Use a disposable build directory and do not point tests at production services
+or model storage. The complete fresh-PC gate remains `[OPEN]` under
+[issue #2](https://github.com/JCFrags/HaloFPX/issues/2); these checks do not
+declare that gate passed.
+
+The exact bootstrap preflight is:
+
+- PowerShell `7.2` or newer;
+- Python `3.12` with its standard-library `venv` module, followed by the
+  repository-pinned validator requirements;
+- Git, an authenticated GitHub CLI authorized for the private repository, and
+  a GitHub CLI build that provides `gh release verify`;
+- CMake, Ninja, `cc`, `c++`, `sha256sum`, and `tar`; and
+- at least `53,687,091,200` free bytes on the external recovery-work volume.
+  `60 GiB` (`64,424,509,440` bytes) or more is recommended for safe headroom.
+
+Set `HALOFPX_RECOVERY_ROOT` to an absolute path on the volume that will hold
+release downloads and reconstructed files, then make the preflight fail
+closed:
 
 ```powershell
-git status --short
-git fsck --full
-python project/research/prompts/tools/generate_wiki_manifest.py project/wiki/HaloFPX_Wiki --check
-python project/research/prompts/tools/validate_wiki.py project/wiki/HaloFPX_Wiki
-python -m unittest discover -s project/research/prompts/tools -p "test_validate_wiki.py"
-python project/project-management/documentation/validate_documentation.py
+$requiredCommands = @('git', 'gh', 'pwsh', 'python3.12', 'cmake', 'ninja', 'cc', 'c++', 'sha256sum', 'tar')
+$missingCommands = @($requiredCommands | Where-Object {
+    -not (Get-Command $_ -ErrorAction SilentlyContinue)
+})
+if ($missingCommands.Count -ne 0) {
+    throw "Missing required commands: $($missingCommands -join ', ')"
+}
+if ($PSVersionTable.PSVersion -lt [version]'7.2') {
+    throw "PowerShell 7.2 or newer is required"
+}
+$pythonVersion = python3.12 -c 'import sys, venv; print(".".join(map(str, sys.version_info[:3])))'
+if ($LASTEXITCODE -ne 0) { throw "Python 3.12 with venv is required" }
+gh auth status --hostname github.com
+if ($LASTEXITCODE -ne 0) { throw "GitHub authentication failed" }
+gh release verify --help | Out-Null
+if ($LASTEXITCODE -ne 0) { throw "gh release verify is unavailable" }
+
+git --version
+(gh --version | Select-Object -First 1)
+"PowerShell $($PSVersionTable.PSVersion)"
+"Python $pythonVersion"
+cmake --version | Select-Object -First 1
+ninja --version
+& (Get-Command 'cc').Source --version
+& (Get-Command 'c++').Source --version
+sha256sum --version | Select-Object -First 1
+tar --version | Select-Object -First 1
+
+$recoveryRoot = [Environment]::GetEnvironmentVariable('HALOFPX_RECOVERY_ROOT')
+if ([string]::IsNullOrWhiteSpace($recoveryRoot) -or
+    -not [IO.Path]::IsPathFullyQualified($recoveryRoot)) {
+    throw "HALOFPX_RECOVERY_ROOT must be an absolute path"
+}
+$recoveryRoot = [IO.Path]::GetFullPath($recoveryRoot)
+if (-not (Test-Path -LiteralPath $recoveryRoot -PathType Container)) {
+    throw "HALOFPX_RECOVERY_ROOT must already exist as a directory"
+}
+$freeBytesText = python3.12 -c 'import shutil, sys; print(shutil.disk_usage(sys.argv[1]).free)' $recoveryRoot
+if ($LASTEXITCODE -ne 0) { throw "Could not inspect the recovery filesystem" }
+$freeBytes = [int64]0
+if (-not [int64]::TryParse(([string]$freeBytesText).Trim(), [ref]$freeBytes)) {
+    throw "Recovery free-byte result was not an integer"
+}
+$minimumFreeBytes = [int64]53687091200
+if ($freeBytes -lt $minimumFreeBytes) {
+    throw "Recovery filesystem has $freeBytes free bytes; $minimumFreeBytes required"
+}
+"Recovery filesystem free bytes: $freeBytes"
 ```
 
-The wiki tools require PyYAML. Install it in a virtual environment rather than
-changing system Python. The validation workflow uses Python `3.12` and
-`PyYAML==6.0.3`. The documentation validator is monorepo-aware and requires the
-complete imported history to verify both ancestors, the two-parent integration
-tree, and the protected snapshot. New clones are full-history by default. If
-`git rev-parse --is-shallow-repository` returns `true`, run
-`git fetch --unshallow --tags origin`; otherwise use `git fetch --tags origin`.
-Investigate a provenance failure; never weaken the check merely to make it pass.
+Record the output of each tool's version command in the recovery receipt. Then
+clone, fetch every tag, reject incomplete history, and run the offline gates:
+
+```powershell
+gh auth setup-git
+git clone https://github.com/JCFrags/HaloFPX.git
+Set-Location HaloFPX
+git switch main
+git fetch --tags --force origin
+if ((git rev-parse --is-shallow-repository).Trim() -eq 'true') {
+    git fetch --unshallow --tags --force origin
+}
+git merge --ff-only origin/main
+if ((git rev-parse HEAD).Trim() -ne (git rev-parse origin/main).Trim()) {
+    throw "Checked-out main does not match origin/main"
+}
+$recoveryRoot = [IO.Path]::GetFullPath(
+    [Environment]::GetEnvironmentVariable('HALOFPX_RECOVERY_ROOT'))
+$repoRoot = [IO.Path]::GetFullPath((git rev-parse --show-toplevel).Trim())
+function Test-PathWithin([string]$root, [string]$candidate) {
+    $relative = [IO.Path]::GetRelativePath($root, $candidate)
+    $parentPrefix = "..$([IO.Path]::DirectorySeparatorChar)"
+    return $relative -eq '.' -or
+        (-not [IO.Path]::IsPathFullyQualified($relative) -and
+         $relative -ne '..' -and -not $relative.StartsWith($parentPrefix))
+}
+if ((Test-PathWithin $repoRoot $recoveryRoot) -or
+    (Test-PathWithin $recoveryRoot $repoRoot)) {
+    throw "HALOFPX_RECOVERY_ROOT and the Git checkout must not contain one another"
+}
+$gitStatus = @(git status --porcelain=v1 --untracked-files=all)
+if ($LASTEXITCODE -ne 0 -or $gitStatus.Count -ne 0) {
+    throw "Fresh clone is not clean"
+}
+git fsck --full
+python3.12 -X utf8 -m venv .venv
+./.venv/bin/python -m pip install --requirement requirements/requirements-halofpx-validation.txt
+./.venv/bin/python -X utf8 -B project/research/prompts/tools/generate_wiki_manifest.py project/wiki/HaloFPX_Wiki --check
+./.venv/bin/python -X utf8 -B project/research/prompts/tools/validate_wiki.py project/wiki/HaloFPX_Wiki
+./.venv/bin/python -X utf8 -B -m unittest discover -s project/research/prompts/tools -p "test_*.py"
+./.venv/bin/python -X utf8 -B -m unittest tests/test_halofpx_strix_ab.py tests/test_halofpx_strix_ab_cachyos.py -v
+./.venv/bin/python -X utf8 -B tests/test_materialize_rocmfpx_fixture.py -v
+./.venv/bin/python -X utf8 -B project/project-management/documentation/validate_documentation.py
+```
+
+Issue #2's acceptance lane is one clean Linux environment. On a Windows-only
+control checkout, use `py -3.12` to create the environment and
+`.\.venv\Scripts\python.exe -X utf8` for the commands above; that Windows run
+remains useful development evidence but cannot satisfy issue #2 by itself.
+
+The Wiki discovery pattern deliberately includes both
+`test_validate_wiki.py` and `test_generate_wiki_manifest.py`. The model-general
+Strix A/B suite, CachyOS adapter suite, and fixture-materialization suite are
+offline contracts; they do not contact a target, download model or release
+bytes, or establish a performance result. The fixture-materialization suite
+currently contains 12 tests. The
+documentation validator is monorepo-aware and requires the complete imported
+history to verify both ancestors, the two-parent integration tree, and the
+protected snapshot. Investigate a provenance failure; never weaken the check
+merely to make it pass.
+
+Start or resume the cheap release-metadata/attestation slice with the tracked
+registry and an absolute work root outside the checkout:
+
+```powershell
+$expectedCommit = (git rev-parse HEAD).Trim()
+./.venv/bin/python -X utf8 -B scripts/halofpx-fresh-pc-recovery.py `
+  --registry docs/publication/continuation-releases.json `
+  --work-root $env:HALOFPX_RECOVERY_ROOT `
+  --expected-commit $expectedCommit `
+  run --through metadata
+```
+
+That runner is resumable and does not download the bulk release payloads in
+this mode. Interpret its state with the
+[`fresh-PC recovery template`](docs/publication/fresh-pc-recovery-template.md).
+A metadata result is prerequisite evidence only; it is not the full issue #2
+acceptance or a fresh-PC `PASS`.
 
 [MEASURED] Immediately before publication work, the source documentation tree
 passed its manifest check, all 86 wiki sections passed structural and schema

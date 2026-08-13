@@ -93,7 +93,7 @@ For an Ubuntu portability/control host only, the inherited package command is:
 ```bash
 sudo apt-get update
 sudo apt-get install -y git cmake ninja-build build-essential clang pkg-config \
-  glslc vulkan-tools
+  glslc libvulkan-dev spirv-headers vulkan-tools libssl-dev
 ```
 
 ROCm must see the Strix Halo GPU:

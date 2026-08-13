@@ -43,16 +43,29 @@ The generator uses `research/prompts/section_index.yaml` and the present section
 It generates the manifest deterministically:
 
 ```powershell
-python project/research/prompts/tools/generate_wiki_manifest.py project/wiki/HaloFPX_Wiki
-python project/research/prompts/tools/generate_wiki_manifest.py project/wiki/HaloFPX_Wiki --check
+python3.12 -X utf8 -m venv .venv
+./.venv/bin/python -m pip install --requirement requirements/requirements-halofpx-validation.txt
+./.venv/bin/python -X utf8 project/research/prompts/tools/generate_wiki_manifest.py project/wiki/HaloFPX_Wiki
+./.venv/bin/python -X utf8 project/research/prompts/tools/generate_wiki_manifest.py project/wiki/HaloFPX_Wiki --check
 ```
 
 Validate both required artifacts and the permissive-core `section.yaml` contract with:
 
 ```powershell
-python project/research/prompts/tools/validate_wiki.py project/wiki/HaloFPX_Wiki
-python -m unittest discover -s project/research/prompts/tools -p "test_validate_wiki.py"
+./.venv/bin/python -X utf8 -B project/research/prompts/tools/validate_wiki.py project/wiki/HaloFPX_Wiki
+./.venv/bin/python -X utf8 -B -m unittest discover -s project/research/prompts/tools -p "test_*.py"
+./.venv/bin/python -X utf8 -B -m unittest tests/test_halofpx_strix_ab.py tests/test_halofpx_strix_ab_cachyos.py -v
+./.venv/bin/python -X utf8 -B tests/test_materialize_rocmfpx_fixture.py -v
 ```
+
+On Windows, substitute `py -3.12` for environment creation and
+`.\.venv\Scripts\python.exe -X utf8` for `./.venv/bin/python -X utf8`.
+
+The discovery pattern covers both Wiki validator and manifest-generator tests.
+The model-general Strix A/B, CachyOS adapter, and fixture-materialization suites
+are offline contract checks: they do not contact either Strix Halo target,
+download a model, or establish recovery or performance evidence. The fixture
+suite currently contains 12 tests.
 
 The validator enforces registry identity, category, and allowed status values.
 The validator requires real International Organization for Standardization (ISO) dates.

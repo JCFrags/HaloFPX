@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "repository": {
+    "slug": "JCFrags/HaloFPX",
+    "id": 1332159679,
+    "owner_id": 222912166,
+    "visibility": "private"
+  },
+  "storage": {
+    "minimum_free_bytes": 53687091200,
+    "recommended_free_bytes": 64424509440,
+    "all_release_assets_bytes": 24696192820,
+    "all_release_assets_plus_reconstructed_bytes": 44314200024
+  },
+  "releases": [
+    {
+      "tag": "evidence-2026-08-12",
+      "release_id": 369369453,
+      "tag_object": "ddbdc98d5a98ea19fd96daf11d848360721aae74",
+      "peeled_commit": "7c801894062c2e09122c18447da66d50da60c050",
+      "draft": false,
+      "prerelease": false,
+      "immutable": true,
+      "published_at_utc": "2026-08-12T17:25:51Z",
+      "asset_count": 41,
+      "asset_bytes": 23317868085,
+      "asset_authority": {
+        "kind": "publication_manifest",
+        "path": "docs/publication/release-manifest.json",
+        "controls": [
+          {
+            "name": "release-manifest.json",
+            "size_bytes": 8251,
+            "sha256": "317390d10c9194bb44cf769a596d0f5257772f6328d7118d0d1167c7461f0950"
+          },
+          {
+            "name": "SHA256SUMS.txt",
+            "size_bytes": 3876,
+            "sha256": "cbeb29fb2e6cf6b45043bd17db2e925c1e0b4dcd5cff0c3d6f3250745708d827"
+          }
+        ]
+      }
+    },
+    {
+      "tag": "evidence-ffn-q8-reuse-3402aa7-2026-08-12",
+      "release_id": 369641490,
+      "tag_object": "7e68d8a2eaa36a5a115ca2736f6bfca66ee4770f",
+      "peeled_commit": "7e68d8a2eaa36a5a115ca2736f6bfca66ee4770f",
+      "draft": false,
+      "prerelease": true,
+      "immutable": true,
+      "published_at_utc": "2026-08-13T02:59:49Z",
+      "asset_count": 1,
+      "asset_bytes": 40697,
+      "asset_authority": {
+        "kind": "direct",
+        "assets": [
+          {
+            "name": "halofpx-ffn-q8-reuse-3402aa7-evidence-portable.tar.gz",
+            "size_bytes": 40697,
+            "sha256": "7a154b62d665c0a1324a84eda8adadde32006a1467f259bfb7e583f9797a82b0"
+          }
+        ]
+      }
+    },
+    {
+      "tag": "evidence-ffn-q8-reuse-source-bundle-3402aa7-2026-08-12",
+      "release_id": 369647794,
+      "tag_object": "0db715c6e436be88a4d5444763421020f53dc728",
+      "peeled_commit": "0db715c6e436be88a4d5444763421020f53dc728",
+      "draft": false,
+      "prerelease": true,
+      "immutable": true,
+      "published_at_utc": "2026-08-13T03:20:58Z",
+      "asset_count": 1,
+      "asset_bytes": 13082,
+      "asset_authority": {
+        "kind": "direct",
+        "assets": [
+          {
+            "name": "halofpx-ffn-q8-reuse-3402aa7.bundle",
+            "size_bytes": 13082,
+            "sha256": "4526b227b3bd45fe63eecc0c9803788a157d31060aa054c83cde50d91ddadcf6"
+          }
+        ]
+      }
+    },
+    {
+      "tag": "fixture-qwen3-0.6b-rocmfpx-pure-v1",
+      "release_id": 369653983,
+      "tag_object": "44f4ce5b29986e3c0bb6cd8f00238e09d24c00f3",
+      "peeled_commit": "44f4ce5b29986e3c0bb6cd8f00238e09d24c00f3",
+      "draft": false,
+      "prerelease": true,
+      "immutable": true,
+      "published_at_utc": "2026-08-13T03:44:33Z",
+      "asset_count": 9,
+      "asset_bytes": 1378270956,
+      "asset_authority": {
+        "kind": "fixture_receipt",
+        "path": "docs/halofpx/evidence/2026-08-12-qwen3-0.6b-rocmfpx-fixture/publication-receipt.json"
+      }
+    }
+  ]
+}
